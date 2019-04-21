@@ -7,7 +7,7 @@ learning patterns, and more.
 ## Author
 
 + Jesper Kristensen
-+ Jacob Tyrrell
++ Jacob Tyrell
 + Fnu Apoorva
 + Jason Guss
 
