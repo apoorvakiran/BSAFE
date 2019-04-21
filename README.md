@@ -14,4 +14,4 @@ an easy interface, and straightforward ways to further develop and expand the co
 + Fnu Apoorva (CTO)
 + Jason Guss (CEO)
 
-Iterate Labs, All Rights Reserved, Copyright 2018-2019
+Iterate Labs Inc. - All Rights Reserved - Copyright 2018-2019
