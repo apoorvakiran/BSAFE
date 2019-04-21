@@ -61,7 +61,7 @@ class LoadData:
                     if len(line_split) == len(names) and (names[0] == line_split[0] and names[1] == line_split[1]):
                         start_index = ix  # the data starts here
                         if not start_index == current_index:
-                            print("Succes >> We found the start index of the data at {}!".format(start_index))
+                            print("Success >> We found the start index of the data at {}!".format(start_index))
 
                 end_index = None
                 found_end = False

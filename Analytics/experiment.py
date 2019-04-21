@@ -212,7 +212,7 @@ class Experiments(object):
                         continue
 
                     worker_name = os.path.split(worker_this_day_this_task)[1]
-                    all_datafiles_this_worker = glob.glob(os.path.join(worker_this_day_this_task, '{}_*.csv'.format(day_name)))
+                    all_datafiles_this_worker = glob.glob(os.path.join(worker_this_day_this_task, f'{day_name}_*.csv'))
 
                     # extract hand information and job segment (each segment is in between breaks etc.):
                     for file in all_datafiles_this_worker:
@@ -250,7 +250,7 @@ class Experiments(object):
 
         return all_experiments, good_files, bad_files
 
-    def collect(self, type='yaw', loc='hand', delta=False, combine=False,
+    def collect(self, type='yaw', loc='hand', delta_sensors=False, combine=False,
                 task_name=None, hand=None, worker=None, segment=None):
         """
         Collects all tasks with a common name.
@@ -302,7 +302,7 @@ class Experiments(object):
                      )]
 
         # now create each column as a separate worker
-        list_of_data_values = [data.get_data(type=type, loc=loc, delta=delta) for data in list_of_exps]
+        list_of_data_values = [data.get_data(type=type, loc=loc, delta_sensors=delta_sensors) for data in list_of_exps]
 
         if combine:
             # put each varying dimension in a new column
@@ -421,13 +421,49 @@ class Experiment(object):
         return self._name
 
     @property
+    def worker_name(self):
+        return self._meta_data['worker']
+
+    @property
+    def task(self):
+        return self._meta_data['task']
+
+    @property
+    def segment(self):
+        return self._meta_data['segment']
+
+    @property
     def time(self):
         """
         The time associated with the measurements.
 
+        This is an array of time instances:
+        [t1, t2, ..., tn]
+
         :return:
         """
         return self._time
+
+    @property
+    def time_delta(self):
+        """
+        Returns delta time:
+
+        [(t2 - t1), (t3 - t2), ..., (tn - tn-1)]
+
+        :return:
+        """
+        ix = self._time.index
+        if len(ix) == 0:
+            return
+        diff_ = self._time.diff(1)
+        td = np.asarray(list(map(lambda x: x.microseconds / 1e6, diff_)))
+        td = pd.DataFrame(td, index=ix, columns=['time_delta']).fillna(method='backfill')
+        td.index = ix
+
+        assert diff_.iloc[-1].total_seconds() < 1, "Getting time delta assumes intervals < 1 second"
+
+        return td
 
     def _scale(self, data=None):
         return (np.asarray(data) - 0) / (360 - 0)
@@ -452,20 +488,20 @@ class Experiment(object):
         return data
         # return np.degrees(np.arcsin(np.sin(np.radians(data))))
 
-    def get_data(self, type='yaw', loc='hand', interpolate=True, delta=False):
+    def get_data(self, type='yaw', loc='hand', interpolate=True, delta_sensors=False):
 
         if type == 'yaw':
-            data = self.yaw(loc=loc, interpolate=interpolate, delta=delta)
+            data = self.yaw(loc=loc, interpolate=interpolate, delta_sensors=delta_sensors)
         elif type == 'pitch':
-            data = self.pitch(loc=loc, delta=delta)
+            data = self.pitch(loc=loc, delta_sensors=delta_sensors)
         elif type == 'roll':
-            data = self.roll(loc=loc, delta=delta)
+            data = self.roll(loc=loc, delta_sensors=delta_sensors)
         else:
             raise Exception("This is an unknown data type '{}'!".format(type))
 
         return self._transform(data)
 
-    def yaw(self, loc='hand', delta=False, interpolate=True):
+    def yaw(self, loc='hand', delta_sensors=False, delta_time=False, interpolate=True):
         """
         Measures the yaw.
 
@@ -542,34 +578,49 @@ class Experiment(object):
         #
         # plt.show()
 
-        if delta:
-            return self._yaw['delta']
+        if delta_sensors:
+            data = self._yaw['delta']
+        else:
+            data = self._yaw[loc]
 
-        return self._yaw[loc]
+        if delta_time:
+            data = np.r_[0, np.diff(data, 1)]
 
-    def pitch(self, loc='hand', delta=False):
+        return data
+
+    def pitch(self, loc='hand', delta_sensors=False, delta_time=False):
         """
         Measures the pitch.
 
         :param loc:
         :return:
         """
-        if delta:
-            return self._pitch['delta']
+        if delta_sensors:
+            data = self._pitch['delta']
+        else:
+            data = self._pitch[loc]
 
-        return self._pitch[loc]
+        if delta_time:
+            data = np.r_[0, np.diff(data, 1)]
 
-    def roll(self, loc='hand', delta=False):
+        return data
+
+    def roll(self, loc='hand', delta_sensors=False, delta_time=False):
         """
         Measures the roll.
 
         :param loc:
         :return:
         """
-        if delta:
-            return self._roll['delta']
+        if delta_sensors:
+            data = self._roll['delta']
+        else:
+            data = self._roll[loc]
 
-        return self._roll[loc]
+        if delta_time:
+            data = np.r_[0, np.diff(data, 1)]
+
+        return data
 
     def ax(self, loc='hand'):
         """

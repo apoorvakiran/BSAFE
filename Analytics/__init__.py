@@ -11,3 +11,4 @@ from .data import *
 from .experiment import *
 from .rula import *
 from .acceleration import *
+from .metrics import *
