@@ -7,7 +7,8 @@ learning patterns, and more.
 ## Author
 
 + Jesper Kristensen
-+ Jason Guss
++ Jacob Tyrrell
 + Fnu Apoorva
++ Jason Guss
 
-Iterate Labs Copyright 2018-
+Iterate Labs, All Rights Reserved, Copyright 2018-2019
