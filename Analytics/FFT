@@ -1,0 +1,25 @@
+
+%% the file to read the data
+
+%%filename = 'chicken_cutting_data.xlsx';
+theta = 0:0.1:pi;
+sin_theta = 4*sin(4*theta) + 2*sin(8*theta)  + 8*sin(16*theta);
+A = sin_theta;
+L=length(A);
+A_fft = fft(A);
+
+P2 = abs(A_fft/L);
+P1 = P2(1:L/2+1);
+P1(2:end-1) = 2*P1(2:end-1);
+
+Fs = 10;           % Sampling frequency
+t = -0.5:1/Fs:0.5;  % Time vector 
+
+f = Fs*(0:(L/2))/L;
+plot(f,P1); 
+[peak ,pos]=findpeaks(P1);
+fprintf('%i %i \n', [fix(peak),fix(pos)]');
+
+title('Single-Sided Amplitude Spectrum of X(t)')
+xlabel('f (Hz)')
+ylabel('|P1(f)|')
