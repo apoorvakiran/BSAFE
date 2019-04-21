@@ -1,8 +1,8 @@
-# Data Anlytics Platform
+# Data Analytics Platform
 This is the core data analytics platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
 data including code for generating results and insights.
 
-![](data_analytics.jpg)
+<img src="data_analytics.jpg" width="200" height="200" />
 
 ## Authors
 
