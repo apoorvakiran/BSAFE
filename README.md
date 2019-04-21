@@ -1,14 +1,14 @@
-# Data Analytics
-This repo contains the core code and tools useful for pre-processing and reading data, mining data,
-learning patterns, and more.
-  
+# Data Anlytics Platform
+This is the core data analytics platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
+data including code for generating results and insights.
+
 ![](images.png)
 
-## Author
+## Authors
 
 + Jesper Kristensen
 + Jacob Tyrell
-+ Fnu Apoorva
-+ Jason Guss
++ Fnu Apoorva (CTO)
++ Jason Guss (CEO)
 
 Iterate Labs, All Rights Reserved, Copyright 2018-2019
