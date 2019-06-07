@@ -1,4 +1,5 @@
-# Data Analytics Platform
+# Specialized Analytics For Ergonomics
+
 This is the core data analytics platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
 data including code for generating results and insights.
 
