@@ -10,7 +10,7 @@ __all__ = ["ArduinoData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
-from .data import BaseData
+from .base_data import BaseData
 
 
 class ArduinoData(BaseData):

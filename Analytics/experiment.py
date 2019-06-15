@@ -21,7 +21,7 @@ import datetime
 import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
-from Analytics import LoadData
+from Data import LoadData
 
 
 class Experiments(object):

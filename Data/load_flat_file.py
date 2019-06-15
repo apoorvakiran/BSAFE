@@ -11,11 +11,14 @@ __version__ = "Alpha"
 import os
 import requests
 import pandas as pd
+from . import BaseData
 
 
-class LoadData:
+class LoadData(BaseData):
 
     def __init__(self):
+
+        super().__init__()
 
         print("Data loading object created!")
 
