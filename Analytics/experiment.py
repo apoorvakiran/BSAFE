@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
 from Data import LoadData
+import events
+
 
 
 class Experiments(object):
@@ -69,6 +71,7 @@ class Experiments(object):
                 print("Structured data loaded.")
             else:
                 # not structured per se, just load the list of incoming files
+                print('Trying to use the list of names')
                 if list_of_filenames is None or len(list_of_filenames) < 1 or not isinstance(list_of_filenames[0], str):
                     raise Exception("Please provide a valid input for the list of filenames instead of '{}'".
                                     format(list_of_filenames))
@@ -212,7 +215,7 @@ class Experiments(object):
                         continue
 
                     worker_name = os.path.split(worker_this_day_this_task)[1]
-                    all_datafiles_this_worker = glob.glob(os.path.join(worker_this_day_this_task, f'{day_name}_*.csv'))
+                    all_datafiles_this_worker = glob.glob(os.path.join(worker_this_day_this_task, '{}_*.csv'.format(day_name)))
 
                     # extract hand information and job segment (each segment is in between breaks etc.):
                     for file in all_datafiles_this_worker:
@@ -223,6 +226,8 @@ class Experiments(object):
                         segment = basename_list[-2]
 
                         assert basename_list[0].lower() == day_name.lower()
+                        #print(basename_list)
+                        #print(task_name.lower())
                         assert basename_list[2].lower() == task_name.lower()
                         assert basename_list[3].lower() == worker_name.lower()
 
@@ -250,14 +255,12 @@ class Experiments(object):
 
         return all_experiments, good_files, bad_files
 
-    def collect(self, type='yaw', loc='hand', delta_sensors=False, combine=False,
+    def collect(self, type='yaw', loc='hand', delta=False, combine=False,
                 task_name=None, hand=None, worker=None, segment=None):
         """
         Collects all tasks with a common name.
-
         How to call:
             exps.collect(task_name='Membrane Skinner', hand='right', segment='1', type='yaw', delta=True)
-
         :param type:
         :param loc:
         :param delta:
@@ -302,7 +305,7 @@ class Experiments(object):
                      )]
 
         # now create each column as a separate worker
-        list_of_data_values = [data.get_data(type=type, loc=loc, delta_sensors=delta_sensors) for data in list_of_exps]
+        list_of_data_values = [data.get_data(type=type, loc=loc, delta=delta) for data in list_of_exps]
 
         if combine:
             # put each varying dimension in a new column
@@ -316,7 +319,6 @@ class Experiments(object):
     def yaw(self, loc='hand', delta=False, combine=False):
         """
         Returns the yaw.
-
         :param loc:
         :param delta:
         :param combine:
@@ -346,13 +348,13 @@ class Experiment(object):
     _ax = None
     _ay = None
     _az = None
+    _metrics = None
 
     _meta_data = None
 
     def __init__(self, path=None, destination=None, name=None, meta_data=None):
         """
         Construct an experiment class.
-
         :param path:
         :param destination:
         """
@@ -380,6 +382,13 @@ class Experiment(object):
         self._roll['hand'] = data['Roll[0](deg)'].astype(float)
         self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
         self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
+        #
+        delta = deltaVals(self)
+        self._yaw = delta[0]
+        self._pitch = delta[1]
+        self._roll = delta[2]
+
+        self._metrics = events.Metrics(self)
 
         self._ax = dict()
         self._ay = dict()
@@ -411,6 +420,7 @@ class Experiment(object):
         self._gz['wrist'] = data['gz[1](dps)'].astype(float)
 
         self._meta_data = meta_data
+        self.topAndBottom()
 
     @property
     def meta_data(self):
@@ -421,49 +431,12 @@ class Experiment(object):
         return self._name
 
     @property
-    def worker_name(self):
-        return self._meta_data['worker']
-
-    @property
-    def task(self):
-        return self._meta_data['task']
-
-    @property
-    def segment(self):
-        return self._meta_data['segment']
-
-    @property
     def time(self):
         """
         The time associated with the measurements.
-
-        This is an array of time instances:
-        [t1, t2, ..., tn]
-
         :return:
         """
         return self._time
-
-    @property
-    def time_delta(self):
-        """
-        Returns delta time:
-
-        [(t2 - t1), (t3 - t2), ..., (tn - tn-1)]
-
-        :return:
-        """
-        ix = self._time.index
-        if len(ix) == 0:
-            return
-        diff_ = self._time.diff(1)
-        td = np.asarray(list(map(lambda x: x.microseconds / 1e6, diff_)))
-        td = pd.DataFrame(td, index=ix, columns=['time_delta']).fillna(method='backfill')
-        td.index = ix
-
-        assert diff_.iloc[-1].total_seconds() < 1, "Getting time delta assumes intervals < 1 second"
-
-        return td
 
     def _scale(self, data=None):
         return (np.asarray(data) - 0) / (360 - 0)
@@ -481,30 +454,28 @@ class Experiment(object):
         """
         Quadrant fix. Put all angles in [0, 90].
         # TODO: Might need improvement...
-
         :param data:
         :return:
         """
         return data
         # return np.degrees(np.arcsin(np.sin(np.radians(data))))
 
-    def get_data(self, type='yaw', loc='hand', interpolate=True, delta_sensors=False):
+    def get_data(self, type='yaw', loc='hand', interpolate=True, delta=False):
 
         if type == 'yaw':
-            data = self.yaw(loc=loc, interpolate=interpolate, delta_sensors=delta_sensors)
+            data = self.yaw(loc=loc, interpolate=interpolate, delta=delta)
         elif type == 'pitch':
-            data = self.pitch(loc=loc, delta_sensors=delta_sensors)
+            data = self.pitch(loc=loc, delta=delta)
         elif type == 'roll':
-            data = self.roll(loc=loc, delta_sensors=delta_sensors)
+            data = self.roll(loc=loc, delta=delta)
         else:
             raise Exception("This is an unknown data type '{}'!".format(type))
 
         return self._transform(data)
 
-    def yaw(self, loc='hand', delta_sensors=False, delta_time=False, interpolate=True):
+    def yaw(self, loc='hand', delta=False, interpolate=True):
         """
         Measures the yaw.
-
         :param loc:
         :return:
         """
@@ -578,54 +549,36 @@ class Experiment(object):
         #
         # plt.show()
 
-        if delta_sensors:
-            data = self._yaw['delta']
-        else:
-            data = self._yaw[loc]
+        if delta:
+            return self._yaw['delta']
 
-        if delta_time:
-            data = np.r_[0, np.diff(data, 1)]
+        return self._yaw[loc]
 
-        return data
-
-    def pitch(self, loc='hand', delta_sensors=False, delta_time=False):
+    def pitch(self, loc='hand', delta=False):
         """
         Measures the pitch.
-
         :param loc:
         :return:
         """
-        if delta_sensors:
-            data = self._pitch['delta']
-        else:
-            data = self._pitch[loc]
+        if delta:
+            return self._pitch['delta']
 
-        if delta_time:
-            data = np.r_[0, np.diff(data, 1)]
+        return self._pitch[loc]
 
-        return data
-
-    def roll(self, loc='hand', delta_sensors=False, delta_time=False):
+    def roll(self, loc='hand', delta=False):
         """
         Measures the roll.
-
         :param loc:
         :return:
         """
-        if delta_sensors:
-            data = self._roll['delta']
-        else:
-            data = self._roll[loc]
+        if delta:
+            return self._roll['delta']
 
-        if delta_time:
-            data = np.r_[0, np.diff(data, 1)]
-
-        return data
+        return self._roll[loc]
 
     def ax(self, loc='hand'):
         """
         Returns the linear accelerations along x.
-
         :param loc:
         :return:
         """
@@ -635,7 +588,6 @@ class Experiment(object):
     def ay(self, loc='hand'):
         """
         Returns the linear accelerations along y.
-
         :param loc:
         :return:
         """
@@ -645,7 +597,6 @@ class Experiment(object):
     def az(self, loc='hand'):
         """
         Returns the linear accelerations along z.
-
         :param loc:
         :return:
         """
@@ -655,7 +606,6 @@ class Experiment(object):
     def gx(self, loc='hand'):
         """
         Angular velocity around x-axis.
-
         :param loc:
         :return:
         """
@@ -665,7 +615,6 @@ class Experiment(object):
     def gy(self, loc='hand'):
         """
         Angular velocity around y-axis.
-
         :param loc:
         :return:
         """
@@ -675,7 +624,6 @@ class Experiment(object):
     def gz(self, loc='hand'):
         """
         Angular velocity around z-axis.
-
         :param loc:
         :return:
         """
@@ -709,58 +657,58 @@ class Experiment(object):
         return alpha_interp(x_conv)
         
         
-    def quadCorrect(self, swing = 180):
-     """
-     Take an experiment object and reduce large swings in angle from measurement to measurement.
-     swing is the maximum value by which an angle will be allowed to change in one timestep
-     """
+    #def quadCorrect(self, swing = 180):
+    # """
+    # Take an experiment object and reduce large swings in angle from measurement to measurement.
+    # swing is the maximum value by which an angle will be allowed to change in one timestep
+    # """
      #start by grabbing the length of the array
-     lend=len(self._time)
-     dictions=[self._yaw, self._pitch, self._roll]
-     #these three dictionaries need to be checked and updated on multiple values
-     n=1
-     #Switching to np array objects, easier to perform updates here.
-     self._yaw['hand']=np.array(self._yaw['hand'])
-     self._yaw['wrist']=np.array(self._yaw['wrist'])
-     self._yaw['delta']=np.array(self._yaw['delta'])
-     self._pitch['hand']=np.array(self._pitch['hand'])
-     self._pitch['wrist']=np.array(self._pitch['wrist'])
-     self._pitch['delta']=np.array(self._pitch['delta'])
-     self._roll['hand']=np.array(self._roll['hand'])
-     self._roll['wrist']=np.array(self._roll['wrist'])
-     self._roll['delta']=np.array(self._roll['delta'])
-     while (n<lend) :
-      for set in dictions:
-        changed=False #set to true if changes are made, then update delta.
-        #print(set.keys())
-        handSwing=abs(set['hand'][n]-set['hand'][n-1])
-        #print(handSwing)
-        wristSwing=abs(set['wrist'][n]-set['wrist'][n-1])
-        if (handSwing >swing):
-          #print(set['hand'][n-1])
-          set['hand'][n]=set['hand'][n-1] #sets it to the previous value (swing of 0)
-          #print(set['hand'][n])
-          changed=True
-        if (wristSwing>swing):
-          set['wrist'][n]=set['wrist'][n-1]
-          changed=True
-        if changed:
-          set['delta'][n]=set['wrist'][n]-set['hand'][n]
-        #print('Updated quadrant for value ' + str(n))
-        #print(handSwing)
-        #print(wristSwing)
-      n=n+1
-    #Transferring between Series and np.array objects, back to a Series.
-     self._yaw['hand']=pd.Series(self._yaw['hand'])
-     self._yaw['wrist']=pd.Series(self._yaw['wrist'])
-     self._yaw['delta']=pd.Series(self._yaw['delta'])
-     self._pitch['hand']=pd.Series(self._pitch['hand'])
-     self._pitch['wrist']=pd.Series(self._pitch['wrist'])
-     self._pitch['delta']=pd.Series(self._pitch['delta'])
-     self._roll['hand']=pd.Series(self._roll['hand'])
-     self._roll['wrist']=pd.Series(self._roll['wrist'])
-     self._roll['delta']=pd.Series(self._roll['delta'])
-     return(self) 
+    # lend=len(self._time)
+    # dictions=[self._yaw, self._pitch, self._roll]
+    # #these three dictionaries need to be checked and updated on multiple values
+    # n=1
+    # #Switching to np array objects, easier to perform updates here.
+    # self._yaw['hand']=np.array(self._yaw['hand'])
+    # self._yaw['wrist']=np.array(self._yaw['wrist'])
+    # self._yaw['delta']=np.array(self._yaw['delta'])
+    # self._pitch['hand']=np.array(self._pitch['hand'])
+    # self._pitch['wrist']=np.array(self._pitch['wrist'])
+    # self._pitch['delta']=np.array(self._pitch['delta'])
+    # self._roll['hand']=np.array(self._roll['hand'])
+    # self._roll['wrist']=np.array(self._roll['wrist'])
+    # self._roll['delta']=np.array(self._roll['delta'])
+    # while (n<lend) :
+    #  for set in dictions:
+    #    changed=False #set to true if changes are made, then update delta.
+    #    #print(set.keys())
+    #    handSwing=abs(set['hand'][n]-set['hand'][n-1])
+    #    #print(handSwing)
+    #    wristSwing=abs(set['wrist'][n]-set['wrist'][n-1])
+    #    if (handSwing >swing):
+    #      #print(set['hand'][n-1])
+    #      set['hand'][n]=set['hand'][n-1] #sets it to the previous value (swing of 0)
+    #      #print(set['hand'][n])
+    #      changed=True
+    #    if (wristSwing>swing):
+    #      set['wrist'][n]=set['wrist'][n-1]
+    #      changed=True
+    #    if changed:
+    #      set['delta'][n]=set['wrist'][n]-set['hand'][n]
+    #    #print('Updated quadrant for value ' + str(n))
+    #    #print(handSwing)
+    #    #print(wristSwing)
+    #  n=n+1
+    ##Transferring between Series and np.array objects, back to a Series.
+    # self._yaw['hand']=pd.Series(self._yaw['hand'])
+    # self._yaw['wrist']=pd.Series(self._yaw['wrist'])
+    # self._yaw['delta']=pd.Series(self._yaw['delta'])
+    # self._pitch['hand']=pd.Series(self._pitch['hand'])
+    # self._pitch['wrist']=pd.Series(self._pitch['wrist'])
+    # self._pitch['delta']=pd.Series(self._pitch['delta'])
+    # self._roll['hand']=pd.Series(self._roll['hand'])
+    # self._roll['wrist']=pd.Series(self._roll['wrist'])
+    # self._roll['delta']=pd.Series(self._roll['delta'])
+    # return(self)
 
     def truncate(self, lowEnd, highEnd):
       """
@@ -839,4 +787,75 @@ class Experiment(object):
      endPoint=n+200
      #print(''+str(startPoint) + '  , ' + str(endPoint))
      return(self.truncate(startPoint,endPoint))
-   
+
+
+def deltaVals(experiment):
+        handy = list(experiment.yaw(loc='hand')) - np.mean(experiment.yaw(loc='hand'))
+        wristy = list(experiment.yaw(loc='wrist')) - np.mean(experiment.yaw(loc='wrist'))
+        handp = list(experiment.pitch(loc='hand')) - np.mean(experiment.pitch(loc='hand'))
+        wristp = list(experiment.pitch(loc='wrist')) - np.mean(experiment.pitch(loc='wrist'))
+        handr = list(experiment.roll(loc='hand')) - np.mean(experiment.roll(loc='hand'))
+        wristr = list(experiment.roll(loc='wrist')) - np.mean(experiment.roll(loc='wrist'))
+        newHandy = newVals(handy)
+        newWristy = newVals(wristy)
+        newHandp = newVals(handp)
+        newWristp = newVals(wristp)
+        newHandr = newVals(handr)
+        newWristr = newVals(wristr)
+        yawz = {}
+        yawz['hand'] = quadz(newHandy)
+        yawz['wrist'] = quadz(newWristy)
+        yawz['delta'] = quadz(newWristy - newHandy)
+        pitchz = {}
+        pitchz['hand'] = quadz(newHandp)
+        pitchz['wrist'] = quadz(newWristp)
+        pitchz['delta'] = quadz(newWristp - newHandp)
+        rollz = {}
+        rollz['hand'] = quadz(newHandr)
+        rollz['wrist'] = quadz(newWristr)
+        rollz['delta'] = quadz(newWristr - newHandr)
+        return [yawz, pitchz, rollz]
+
+def newVals(listy):
+        """takes a list of angle data and returns a list
+        of data centered on 0"""
+        newList = listy - np.mean(listy)
+        return (newList)
+
+
+def quadz(listy):
+        # print(listy)
+        n = 0
+        try:
+            while n < len(listy):
+                if listy[n] > 180:
+                    listy[n] = listy[n] - 360
+                if listy[n] < -180:
+                    listy[n] = listy[n] + 360
+                n = n + 1
+        except:
+            print("Failure on processing quadrant correction for ")
+            print(listy)
+        return quadzTwo(listy)
+
+
+def quadzTwo(listy):
+        n = 0
+        try:
+            while n < len(listy):
+                if listy[n]>90:
+                    if n > 0:
+                        listy[n] = listy[n - 1]
+                    else:
+                        listy[n]=90
+                if listy[n] < -90:
+                    if n > 0:
+                        listy[n] = listy[n - 1]
+                    else:
+                        listy[n]=-90
+                n = n + 1
+        except:
+            print("Failure in Quadztwo")
+        return listy
+
+
