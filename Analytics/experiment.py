@@ -24,7 +24,6 @@ from scipy.interpolate import UnivariateSpline
 from Data import LoadData
 from Analytics.metrics import Metrics
 
-
 class Experiments(object):
     """
     Holds multiple experiments at the same time.
@@ -36,7 +35,7 @@ class Experiments(object):
     _all_segments = None
     _all_hands = None
     _all_tasks = None
-    _good_files =  None
+    _good_files = None
     _bad_files = None
 
     def __init__(self, basepath=None, is_structured=False, list_of_filenames=None, cache_path='cache_experiments.pkl',
@@ -85,14 +84,12 @@ class Experiments(object):
                 for fn in list_of_filenames:
                     try:
                         exp = Experiment(path=os.path.join(basepath, fn),
-                                                  name=os.path.splitext(fn)[0],
-                                                  destination='.')
+                                         name=os.path.splitext(fn)[0],
+                                         destination='.')
                         good_files.append(os.path.split(fn)[1])
                         experiments.append(exp)
                     except Exception as e:
                         bad_files[os.path.split(fn)[1]] = e
-
-
 
                 self._good_files = good_files
                 self._bad_files = bad_files
@@ -113,10 +110,14 @@ class Experiments(object):
         if len(self._experiments) == 0:
             raise Exception("There were no experiments loaded?")
 
-        self._all_workers = list(np.unique([exp.meta_data['worker'].lower().strip().replace(' ', '') for exp in self._experiments]))
-        self._all_segments = list(np.unique([exp.meta_data['segment'].lower().strip().replace(' ', '') for exp in self._experiments]))
-        self._all_hands = list(np.unique([exp.meta_data['hand'].lower().strip().replace(' ', '') for exp in self._experiments]))
-        self._all_tasks = list(np.unique([exp.meta_data['task_name'].lower().strip().replace(' ', '') for exp in self._experiments]))
+        self._all_workers = list(
+            np.unique([exp.meta_data['worker'].lower().strip().replace(' ', '') for exp in self._experiments]))
+        self._all_segments = list(
+            np.unique([exp.meta_data['segment'].lower().strip().replace(' ', '') for exp in self._experiments]))
+        self._all_hands = list(
+            np.unique([exp.meta_data['hand'].lower().strip().replace(' ', '') for exp in self._experiments]))
+        self._all_tasks = list(
+            np.unique([exp.meta_data['task_name'].lower().strip().replace(' ', '') for exp in self._experiments]))
 
         print("Number of good files = {}".format(len(self.good_files)))
         print("Number of bad files = {}".format(len(self.bad_files)))
@@ -147,7 +148,6 @@ class Experiments(object):
                                         exp.meta_data['worker'].lower().strip().replace(' ', '') == worker and
                                         exp.meta_data['segment'].lower().strip().replace(' ', '') == segment and
                                         exp.meta_data['task_name'].lower().strip().replace(' ', '') == task):
-
                                     all_data[task].append(exp.get_data(type=type, loc=loc, delta=delta))
 
         return all_data
@@ -219,7 +219,8 @@ class Experiments(object):
                         continue
 
                     worker_name = os.path.split(worker_this_day_this_task)[1]
-                    all_datafiles_this_worker = glob.glob(os.path.join(worker_this_day_this_task, '{}_*.csv'.format(day_name)))
+                    all_datafiles_this_worker = glob.glob(
+                        os.path.join(worker_this_day_this_task, '{}_*.csv'.format(day_name)))
 
                     # extract hand information and job segment (each segment is in between breaks etc.):
                     for file in all_datafiles_this_worker:
@@ -230,8 +231,8 @@ class Experiments(object):
                         segment = basename_list[-2]
 
                         assert basename_list[0].lower() == day_name.lower()
-                        #print(basename_list)
-                        #print(task_name.lower())
+                        # print(basename_list)
+                        # print(task_name.lower())
                         assert basename_list[2].lower() == task_name.lower()
                         assert basename_list[3].lower() == worker_name.lower()
 
@@ -243,9 +244,13 @@ class Experiments(object):
                                                   meta_data={'hand': hand, 'segment': segment, 'worker': worker_name,
                                                              'task_name': task_name, 'filename': file,
                                                              'basepath': basepath,
-                                                             'date_loaded': datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')})
+                                                             'date_loaded': datetime.datetime.today().strftime(
+                                                                 '%Y-%m-%d %H:%M:%S')})
                         except Exception as e:
-                            print("There was an error '{}' in loading the data at {}, continuing...".format(e, os.path.split(file)[1]))
+                            print("There was an error '{}' in loading the data at {}, continuing...".format(e,
+                                                                                                            os.path.split(
+                                                                                                                file)[
+                                                                                                                1]))
                             # import pdb
                             # pdb.set_trace()
                             bad_files[os.path.split(file)[1]] = e
@@ -303,10 +308,10 @@ class Experiments(object):
             #          )]
 
             list_of_exps = [exp for exp in self._experiments if \
-                    (exp.meta_data['task_name'].lower().strip().replace(' ', '') == task_name and
-                     exp.meta_data['hand'].lower().strip().replace(' ', '') == hand and
-                     exp.meta_data['segment'].lower().strip().replace(' ', '') == segment
-                     )]
+                            (exp.meta_data['task_name'].lower().strip().replace(' ', '') == task_name and
+                             exp.meta_data['hand'].lower().strip().replace(' ', '') == hand and
+                             exp.meta_data['segment'].lower().strip().replace(' ', '') == segment
+                             )]
 
         # now create each column as a separate worker
         list_of_data_values = [data.get_data(type=type, loc=loc, delta=delta) for data in list_of_exps]
@@ -334,6 +339,70 @@ class Experiments(object):
 
         import pdb
         pdb.set_trace()
+
+    def printer(self, outfile):
+        totalz = self.totaller()
+        printed = open(outfile, 'w')
+        printed.write(
+            'Day, Shift, Task, Worker, Segment, Hand, Motion - Pitch, Motion - Yaw, Motion - Roll, Motion, Posture, Speed - Pitch, Speed - Yaw, Speed - Roll')
+        printed.write('\n')
+        for key in totalz:
+            printed.write(key)
+            printed.write("\n")
+            scores = []
+            for score in totalz[key]:
+                scores.append(score)
+            scores.sort(reverse=True)
+            n = 0
+            summary = [0, 0, 0, 0, 0, 0, 0, 0]
+            while n < len(scores):
+                for exp in totalz[key][scores[n]]:
+                    metric = exp._metrics
+                    motion = metric._motion
+                    summary[0] = summary[0] + motion[0]
+                    summary[1] = summary[1] + motion[1]
+                    summary[2] = summary[2] + motion[2]
+                    summary[3] = summary[3] + motion[3]
+                    post = metric._posture
+                    summary[4] = summary[4] + post
+                    speeds = metric._speed
+                    summary[5] = summary[5] + speeds[0]
+                    summary[6] = summary[6] + speeds[1]
+                    summary[7] = summary[7] + speeds[2]
+                    name = exp.name.replace('_', ', ')
+                    printed.write(name + ", " + str(motion[0]) + ", " + str(motion[1]) + ", " + str(motion[2]) + ", "
+                                  + str(motion[3]) + ", " + str(post) + ", " + str(speeds[0]) + ", " +
+                                  str(speeds[1]) + ", " + str(speeds[2]) + ", " + "\n")
+                n = n + 1
+            summary[0] = np.mean(summary[0]) / n
+            summary[1] = np.mean(summary[1]) / n
+            summary[2] = np.mean(summary[2]) / n
+            summary[3] = np.mean(summary[3]) / n
+            summary[4] = np.mean(summary[4]) / n
+            summary[5] = np.mean(summary[5]) / n
+            summary[6] = np.mean(summary[6]) / n
+            summary[7] = np.mean(summary[7]) / n
+            printed.write(",,,, ,, " + str(summary[0]) + ", " + str(summary[1]) + "," +
+                          str(summary[2]) + ", " + str(summary[3]) + ", " + str(summary[4]) + ", " + str(summary[5]) +
+                          ", " + str(summary[6]) + ", " + str(summary[7]) + "\n")
+            printed.write("\n")
+        printed.close()
+
+    def totaller(self):
+        rankings = {}
+        for exp in self._experiments:
+            name = exp.name.split('_')
+            task = name[2]
+            score = exp._metrics._motion[3]
+            if task not in rankings:
+                rankings[task] = {}
+                rankings[task][score] = [exp]
+            else:
+                if score not in rankings[task]:
+                    rankings[task][score] = [exp]
+                else:
+                    rankings[task][score].append(exp)
+        return rankings
 
 
 class Experiment(object):
@@ -637,7 +706,7 @@ class Experiment(object):
     def angular_acc_x(self, loc='hand'):
         """
         Angular acceleration around x-axis.
-     
+
         :param loc:
         :return:
         """
@@ -657,16 +726,15 @@ class Experiment(object):
         # plt.plot(x, w, 'r--')
         # plt.plot(x, w_interp(x_conv), 'bx')
         # plt.show()
-      
+
         return alpha_interp(x_conv)
-        
-        
-    #def quadCorrect(self, swing = 180):
+
+    # def quadCorrect(self, swing = 180):
     # """
     # Take an experiment object and reduce large swings in angle from measurement to measurement.
     # swing is the maximum value by which an angle will be allowed to change in one timestep
     # """
-     #start by grabbing the length of the array
+    # start by grabbing the length of the array
     # lend=len(self._time)
     # dictions=[self._yaw, self._pitch, self._roll]
     # #these three dictionaries need to be checked and updated on multiple values
@@ -715,151 +783,152 @@ class Experiment(object):
     # return(self)
 
     def truncate(self, lowEnd, highEnd):
-      """
-      Going to truncate to just the low:high values in the data ranges.
-      """
-      for key in self._yaw:
-         self._yaw[key]=self._yaw[key][lowEnd:highEnd]
-            
-      for key in self._pitch:
-          self._pitch[key]=self._pitch[key][lowEnd:highEnd]
-            
-      for key in self._roll:
-         self._roll[key]=self._roll[key][lowEnd:highEnd]
-          
-      for key in self._ax:
-         self._ax[key]=self._ax[key][lowEnd:highEnd]
-            
-      for key in self._ay:
-         self._ay[key]=self._ay[key][lowEnd:highEnd]
-         
-      for key in self._az:
-            self._az[key]=self._az[key][lowEnd:highEnd]
-          
-      self._time=self._time[lowEnd:highEnd]
-          
-      return(self)
+        """
+        Going to truncate to just the low:high values in the data ranges.
+        """
+        for key in self._yaw:
+            self._yaw[key] = self._yaw[key][lowEnd:highEnd]
+
+        for key in self._pitch:
+            self._pitch[key] = self._pitch[key][lowEnd:highEnd]
+
+        for key in self._roll:
+            self._roll[key] = self._roll[key][lowEnd:highEnd]
+
+        for key in self._ax:
+            self._ax[key] = self._ax[key][lowEnd:highEnd]
+
+        for key in self._ay:
+            self._ay[key] = self._ay[key][lowEnd:highEnd]
+
+        for key in self._az:
+            self._az[key] = self._az[key][lowEnd:highEnd]
+
+        self._time = self._time[lowEnd:highEnd]
+
+        return (self)
 
     def topAndBottom(self):
-     """
-     Toss an experiment at this, it will return a truncated experiment
-     Discards values until a point where standard deviation has been higher for 30 seconds
-     than it was in the first 10 seconds, for both pitch and yaw.
-     Does the same for the end of the list, discarding the end values.
-     """
-     yawDel=self.get_data(type='yaw', delta=True)
-     startYawDev=scipy.std(yawDel[0:100])
-     pitchDel=self.get_data(type='pitch', delta=True)
-     startPitchDev=scipy.std(pitchDel[0:100])
-     n=0
-     lastThreeYaw=[0,0,0]
-     lastThreePitch=[0,0,0]
-     while (startYawDev>=lastThreeYaw[0] or \
-        startYawDev>=lastThreeYaw[1] or \
-        startYawDev>=lastThreeYaw[2] or \
-        startPitchDev>=lastThreePitch[0] or \
-        startPitchDev>=lastThreePitch[1] or \
-        startPitchDev>=lastThreePitch[2]):
-        highEnd=n+99
-        lastThreeYaw.pop(0)
-        lastThreePitch.pop(0)
-        lastThreeYaw.append(scipy.std(yawDel[n:highEnd]))
-        lastThreePitch.append(scipy.std(pitchDel[n:highEnd]))
-        #print(startPitchDev)
-        #print(lastThreePitch)
-        #print(startYawDev)
-        #print(lastThreeYaw)
-        n=n+100
-     startPoint=n-200
-     #print(startPoint)
-     #print(n)
-     n=-1
-     lastThreeYaw=[0,0,0]
-     lastThreePitch=[0,0,0]
-     while (startYawDev>=lastThreeYaw[0] or \
-        startYawDev>=lastThreeYaw[1] or \
-        startYawDev>=lastThreeYaw[2] or \
-        startPitchDev>=lastThreePitch[0] or \
-        startPitchDev>=lastThreePitch[1] or \
-        startPitchDev>=lastThreePitch[2]):
-        lowEnd=n-99
-        lastThreeYaw.pop(0)
-        lastThreePitch.pop(0)
-        lastThreeYaw.append(scipy.std(yawDel[lowEnd:n]))
-        lastThreePitch.append(scipy.std(pitchDel[lowEnd:n]))
-        n=n-100
-     endPoint=n+200
-     #print(''+str(startPoint) + '  , ' + str(endPoint))
-     return(self.truncate(startPoint,endPoint))
+        """
+        Toss an experiment at this, it will return a truncated experiment
+        Discards values until a point where standard deviation has been higher for 30 seconds
+        than it was in the first 10 seconds, for both pitch and yaw.
+        Does the same for the end of the list, discarding the end values.
+        """
+        yawDel = self.get_data(type='yaw', delta=True)
+        startYawDev = scipy.std(yawDel[0:100])
+        pitchDel = self.get_data(type='pitch', delta=True)
+        startPitchDev = scipy.std(pitchDel[0:100])
+        n = 0
+        lastThreeYaw = [0, 0, 0]
+        lastThreePitch = [0, 0, 0]
+        while (startYawDev >= lastThreeYaw[0] or
+               startYawDev >= lastThreeYaw[1] or
+               startYawDev >= lastThreeYaw[2] or
+               startPitchDev >= lastThreePitch[0] or
+               startPitchDev >= lastThreePitch[1] or
+               startPitchDev >= lastThreePitch[2]):
+            highEnd = n + 99
+            lastThreeYaw.pop(0)
+            lastThreePitch.pop(0)
+            lastThreeYaw.append(scipy.std(yawDel[n:highEnd]))
+            lastThreePitch.append(scipy.std(pitchDel[n:highEnd]))
+            # print(startPitchDev)
+            # print(lastThreePitch)
+            # print(startYawDev)
+            # print(lastThreeYaw)
+            n = n + 100
+        startPoint = n - 200
+        # print(startPoint)
+        # print(n)
+        n = -1
+        lastThreeYaw = [0, 0, 0]
+        lastThreePitch = [0, 0, 0]
+        while (startYawDev >= lastThreeYaw[0] or \
+               startYawDev >= lastThreeYaw[1] or \
+               startYawDev >= lastThreeYaw[2] or \
+               startPitchDev >= lastThreePitch[0] or \
+               startPitchDev >= lastThreePitch[1] or \
+               startPitchDev >= lastThreePitch[2]):
+            lowEnd = n - 99
+            lastThreeYaw.pop(0)
+            lastThreePitch.pop(0)
+            lastThreeYaw.append(scipy.std(yawDel[lowEnd:n]))
+            lastThreePitch.append(scipy.std(pitchDel[lowEnd:n]))
+            n = n - 100
+        endPoint = n + 200
+        # print(''+str(startPoint) + '  , ' + str(endPoint))
+        return (self.truncate(startPoint, endPoint))
 
 
 def deltaVals(experiment):
-        handy = list(experiment.yaw(loc='hand')) - np.mean(experiment.yaw(loc='hand'))
-        wristy = list(experiment.yaw(loc='wrist')) - np.mean(experiment.yaw(loc='wrist'))
-        handp = list(experiment.pitch(loc='hand')) - np.mean(experiment.pitch(loc='hand'))
-        wristp = list(experiment.pitch(loc='wrist')) - np.mean(experiment.pitch(loc='wrist'))
-        handr = list(experiment.roll(loc='hand')) - np.mean(experiment.roll(loc='hand'))
-        wristr = list(experiment.roll(loc='wrist')) - np.mean(experiment.roll(loc='wrist'))
-        newHandy = newVals(handy)
-        newWristy = newVals(wristy)
-        newHandp = newVals(handp)
-        newWristp = newVals(wristp)
-        newHandr = newVals(handr)
-        newWristr = newVals(wristr)
-        yawz = {}
-        yawz['hand'] = quadz(newHandy)
-        yawz['wrist'] = quadz(newWristy)
-        yawz['delta'] = quadz(newWristy - newHandy)
-        pitchz = {}
-        pitchz['hand'] = quadz(newHandp)
-        pitchz['wrist'] = quadz(newWristp)
-        pitchz['delta'] = quadz(newWristp - newHandp)
-        rollz = {}
-        rollz['hand'] = quadz(newHandr)
-        rollz['wrist'] = quadz(newWristr)
-        rollz['delta'] = quadz(newWristr - newHandr)
-        return [yawz, pitchz, rollz]
+    handy = list(experiment.yaw(loc='hand')) - np.mean(experiment.yaw(loc='hand'))
+    wristy = list(experiment.yaw(loc='wrist')) - np.mean(experiment.yaw(loc='wrist'))
+    handp = list(experiment.pitch(loc='hand')) - np.mean(experiment.pitch(loc='hand'))
+    wristp = list(experiment.pitch(loc='wrist')) - np.mean(experiment.pitch(loc='wrist'))
+    handr = list(experiment.roll(loc='hand')) - np.mean(experiment.roll(loc='hand'))
+    wristr = list(experiment.roll(loc='wrist')) - np.mean(experiment.roll(loc='wrist'))
+    newHandy = newVals(handy)
+    newWristy = newVals(wristy)
+    newHandp = newVals(handp)
+    newWristp = newVals(wristp)
+    newHandr = newVals(handr)
+    newWristr = newVals(wristr)
+    yawz = {}
+    yawz['hand'] = quadz(newHandy)
+    yawz['wrist'] = quadz(newWristy)
+    yawz['delta'] = quadz(newWristy - newHandy)
+    pitchz = {}
+    pitchz['hand'] = quadz(newHandp)
+    pitchz['wrist'] = quadz(newWristp)
+    pitchz['delta'] = quadz(newWristp - newHandp)
+    rollz = {}
+    rollz['hand'] = quadz(newHandr)
+    rollz['wrist'] = quadz(newWristr)
+    rollz['delta'] = quadz(newWristr - newHandr)
+    return [yawz, pitchz, rollz]
+
 
 def newVals(listy):
-        """takes a list of angle data and returns a list
-        of data centered on 0"""
-        newList = listy - np.mean(listy)
-        return (newList)
+    """takes a list of angle data and returns a list
+    of data centered on 0"""
+    newList = listy - np.mean(listy)
+    return (newList)
 
 
 def quadz(listy):
-        # print(listy)
-        n = 0
-        try:
-            while n < len(listy):
-                if listy[n] > 180:
-                    listy[n] = listy[n] - 360
-                if listy[n] < -180:
-                    listy[n] = listy[n] + 360
-                n = n + 1
-        except:
-            print("Failure on processing quadrant correction for ")
-            print(listy)
-        return quadzTwo(listy)
+    # print(listy)
+    n = 0
+    try:
+        while n < len(listy):
+            if listy[n] > 180:
+                listy[n] = listy[n] - 360
+            if listy[n] < -180:
+                listy[n] = listy[n] + 360
+            n = n + 1
+    except:
+        print("Failure on processing quadrant correction for ")
+        print(listy)
+    return quadzTwo(listy)
 
 
 def quadzTwo(listy):
-        n = 0
-        try:
-            while n < len(listy):
-                if listy[n]>90:
-                    if n > 0:
-                        listy[n] = listy[n - 1]
-                    else:
-                        listy[n]=90
-                if listy[n] < -90:
-                    if n > 0:
-                        listy[n] = listy[n - 1]
-                    else:
-                        listy[n]=-90
-                n = n + 1
-        except:
-            print("Failure in Quadztwo")
-        return listy
+    n = 0
+    try:
+        while n < len(listy):
+            if listy[n] > 90:
+                if n > 0:
+                    listy[n] = listy[n - 1]
+                else:
+                    listy[n] = 90
+            if listy[n] < -90:
+                if n > 0:
+                    listy[n] = listy[n - 1]
+                else:
+                    listy[n] = -90
+            n = n + 1
+    except:
+        print("Failure in Quadztwo")
+    return listy
 
 
