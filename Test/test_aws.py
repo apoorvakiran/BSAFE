@@ -18,7 +18,7 @@ from Data import upload_data_to_aws_s3, download_from_aws_s3
 
 def test_upload():
     # Let's upload a file to the S3 bucket
-    # create a test file:
+    # create a test file (any file for now):
     os.system("touch data_from_glove_example.txt")
 
     upload_data_to_aws_s3(bucketname='thisisacoolbucket1234',
@@ -28,6 +28,8 @@ def test_upload():
 
     # now remove the file locally:
     os.remove("data_from_glove_example.txt")
+
+    # at this point, we can upload to the bucket!
 
 def test_download():
 
@@ -44,3 +46,5 @@ def test_download():
     os.remove(local_filename)  # remove the downloaded file
 
     print("Data was downloaded correctly!")
+
+    # at this point we can download the data from the bucket!
