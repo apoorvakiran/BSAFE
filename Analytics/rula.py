@@ -12,8 +12,7 @@ __version__ = "Alpha"
 import numpy as np
 import matplotlib
 
-font = {'family' : 'normal',
-        'size'   : 12}
+font = {'family': 'normal', 'size': 12}
 matplotlib.rc('font', **font)
 
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Holds an Experiment.
+Holds an Experiment object and everything related to it.
 
-@ author Jesper Kristensen
+@ author Jesper Kristensen, Jacob Tyrrell
 Copyright 2018
 """
 
@@ -22,8 +22,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
 from Data import LoadData
-import events
-
+from Analytics.metrics import Metrics
 
 
 class Experiments(object):
@@ -40,7 +39,8 @@ class Experiments(object):
     _good_files =  None
     _bad_files = None
 
-    def __init__(self, basepath=None, is_structured=False, list_of_filenames=None, cache_path='cache_experiments.pkl'):
+    def __init__(self, basepath=None, is_structured=False, list_of_filenames=None, cache_path='cache_experiments.pkl',
+                 ignore_cache=False):
         """
         From a list of incoming files, construct a set of experiments
         :param basepath:
@@ -53,7 +53,7 @@ class Experiments(object):
             raise Exception("Your input: The data is not structured and there is no list of filenames provided?\n"
                             "Please provide at least one of the two!")
 
-        if os.path.isfile(cache_path):
+        if not ignore_cache and os.path.isfile(cache_path):
             print("Loading experiments from cache at location '{}'".format(cache_path))
 
             with open(cache_path, 'rb') as fd:
@@ -64,7 +64,10 @@ class Experiments(object):
             self._bad_files = cache['bad_files']
 
         else:
-            print("Cache not found at location '{}', computing from scratch".format(cache_path))
+            if ignore_cache:
+                print("Cache is ignored. Compute from scratch.")
+            else:
+                print("Cache not found at location '{}', computing from scratch".format(cache_path))
 
             if is_structured:
                 experiments, good_files, bad_files = self._load_structured_data(basepath=basepath)
@@ -182,11 +185,12 @@ class Experiments(object):
         """
         all_experiments = []
         all_days_init = glob.glob(os.path.join(basepath, '*'))
+
         all_days_used = []
         good_files = []
         bad_files = {}
         for day in all_days_init:
-            # for each day...
+            # for each day data was collected... Wednesday, Thursday, ...
 
             if not os.path.isdir(day):
                 continue
@@ -388,7 +392,7 @@ class Experiment(object):
         self._pitch = delta[1]
         self._roll = delta[2]
 
-        self._metrics = events.Metrics(self)
+        self._metrics = Metrics(self)  # send in an experiment to "Metrics"
 
         self._ax = dict()
         self._ay = dict()
