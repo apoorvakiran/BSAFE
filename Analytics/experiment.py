@@ -86,6 +86,8 @@ class Experiments(object):
                         exp = Experiment(path=os.path.join(basepath, fn),
                                          name=os.path.splitext(fn)[0],
                                          destination='.')
+                        import pdb
+                        pdb.set_trace()
                         good_files.append(os.path.split(fn)[1])
                         experiments.append(exp)
                     except Exception as e:
@@ -126,6 +128,15 @@ class Experiments(object):
             len(self.good_files)))
 
         # TODO: Here we can create maps from, say, worker to tasks, to segments, etc.
+
+    def experiments(self):
+        """
+        Generator to iterate over experiments.
+
+        :return:
+        """
+        for exp in self._experiments:
+            yield exp
 
     def collect_data_and_vary(self, vary='task', type='yaw', loc=None, delta=True):
 
@@ -431,11 +442,13 @@ class Experiment(object):
         :param path:
         :param destination:
         """
-
         self._name = name
 
         dataloader = LoadData()
         data = dataloader.get_data(path=path, destination=destination)
+
+        print("The data has successfully been loaded from disk and basic pre-processing has been performed.")
+        print("Next step is to construct delta values (delta between wrist and hand).")
 
         self._time = pd.to_datetime(data['Date-Time'])
 
@@ -456,12 +469,17 @@ class Experiment(object):
         self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
         self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
         #
-        delta = deltaVals(self)
+
+        try:
+            delta = self.construct_delta_values()
+            print("Delta values successfully constructed!")
+        except Exception:
+            print("There was an error processing/creating the 'delta' values of the data!")
+            raise Exception("There was an error in creating delta values!")
+
         self._yaw = delta[0]
         self._pitch = delta[1]
         self._roll = delta[2]
-
-        self._metrics = Metrics(self)  # send in an experiment to "Metrics"
 
         self._ax = dict()
         self._ay = dict()
@@ -493,7 +511,7 @@ class Experiment(object):
         self._gz['wrist'] = data['gz[1](dps)'].astype(float)
 
         self._meta_data = meta_data
-        self.topAndBottom()
+        self.filter_data_on_standard_deviation()  # way to find the start and end
 
     @property
     def meta_data(self):
@@ -808,7 +826,7 @@ class Experiment(object):
 
         return (self)
 
-    def topAndBottom(self):
+    def filter_data_on_standard_deviation(self):
         """
         Toss an experiment at this, it will return a truncated experiment
         Discards values until a point where standard deviation has been higher for 30 seconds
@@ -860,75 +878,83 @@ class Experiment(object):
         # print(''+str(startPoint) + '  , ' + str(endPoint))
         return (self.truncate(startPoint, endPoint))
 
+    def construct_delta_values(self):
+        """
+        Construct delta values.
 
-def deltaVals(experiment):
-    handy = list(experiment.yaw(loc='hand')) - np.mean(experiment.yaw(loc='hand'))
-    wristy = list(experiment.yaw(loc='wrist')) - np.mean(experiment.yaw(loc='wrist'))
-    handp = list(experiment.pitch(loc='hand')) - np.mean(experiment.pitch(loc='hand'))
-    wristp = list(experiment.pitch(loc='wrist')) - np.mean(experiment.pitch(loc='wrist'))
-    handr = list(experiment.roll(loc='hand')) - np.mean(experiment.roll(loc='hand'))
-    wristr = list(experiment.roll(loc='wrist')) - np.mean(experiment.roll(loc='wrist'))
-    newHandy = newVals(handy)
-    newWristy = newVals(wristy)
-    newHandp = newVals(handp)
-    newWristp = newVals(wristp)
-    newHandr = newVals(handr)
-    newWristr = newVals(wristr)
-    yawz = {}
-    yawz['hand'] = quadz(newHandy)
-    yawz['wrist'] = quadz(newWristy)
-    yawz['delta'] = quadz(newWristy - newHandy)
-    pitchz = {}
-    pitchz['hand'] = quadz(newHandp)
-    pitchz['wrist'] = quadz(newWristp)
-    pitchz['delta'] = quadz(newWristp - newHandp)
-    rollz = {}
-    rollz['hand'] = quadz(newHandr)
-    rollz['wrist'] = quadz(newWristr)
-    rollz['delta'] = quadz(newWristr - newHandr)
-    return [yawz, pitchz, rollz]
+        :param experiment:
+        :return:
+        """
+        handy = np.array(self.yaw(loc='hand')) - np.mean(self.yaw(loc='hand'))
+        wristy = np.array(self.yaw(loc='wrist')) - np.mean(self.yaw(loc='wrist'))
+        handp = np.array(self.pitch(loc='hand')) - np.mean(self.pitch(loc='hand'))
+        wristp = np.array(self.pitch(loc='wrist')) - np.mean(self.pitch(loc='wrist'))
+        handr = np.array(self.roll(loc='hand')) - np.mean(self.roll(loc='hand'))
+        wristr = np.array(self.roll(loc='wrist')) - np.mean(self.roll(loc='wrist'))
 
+        newHandy = self.center_values(list_uncentered=handy)
+        newWristy = self.center_values(list_uncentered=wristy)
+        newHandp = self.center_values(list_uncentered=handp)
+        newWristp = self.center_values(list_uncentered=wristp)
+        newHandr = self.center_values(list_uncentered=handr)
+        newWristr = self.center_values(list_uncentered=wristr)
 
-def newVals(listy):
-    """takes a list of angle data and returns a list
-    of data centered on 0"""
-    newList = listy - np.mean(listy)
-    return (newList)
+        yawz = {}
+        yawz['hand'] = self.quadrant_fix(newHandy)
+        yawz['wrist'] = self.quadrant_fix(newWristy)
+        yawz['delta'] = self.quadrant_fix(newWristy - newHandy)
+        pitchz = {}
+        pitchz['hand'] = self.quadrant_fix(newHandp)
+        pitchz['wrist'] = self.quadrant_fix(newWristp)
+        pitchz['delta'] = self.quadrant_fix(newWristp - newHandp)
+        rollz = {}
+        rollz['hand'] = self.quadrant_fix(newHandr)
+        rollz['wrist'] = self.quadrant_fix(newWristr)
+        rollz['delta'] = self.quadrant_fix(newWristr - newHandr)
 
+        return yawz, pitchz, rollz
 
-def quadz(listy):
-    # print(listy)
-    n = 0
-    try:
-        while n < len(listy):
-            if listy[n] > 180:
-                listy[n] = listy[n] - 360
-            if listy[n] < -180:
-                listy[n] = listy[n] + 360
-            n = n + 1
-    except:
-        print("Failure on processing quadrant correction for ")
-        print(listy)
-    return quadzTwo(listy)
+    def center_values(self, list_uncentered=None):
+        """
+        Takes a list of angle data and returns a list
+        of data centered at zero.
+        """
+        newList = list_uncentered - np.mean(list_uncentered)
+        return newList
 
+    def quadrant_fix(self, list_data=None):
+        # print(listy)
+        n = 0
+        try:
+            while n < len(list_data):
+                if list_data[n] > 180:
+                    list_data[n] = list_data[n] - 360
+                if list_data[n] < -180:
+                    list_data[n] = list_data[n] + 360
+                n = n + 1
+        except:
+            print("Failure on processing quadrant correction/fix for ")
+            print(list_data)
+        return self.quadzTwo(list_data)
 
-def quadzTwo(listy):
-    n = 0
-    try:
-        while n < len(listy):
-            if listy[n] > 90:
-                if n > 0:
-                    listy[n] = listy[n - 1]
-                else:
-                    listy[n] = 90
-            if listy[n] < -90:
-                if n > 0:
-                    listy[n] = listy[n - 1]
-                else:
-                    listy[n] = -90
-            n = n + 1
-    except:
-        print("Failure in Quadztwo")
-    return listy
+    def quadzTwo(self, list_data=None):
 
+        n = 0
+        try:
+            while n < len(list_data):
+                if list_data[n] > 90:
+                    if n > 0:
+                        list_data[n] = list_data[n - 1]
+                    else:
+                        list_data[n] = 90
+                if list_data[n] < -90:
+                    if n > 0:
+                        list_data[n] = list_data[n - 1]
+                    else:
+                        list_data[n] = -90
+                n = n + 1
+        except:
+            print("Failure in Quadztwo")
+
+        return list_data
 

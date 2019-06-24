@@ -10,6 +10,7 @@ __version__ = "Alpha"
 
 import os
 import requests
+import numpy as np
 import pandas as pd
 from . import BaseData
 
@@ -48,12 +49,32 @@ class LoadData(BaseData):
             names = """Date-Time,ax[0](mg),ay[0](mg),az[0](mg),gx[0](dps),gy[0](dps),gz[0](dps),mx[0](uT),my[0](uT),mz[0](uT),Yaw[0](deg),Pitch[0](deg),Roll[0](deg),ax[1](mg),ay[1](mg),az[1](mg),gx[1](dps),gy[1](dps),gz[1](dps),mx[1](uT),my[1](uT),mz[1](uT),Yaw[1](deg),Pitch[1](deg),Roll[1](deg)""".split(
                 ',')
             # but... do we have to clean the data first?
+
             try:
                 data = pd.read_csv(path, names=names)
                 print("Successful loading of data with pandas read_csv...")
+
+                # now, we want to make sure to skip certain rows until we have numerics.
+                # We can use "az" as an example column:
+                ix = 0
+                while True:
+                    try:
+                        val = data.iloc[ix]['az[0](mg)']
+                        if not is_numeric(val) or (np.isnan(float(val)) or data.iloc[ix].isna().any()):
+                            # make sure we have values for all columns
+                            ix += 1
+                            continue
+                        else:
+                            break
+
+                    except ValueError:
+                        ix += 1
+                data = data.iloc[ix:, :]
+
             except Exception as e:
-                print("Found exception when straight loading the data from disk.")
-                print("Trying to load the data more carefully...")
+                print("Found exception when straight loading the data from disk:")
+                print(e)
+                print("Now trying to load the data more carefully...")
 
                 with open(path, 'r') as fd:
                     all_lines = fd.readlines()
@@ -102,22 +123,32 @@ class LoadData(BaseData):
         current_index = 0
 
         # demand that at least 70% of the data is useful
+        print("Demanding that at least 70% of the data is useful!")
         last_index = int(data.shape[0] * 0.7)
 
-        data['Date-Time'] = pd.to_datetime(data['Date-Time'])
+        try:
+            data['Date-Time'] = pd.to_datetime(data['Date-Time'])
+        except ValueError as ve:
+            # we need
+            print("Got value error in trying to convert date-time:")
+            print(ve)
+            print("Please manually change this to the correct format!")
+            raise
 
-        print("loop!")
-
-        import numpy as np
+        print("loop to find if there are date-issues regarding back-and-forth in time, use std dev")
 
         # compute standard deviation vs index:
         all_std_sec = []
         while current_index < last_index:
 
             # current std dev:
-            this_std_sec = data['Date-Time'].iloc[current_index:last_index].diff().std().seconds
-            all_std_sec.append(this_std_sec)
+            try:
+                this_std_sec = data['Date-Time'].iloc[current_index:last_index].diff().std().seconds
+            except:
 
+                import pdb
+                pdb.set_trace()
+            all_std_sec.append(this_std_sec)
             status = np.abs(np.diff(all_std_sec))
 
             if len(status) > 0 and status[-1] < 1e-10:
@@ -131,7 +162,11 @@ class LoadData(BaseData):
             raise Exception("There is <= 1 data point(s) in the file '{}'".format(local_path))
 
         # sanity check:
-        assert (pd.to_datetime(data['Date-Time']).iloc[1] - pd.to_datetime(data['Date-Time']).iloc[0]).seconds < 1
+        if not (pd.to_datetime(data['Date-Time']).iloc[1] - pd.to_datetime(data['Date-Time']).iloc[0]).seconds <= 1:
+            print("The data seems to have a difference in time of 1 second or more?")
+            print("The frequency is expected to be closer to 1/100th of a second!")
+            print("Please double-check the date-times.")
+            raise Exception("Date-time frequency error in collection!")
 
         # import numpy as np
         # import matplotlib.pyplot as plt
@@ -159,13 +194,20 @@ class LoadData(BaseData):
 
         # now we have the raw data, make sure to sort it by date
         print("Sorting the data by time...")
+
         data.sort_values(by=['Date-Time'], ascending=True, inplace=True)
         print("Dropping duplicates...")
+        print("    # rows before = {}".format(len(data)))
         data.drop_duplicates(subset=['Date-Time'], inplace=True)
+        print("    # rows after = {}".format(len(data)))
         # we should reset the index too
         print("Resetting the index too")
         data = data.reset_index(drop=True)
-        print(f"# of data points after basic pre-processing: {len(data)}")
+        print(f"Summary: # of data points after basic pre-processing: {len(data)}")
+
+        if len(data) <= 1:
+            print("The data was in a bad quality - we only have 1 data point left after some basic pre-processing!")
+            raise Exception("Bad quality data")
 
         return data
 
@@ -226,3 +268,11 @@ class LoadData(BaseData):
                 if chunk: # filter out keep-alive new chunks
                     f.write(chunk)
         print("Done storing to disk!")
+
+
+def is_numeric(val):
+    try:
+        float(val)
+        return True
+    except Exception:
+        return False
