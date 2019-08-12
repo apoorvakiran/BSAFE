@@ -44,7 +44,7 @@ COMPLETE @@@Ask Jesper why he turned this off in the experiment class?
 COMPLETE @@@@@Go to the events.py file and make sure Posture is fully calculated!!!!  <---- taken from perdue script.py index notes.
 ----Also calculating Total, speed normalized, speed score, and taking in the name used for output. (exp.name.replace("_",','))
 ----Removed the events and eventfinder functions from the new metrics.py file.
-    
+----Added tracking for different portions of Posture
 
 ######
 

@@ -4,7 +4,6 @@ Creates an object that contains scores for a given experiment object - Strain, S
 import numpy as np
 from random import randint
 
-
 class Metrics(object):
     """Takes an experiment object and creates + stores a list of events"""
     _experiment = None
@@ -102,12 +101,22 @@ class Metrics(object):
         totalVals = 0
         unsafe = 0
         n = 0
+        pitchn = 0
+        yawn = 0
+        rolln = 0
         while n < len(pitch):
             if yaw[n] > safe or pitch[n] > safe or roll[n] > safe:
                 unsafe = unsafe + 1
+                if yaw[n] > safe:
+                    yawn = yawn+1
+                if roll[n] > safe:
+                    rolln = rolln+1
+                if pitch[n] > safe:
+                    pitchn = pitchn+1
             totalVals = totalVals + 1
             n = n + 1
-        return (7 * unsafe / totalVals)
+        postScore = [7 * pitchn / totalVals, 7 * yawn / totalVals, 7 * rolln / totalVals, 7 * unsafe / totalVals]
+        return postScore
 
     def strainScore(self, pitch, yaw, roll):
         """pass lists of Yaw, Pitch, Roll, returns yaw, pitch, roll, and total strain scores"""
