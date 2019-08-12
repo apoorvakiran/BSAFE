@@ -31,16 +31,20 @@ I don't touch this. It loads data into arrays for processing in experiments. It 
 
 ######
 
-events.py
+events.py < ---- NOW RENAMED metrics.py
 
 This class is very poorly named. I was initially intending to have it process cycles and hits, but in the course of doing that I wound up writing a class that stores Metrics for experiments instead. Incredibly useful, but I need to rename this and integrate it back in with a name that makes sense
 
-@@@Rename events.py since it no longer has anything to do with events
-@@@Ask Jesper why he turned this off in the experiment class?
+COMPLETE @@@Rename events.py since it no longer has anything to do with events Check
+COMPLETE @@@Ask Jesper why he turned this off in the experiment class?
+---- Keep separated. Possibly set up a wrapper function that will take an instance of Experiments and create an output csv that includes all of the values we're after
 @@@@Write a proper printout function for this that doesn't fail if you lack meta data and that actually calculates all the values you're after, dumbass.
+---- Put this into a different function in the way given above!
 @@@@Compare to Jesper's metrics.py file written off of this. I believe he just made things work better, but verify that this works with the experiment.py file herein.
-@@@@@Go to the events.py file and make sure Posture is fully calculated!!!!  <---- taken from perdue script.py index notes.
-
+COMPLETE @@@@@Go to the events.py file and make sure Posture is fully calculated!!!!  <---- taken from perdue script.py index notes.
+----Also calculating Total, speed normalized, speed score, and taking in the name used for output. (exp.name.replace("_",','))
+----Removed the events and eventfinder functions from the new metrics.py file.
+    
 
 ######
 

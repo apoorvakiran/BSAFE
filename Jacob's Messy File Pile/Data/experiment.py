@@ -10,19 +10,14 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import os
-import datetime
 import glob
 import pickle
 import scipy
 import numpy as np
 import pandas as pd
-import datetime
-import matplotlib.pyplot as plt
-from scipy.signal import savgol_filter
 from scipy.interpolate import UnivariateSpline
 from data import LoadData
-import events
-
+import datetime
 
 class Experiments(object):
     """
@@ -416,7 +411,6 @@ class Experiment(object):
     _ax = None
     _ay = None
     _az = None
-    _metrics = None
 
     _meta_data = None
 
@@ -455,8 +449,6 @@ class Experiment(object):
         self._yaw = delta[0]
         self._pitch = delta[1]
         self._roll = delta[2]
-
-        self._metrics = events.Metrics(self)
 
         self._ax = dict()
         self._ay = dict()
