@@ -24,6 +24,7 @@ from scipy.interpolate import UnivariateSpline
 from Data import LoadData
 from Analytics.metrics import Metrics
 
+
 class Experiments(object):
     """
     Holds multiple experiments at the same time.

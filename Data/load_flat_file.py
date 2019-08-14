@@ -13,6 +13,7 @@ import requests
 import numpy as np
 import pandas as pd
 from . import BaseData
+from Settings import *
 
 
 class LoadData(BaseData):
@@ -33,8 +34,9 @@ class LoadData(BaseData):
         """
 
         # suggested names
-        names = """Date-Time,Yaw[0](deg),Pitch[0](deg),Roll[0](deg),Yaw[1](deg),Pitch[1](deg),Roll[1](deg),DeltaYaw,DeltaPitch,DeltaRoll""".split(
-            ',')
+        # names = """Date-Time,Yaw[0](deg),Pitch[0](deg),Roll[0](deg),Yaw[1](deg),Pitch[1](deg),Roll[1](deg),DeltaYaw,DeltaPitch,DeltaRoll""".split(
+        #     ',')
+        names = COLUMN_NAMES_FORMAT_1
         try:
             # did the data come from google drive?
             local_path = self.download_from_google_drive(path=path, destination=destination)
@@ -45,9 +47,12 @@ class LoadData(BaseData):
             if not os.path.isfile(path):
                 raise Exception(f"Could not find local file at '{path}'!")
             local_path = path
+
             # data is local - so try these names
-            names = """Date-Time,ax[0](mg),ay[0](mg),az[0](mg),gx[0](dps),gy[0](dps),gz[0](dps),mx[0](uT),my[0](uT),mz[0](uT),Yaw[0](deg),Pitch[0](deg),Roll[0](deg),ax[1](mg),ay[1](mg),az[1](mg),gx[1](dps),gy[1](dps),gz[1](dps),mx[1](uT),my[1](uT),mz[1](uT),Yaw[1](deg),Pitch[1](deg),Roll[1](deg)""".split(
-                ',')
+            # names = """Date-Time,ax[0](mg),ay[0](mg),az[0](mg),gx[0](dps),gy[0](dps),gz[0](dps),mx[0](uT),my[0](uT),mz[0](uT),Yaw[0](deg),Pitch[0](deg),Roll[0](deg),ax[1](mg),ay[1](mg),az[1](mg),gx[1](dps),gy[1](dps),gz[1](dps),mx[1](uT),my[1](uT),mz[1](uT),Yaw[1](deg),Pitch[1](deg),Roll[1](deg)""".split(
+            #     ',')
+            names = COLUMN_NAMES_FORMAT_2
+
             # but... do we have to clean the data first?
 
             try:
@@ -123,8 +128,10 @@ class LoadData(BaseData):
         current_index = 0
 
         # demand that at least 70% of the data is useful
-        print("Demanding that at least 70% of the data is useful!")
-        last_index = int(data.shape[0] * 0.7)
+
+        print(f"Demanding that at least {FRACTION_OF_DATA_USEFUL * 100}% of "
+              f"the data is useful!")
+        last_index = int(data.shape[0] * FRACTION_OF_DATA_USEFUL)
 
         try:
             data['Date-Time'] = pd.to_datetime(data['Date-Time'])
