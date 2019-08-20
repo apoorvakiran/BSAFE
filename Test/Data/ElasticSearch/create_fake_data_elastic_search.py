@@ -31,9 +31,33 @@ es = Elasticsearch(hosts=["localhost:9200"],
                    use_ssl=False,
                    verify_certs=False)
 
+settings = {
+        "settings": {
+            "number_of_shards": 1,
+            "number_of_replicas": 1
+        },
+        "mappings": {
+            "members": {
+                "dynamic": "strict",
+                "properties": {
+                    "device": {
+                        "type": "text"
+                    },
+                    "data": {
+                        "type": "text"
+                    },
+                    "timestamp": {
+                        "type": "date"
+                    },
+                }
+            }
+        }
+    }
+
 # create an index in elasticsearch, ignore
 # status code 400 (index already exists)
-es.indices.create(index='iterate-labs-local-poc', ignore=400)
+es.indices.create(index='iterate-labs-local-poc', ignore=400,
+                  body=settings)
 
 # Now, let's put some data into the database:
 # datetimes will be serialized into the records (neat!)
@@ -54,9 +78,14 @@ for i in range(1, 10 + 1):  # put 10 entries for now
     # stringify it:
     this_date_string = datetime.strftime(this_date, '%m/%d/%y')
 
+    # timestamp = data.get('@timestamp').isoformat()
+
+    # search last X minutes:
+    # s = Search(using=es).filter('term', response=404).filter('range', timestamp={'gte': 'now-5m', 'lt': 'now'})
+
     es.index(index="iterate-labs-local-poc",
              id=i,
-             body={"timestamp": datetime.now(),
+             body={"timestamp": this_date,
                    "device": "F6:12:3D:BD:DE:44",
                    "data": "{},{}\r\n".format(this_date_string,
                                               ','.join(map(str, these_values)))
