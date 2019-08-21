@@ -11,6 +11,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import datetime
+import numpy as np
 import pandas as pd
 from elasticsearch import Elasticsearch
 from . import BaseData
@@ -56,39 +57,56 @@ class LoadElasticSearch(BaseData):
                            use_ssl=False,
                            verify_certs=False)
 
-        # res = es.search(index=index, body={'query': {'match_all': {}}})
+        mac_addresses = np.atleast_1d(mac_addresses).tolist()
 
-        all_data = []
-        for mac_address in mac_addresses:
+        data_all_devices = []
 
-            this_device_documents = es.search(index=index, body={
+        for ma in mac_addresses:
+            # for each mac address/device
+
+            # search_on_addresses = [{"match_phrase": {"device": ma}}
+            #                        for ma in mac_addresses]
+
+            documents_this_devie = es.search(index=index, body={
                 'query': {
-                    'bool': {'must':
-                                 [{"match_phrase": {"device": mac_address}}],
+                    'bool': {'must': [{"match_phrase": {"device": ma}}],
                              "filter": {
                                  "range": {
                                      "timestamp": {
-                                         "gte": datetime.datetime.strptime(from_date, "%m/%d/%Y"),
-                                         "lte": datetime.datetime.strptime(till_date, "%m/%d/%Y"),
+                                         "gte": datetime.datetime.strptime(
+                                             from_date, "%m/%d/%Y"),
+                                         "lte": datetime.datetime.strptime(
+                                             till_date, "%m/%d/%Y"),
                                      }
                                  }
                              }
                              }
                 }
             })
-            print("{} documents found for device {}".format(
-                this_device_documents['hits']['total']['value'],
-                mac_address))
 
-            # get the data and turn into DataFrame:
-            this_data = this_device_documents['hits']['hits']
-            this_device_data = pd.concat(map(pd.DataFrame.from_dict,
-                                             this_data), axis=1)['_source'].T
-            this_device_data = this_device_data.reset_index(drop=True)
+            print("{} documents found for device.".format(
+                documents_this_devie['hits']['total']['value']))
 
-            # then append this device to the list holding all devices:
-            all_data.append(this_device_data)
+            number_of_documents_retrieved = \
+                documents_this_devie['hits']['total']['value']
 
-        data_all_devices = pd.concat(all_data)
+            if number_of_documents_retrieved  == 0:
+                continue
+            elif number_of_documents_retrieved == 1:
+                # Series needs conversion to DataFrame
+                this_data = documents_this_devie['hits']['hits']
+                device_data = pd.DataFrame(pd.concat(
+                    map(pd.DataFrame.from_dict, this_data), axis=1)
+                                           ['_source']).T
+            else:
 
-        return data_all_devices
+                # get the data and turn into DataFrame:
+                this_data = documents_this_devie['hits']['hits']
+                device_data = pd.concat(map(pd.DataFrame.from_dict,
+                                            this_data), axis=1)['_source'].T
+
+            data_this_device = device_data.reset_index(drop=True)
+            data_all_devices.append(data_this_device)
+
+        if len(data_all_devices) > 0:
+            return pd.concat(data_all_devices, axis=0)

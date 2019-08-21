@@ -67,6 +67,8 @@ base_values = np.array([4, -162.98, -10.69, -17, 6.12])
 base_date = datetime.strptime('06/28/19', '%m/%d/%y')
 this_date = base_date
 
+base_device = 'F6:12:3D:BD:DE:44'
+
 print("Populating the Elastic Search database with fake data...")
 for i in range(1, 10 + 1):  # put 10 entries for now
 
@@ -83,10 +85,15 @@ for i in range(1, 10 + 1):  # put 10 entries for now
     # search last X minutes:
     # s = Search(using=es).filter('term', response=404).filter('range', timestamp={'gte': 'now-5m', 'lt': 'now'})
 
+    # perturb device number a bit:
+    this_device_last_integers = int(base_device[-2:]) + \
+                                np.random.randint(-10, 10)
+    this_device_address = base_device[:-2] + str(this_device_last_integers)
+
     es.index(index="iterate-labs-local-poc",
              id=i,
              body={"timestamp": this_date,
-                   "device": "F6:12:3D:BD:DE:44",
+                   "device": this_device_address,
                    "data": "{},{}\r\n".format(this_date_string,
                                               ','.join(map(str, these_values)))
                    }

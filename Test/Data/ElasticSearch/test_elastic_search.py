@@ -17,10 +17,10 @@ def test_retrieve():
     es = LoadElasticSearch()
 
     index = "iterate-labs-local-poc"
-    es_data = es.retrieve_data(mac_addresses=['F6:12:3D:BD:DE:44'],
-                               from_date='06/28/2019', till_date='07/01/2019',
-                               hosts=None,
-                               index=index)
+    es_data = es.retrieve_data(mac_addresses=['F6:12:3D:BD:DE:42',
+                                              'F6:12:3D:BD:DE:52'],
+                               from_date='06/28/2019',
+                               till_date='07/08/2019',
+                               hosts=None, index=index)
 
-    import pdb
-    pdb.set_trace()
+# bring the data in SAFE format...
