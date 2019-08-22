@@ -14,6 +14,7 @@ import datetime
 import numpy as np
 import pandas as pd
 from elasticsearch import Elasticsearch
+from Settings import *
 from . import BaseData
 
 
@@ -109,4 +110,11 @@ class LoadElasticSearch(BaseData):
             data_all_devices.append(data_this_device)
 
         if len(data_all_devices) > 0:
-            return pd.concat(data_all_devices, axis=0)
+
+            names = COLUMN_NAMES_FORMAT_1
+            data = pd.concat(data_all_devices, axis=0)['data'].values
+
+            import pdb
+            pdb.set_trace()
+
+            return self._check_data(data=data, names=names, file_path=None)
