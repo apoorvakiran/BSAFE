@@ -33,16 +33,15 @@ class Metrics(object):
         # self._events = eventFinder(self, 30)
         chunks = self.chunkify(self._pitches['delta'], self._yaws['delta'], self._rolls['delta'])
         strains = []
-        posts = []
         speeds = []
+        #print(chunks)
         for chunk in chunks:
             strains.append(self.strainScore(chunk[0], chunk[1], chunk[2]))
             speeds.append(self.velcro(chunk[0], chunk[1], chunk[2]))
-            posts.append(self.postScore(chunk[0], chunk[1], chunk[2], 30))
-        self._posture = np.mean(posts)
+            self.postScore(chunk[0], chunk[1], chunk[2], 30)
         try:
             mots = np.array(strains)
-            # print(strains)
+            #print(strains)
             mot1 = np.mean(mots[:, 0])
             mot2 = np.mean(mots[:, 1])
             mot3 = np.mean(mots[:, 2])
@@ -66,13 +65,17 @@ class Metrics(object):
         self._speed = [(np.mean(speedz[:, 0])), (np.mean(speedz[:, 1])), (np.mean(speedz[:, 2]))]
         self._speedNormal = [self._speed[0] / 21, self._speed[1] / 21, self._speed[2] / 21]
         self._speedScore = max(self._speedNormal)
-        self._totalScore = (self._speedScore + self._strain[3] + self._posture) / 2
+        self._totalScore = (self._speedScore + self._strain[3] + self._posture[3]) / 2
 
     def durChecker(self, exper):
         lenz = len(exper.yaw())
         dura = lenz / 10
         dura = dura / 60  # gives minutes
         return (dura)
+
+    def getTimes(self):
+        startTime = self._experiment.time()[0]
+        endTime = self._experiment.time()[-1]
 
     def velcro(self, pitch, yaw, roll):
         yawgradient = np.gradient(yaw)
@@ -93,7 +96,7 @@ class Metrics(object):
                 n = n + 1
         except:
             print("Failure occured while checking value " + str(n))
-        return [np.std(pitch), np.std(yaw), np.std(roll)]
+        return [np.std(pitch)*7, np.std(yaw)*7, np.std(roll)*7]
 
     def postScore(self, pitch, yaw, roll, safe):
         """Takes three lists of values, yaw pitch and roll, and calculates posture score
@@ -115,8 +118,9 @@ class Metrics(object):
                     pitchn = pitchn+1
             totalVals = totalVals + 1
             n = n + 1
-        postScore = [7 * pitchn / totalVals, 7 * yawn / totalVals, 7 * rolln / totalVals, 7 * unsafe / totalVals]
-        return postScore
+        postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)]
+        #print(postScores)
+        self._posture = postScores
 
     def strainScore(self, pitch, yaw, roll):
         """pass lists of Yaw, Pitch, Roll, returns yaw, pitch, roll, and total strain scores"""
@@ -155,7 +159,7 @@ class Metrics(object):
         rollScore = rollScore * adjuster
         totalScore = yawScore + pitchScore + rollScore
         totalScore = totalScore / 2214
-        return [pitchScore, yawScore, rollScore, totalScore]
+        return [pitchScore/738, yawScore/738, rollScore/738, totalScore]
 
     def scoreBins(self, bins):
         n = 0
@@ -172,7 +176,7 @@ class Metrics(object):
         n = 0
         lenny = len(pitch)
         chunks = max(8, int(lenny / 9000))
-        # print (chunks)
+        #print (chunks)
         while n < chunks:
             nines = n * 9000
             samples = []
@@ -187,5 +191,6 @@ class Metrics(object):
                 if (np.std(thisYaSample) > 10 and np.std(thisPiSample) > 10 and np.std(thisRollSample) > 10):
                     sets.append([thisPiSample, thisYaSample, thisRollSample])
             n = n + 1
-        # print(sets)
+        #print("Sets")
+        #print(sets)
         return sets
