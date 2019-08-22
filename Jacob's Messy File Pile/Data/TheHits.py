@@ -16,8 +16,10 @@ class theHits(object):
         self._experiment = exper
         self._timeFrame = fTime
         self._cycleLength = cLength
-        self._hitparade = self.parade()
         self._hitValue = hitValue
+        print(self._hitValue)
+        self._hitparade = self.parade()
+
 
     def parade (self):
         toView = 10 * self._cycleLength
@@ -37,21 +39,21 @@ class theHits(object):
                 pitchHits.append(0)
                 yawHits.append(0)
                 rollHits.append(0)
-            if pitch[n] > self.hitValue:
+            if pitch[n] > self._hitValue:
                 if pitchHit == 0:
                     pitchHit = 1
                     pitchHits[-1] = pitchHits[-1] + 1
             else:
                 if pitchHit == 1:
                     pitchHit = 0
-            if yaw[n] > self.hitValue:
+            if yaw[n] > self._hitValue:
                 if yawHit == 0:
                     yawHit = 1
                     yawHits[-1] = yawHits[-1] + 1
             else:
                 if yawHit == 1:
                     yawHit = 0
-            if roll[n] > self.hitValue:
+            if roll[n] > self._hitValue:
                 if rollHit == 0:
                     rollHit = 1
                     rollHits[-1] = pitchHits[-1] + 1

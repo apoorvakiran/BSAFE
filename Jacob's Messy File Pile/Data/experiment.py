@@ -435,16 +435,20 @@ class Experiment(object):
         self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
         self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
         self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
+#        print(self.yaw(delta = True))
 
         #
+#        print("Pitch!")
         self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
         self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
         self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
         #
+#        print("Roll!")
         self._roll['hand'] = data['Roll[0](deg)'].astype(float)
         self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
         self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
         #
+#        print("Deltas!")
         delta = deltaVals(self)
         self._yaw = delta[0]
         self._pitch = delta[1]
@@ -481,6 +485,7 @@ class Experiment(object):
 
         self._meta_data = meta_data
         self.topAndBottom()
+        print("TB")
 
     @property
     def meta_data(self):
@@ -769,6 +774,14 @@ class Experiment(object):
     # self._roll['delta']=pd.Series(self._roll['delta'])
     # return(self)
 
+    def setName (self, given):
+        """
+        Changes the name to a given one. Being used for when Experiments isn't used.
+        :param given: 
+        :return: 
+        """
+        self.name = given
+
     def truncate(self, lowEnd, highEnd):
         """
         Going to truncate to just the low:high values in the data ranges.
@@ -818,8 +831,8 @@ class Experiment(object):
             highEnd = n + 99
             lastThreeYaw.pop(0)
             lastThreePitch.pop(0)
-            lastThreeYaw.append(scipy.std(yawDel[n:highEnd]))
-            lastThreePitch.append(scipy.std(pitchDel[n:highEnd]))
+            lastThreeYaw.append(np.std(yawDel[n:highEnd]))
+            lastThreePitch.append(np.std(pitchDel[n:highEnd]))
             # print(startPitchDev)
             # print(lastThreePitch)
             # print(startYawDev)
@@ -840,11 +853,11 @@ class Experiment(object):
             lowEnd = n - 99
             lastThreeYaw.pop(0)
             lastThreePitch.pop(0)
-            lastThreeYaw.append(scipy.std(yawDel[lowEnd:n]))
-            lastThreePitch.append(scipy.std(pitchDel[lowEnd:n]))
+            lastThreeYaw.append(np.std(yawDel[lowEnd:n]))
+            lastThreePitch.append(np.std(pitchDel[lowEnd:n]))
             n = n - 100
         endPoint = n + 200
-        # print(''+str(startPoint) + '  , ' + str(endPoint))
+        #print(''+str(startPoint) + '  , ' + str(endPoint))
         return (self.truncate(startPoint, endPoint))
 
 
