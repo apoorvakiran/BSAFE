@@ -1,39 +1,24 @@
 import os
-import xlrd
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-import scipy
-import peakutils
-from numpy import array
-import pickle
-import json
 import csv
-import plotly.graph_objs as go
-from plotly.offline import plot
 
-from sklearn.decomposition import PCA, KernelPCA
-
-from scipy.signal import find_peaks
-from Analytics import experiment
+from Analytics.StructuredData import StructuredDataStatic
 
 basepath_structured = r"C:\\Users\\Jacob\\Documents\\Trial_Data"
-exps = experiment.Experiments(basepath=basepath_structured, is_structured=True,
-                 cache_path='cache_experiments.pkl')
+exps = StructuredDataStatic.Experiments(basepath=basepath_structured, is_structured=True,
+                                        cache_path='cache_experiments.pkl')
 
 arr = exps._experiments[0]
 meaty = events.Metrics(arr)
 
 #arr.quadCorrect(180)
 #arr.topAndBottom()
-from bokeh.plotting import figure, output_file, output_notebook, show
+from bokeh.plotting import figure, output_file, show
 
 #output_file('default.html')
 
 
 from random import randint
 import numpy as np
-from scipy.spatial import ConvexHull
 
 
 def groupMaker(someValues, numsDevs):

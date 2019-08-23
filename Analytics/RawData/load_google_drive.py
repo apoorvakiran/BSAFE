@@ -19,7 +19,7 @@ __all__ = ["LoadGoogleDrive"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
-from Data import BaseData
+from Analytics.RawData import BaseData
 
 
 class LoadGoogleDrive(BaseData):

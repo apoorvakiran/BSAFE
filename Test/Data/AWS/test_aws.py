@@ -15,7 +15,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import os
-from Data import upload_data_to_aws_s3, download_from_aws_s3
+from Analytics.RawData import upload_data_to_aws_s3, download_from_aws_s3
 
 # put the bucket name here:
 BUCKET_NAME = 'testbucketjesperkristensen'

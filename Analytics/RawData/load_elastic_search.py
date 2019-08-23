@@ -112,9 +112,21 @@ class LoadElasticSearch(BaseData):
         if len(data_all_devices) > 0:
 
             names = COLUMN_NAMES_FORMAT_1
+
+            all_data = []
             data = pd.concat(data_all_devices, axis=0)['data'].values
+            for datum in data:
+                datum = datum.rstrip('\n').rstrip('\r').rstrip('\r'.rstrip('\n'))
+                this_datum = np.asarray(datum.split(','))
 
-            import pdb
-            pdb.set_trace()
+                date = this_datum[0]
+                values = this_datum[1:].astype(float)
 
-            return self._check_data(data=data, names=names, file_path=None)
+                this_data = pd.DataFrame(data=np.append([date], values)).T
+                this_data.columns = names
+
+                all_data.append(this_data)
+
+            all_data = pd.concat(all_data)
+
+            return self._check_data(data=all_data, names=names, file_path=None)

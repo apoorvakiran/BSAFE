@@ -35,11 +35,13 @@ class BaseData(object):
         print(f"# of raw data points = {len(data)}")
 
         if file_path and len(data) <= 1:
-            raise Exception("There is <= 1 data point(s) in the file '{}'".format(file_path))
+            raise Exception("There is <= 1 data point(s) in the "
+                            "file '{}'".format(file_path))
 
         print("Checking that dates make sense...")
 
-        # we need to find when the dates stop oscillating (sometimes b/w 2019 and 2000)...
+        # we need to find when the dates stop oscillating
+        # (sometimes b/w 2019 and 2000)...
         # we can use the standard deviation for this
         current_index = 0
 
@@ -50,7 +52,12 @@ class BaseData(object):
         last_index = int(data.shape[0] * FRACTION_OF_DATA_USEFUL)
 
         try:
-            data['Date-Time'] = pd.to_datetime(data['Date-Time'])
+            try:
+                data['Date-Time'] = pd.to_datetime(data['Date-Time'])
+            except IndexError:
+                raise Exception("It looks like the incoming data does not "
+                                "have the 'Date-Time' column in it?! - please "
+                                "check the data format")
         except ValueError as ve:
             # we need
             print("Got value error in trying to convert date-time:")
@@ -58,7 +65,8 @@ class BaseData(object):
             print("Please manually change this to the correct format!")
             raise
 
-        print("loop to find if there are date-issues regarding back-and-forth in time, use std dev")
+        print("loop to find if there are date-issues regarding back-and-forth "
+              "in time, use std dev")
 
         # compute standard deviation vs index:
         all_std_sec = []

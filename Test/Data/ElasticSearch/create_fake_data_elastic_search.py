@@ -63,7 +63,7 @@ es.indices.create(index='iterate-labs-local-poc', ignore=400,
 # datetimes will be serialized into the records (neat!)
 
 # base values (we will be creating fake data and perturbing these):
-base_values = np.array([4, -162.98, -10.69, -17, 6.12])
+base_values = np.array([4, -162.98, -10.69, -17, 6.12, 4.1, 8.1, 8.1, 1.2])
 base_date = datetime.strptime('06/28/19', '%m/%d/%y')
 this_date = base_date
 

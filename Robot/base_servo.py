@@ -10,7 +10,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import numpy as np
-from Data import ArduinoData
+from Analytics.RawData import ArduinoData
 
 
 class BaseServo(object):

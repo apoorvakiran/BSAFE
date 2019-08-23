@@ -9,7 +9,7 @@ Copyright 2018-
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
-from Data import LoadElasticSearch
+from Analytics import LoadElasticSearch
 
 
 def test_retrieve():
@@ -24,3 +24,4 @@ def test_retrieve():
                                hosts=None, index=index)
 
 # bring the data in SAFE format...
+# So needs to be in "Collection of Structured Data" format...

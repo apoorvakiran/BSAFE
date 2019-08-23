@@ -33,24 +33,19 @@ class LoadData(BaseData):
         :return:
         """
 
-        # suggested names
-        # names = """Date-Time,Yaw[0](deg),Pitch[0](deg),Roll[0](deg),Yaw[1](deg),Pitch[1](deg),Roll[1](deg),DeltaYaw,DeltaPitch,DeltaRoll""".split(
-        #     ',')
         names = COLUMN_NAMES_FORMAT_1
         try:
             # did the data come from google drive?
             local_path = self.download_from_google_drive(path=path, destination=destination)
             data = pd.read_csv(local_path, names=names)
             print('the data is from Google drive!')
-        except:
+        except IndexError:
             print("The data is local!")
             if not os.path.isfile(path):
                 raise Exception(f"Could not find local file at '{path}'!")
             local_path = path
 
-            # data is local - so try these names
-            # names = """Date-Time,ax[0](mg),ay[0](mg),az[0](mg),gx[0](dps),gy[0](dps),gz[0](dps),mx[0](uT),my[0](uT),mz[0](uT),Yaw[0](deg),Pitch[0](deg),Roll[0](deg),ax[1](mg),ay[1](mg),az[1](mg),gx[1](dps),gy[1](dps),gz[1](dps),mx[1](uT),my[1](uT),mz[1](uT),Yaw[1](deg),Pitch[1](deg),Roll[1](deg)""".split(
-            #     ',')
+            # data is local - so try these names:
             names = COLUMN_NAMES_FORMAT_2
 
             # but... do we have to clean the data first?
@@ -115,7 +110,8 @@ class LoadData(BaseData):
 
                 # now load the data:
                 data = pd.read_csv(path, skiprows=start_index).iloc[:end_index - start_index]
-                return self._check_data(data, names=names, file_path=local_path)
+
+            return self._check_data(data, names=names, file_path=local_path)
 
     def get_id(self, full_url=None):
 

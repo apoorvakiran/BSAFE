@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+The idea of having a "Raw Data" module is to pay special attention to the data
+collection, cleaning, and standardization. This really forms the backbone of
+everything that follows (metrics, reporting, etc.).
 
 @ author Jesper Kristensen
 Copyright 2018
