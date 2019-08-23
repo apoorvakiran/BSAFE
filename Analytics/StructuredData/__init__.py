@@ -10,4 +10,5 @@ __version__ = "Alpha"
 
 from .BaseStructuredData import *
 from .StructuredDataStatic import *
+from .StructuredDataStreaming import *
 from .CollectionStructuredData import *

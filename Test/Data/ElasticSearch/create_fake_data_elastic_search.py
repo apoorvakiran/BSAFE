@@ -17,6 +17,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import time
+import json
 from datetime import datetime
 from datetime import timedelta
 import numpy as np
@@ -69,6 +70,12 @@ this_date = base_date
 
 base_device = 'F6:12:3D:BD:DE:44'
 
+def generate_mac_address():
+    this_device_last_integers = int(base_device[-2:]) + \
+                                np.random.randint(-10, 10)
+    return base_device[:-2] + str(this_device_last_integers)
+
+all_device_addresses = []
 print("Populating the Elastic Search database with fake data...")
 for i in range(1, 10 + 1):  # put 10 entries for now
 
@@ -80,15 +87,16 @@ for i in range(1, 10 + 1):  # put 10 entries for now
     # stringify it:
     this_date_string = datetime.strftime(this_date, '%m/%d/%y')
 
-    # timestamp = data.get('@timestamp').isoformat()
-
-    # search last X minutes:
+    # some cool code to search last X minutes...:
     # s = Search(using=es).filter('term', response=404).filter('range', timestamp={'gte': 'now-5m', 'lt': 'now'})
 
-    # perturb device number a bit:
-    this_device_last_integers = int(base_device[-2:]) + \
-                                np.random.randint(-10, 10)
-    this_device_address = base_device[:-2] + str(this_device_last_integers)
+    # perturb device number a bit until unique:
+    while True:
+        this_device_address = generate_mac_address()
+        if this_device_address not in all_device_addresses:
+            break
+
+    all_device_addresses.append(this_device_address)
 
     es.index(index="iterate-labs-local-poc",
              id=i,
@@ -106,6 +114,11 @@ for i in range(1, 10 + 1):
     # testing...
     print("Retrieving record with id {}...".format(i))
     print(es.get(index="iterate-labs-local-poc", id=i)['_source'])
+
+# just to keep track of the randomly generated mac addresses to represent
+# some hypothetical devices:
+with open('all_device_addresses.json', 'w') as fd:
+    json.dump({"addresses": all_device_addresses}, fd)
 
 print("Now the Elastic Search database should be populated with records.")
 print("All done!")

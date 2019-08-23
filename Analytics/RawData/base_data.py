@@ -20,7 +20,8 @@ class BaseData(object):
     def __init__(self):
         pass
 
-    def _check_data(self, data=None, names=None, file_path=None):
+    def _check_data(self, data=None, names=None, file_path=None,
+                    is_streaming=False):
         """
         Take an incoming DataFrame in an alleged correct format and check
         the data quality and format. The output is a DataFrame containing
@@ -74,7 +75,8 @@ class BaseData(object):
 
             # current std dev:
             try:
-                this_std_sec = data['Date-Time'].iloc[current_index:last_index].diff().std().seconds
+                this_std_sec = \
+                    data['Date-Time'].iloc[current_index:last_index].diff().std().seconds
             except:
 
                 import pdb
@@ -89,13 +91,20 @@ class BaseData(object):
 
         data = data.iloc[max(0, current_index - 1):, :]
 
-        if file_path and len(data) <= 1:
-            raise Exception("There is <= 1 data point(s) in the file '{}'".format(file_path))
+        if not is_streaming and (len(data) <= 1 and file_path):
+            raise Exception("There is <= 1 data point(s) in the "
+                            "static file '{}'".format(file_path))
 
         # sanity check:
-        if not (pd.to_datetime(data['Date-Time']).iloc[1] - pd.to_datetime(data['Date-Time']).iloc[0]).seconds <= 1:
-            print("The data seems to have a difference in time of 1 second or more?")
-            print("The frequency is expected to be closer to 1/100th of a second!")
+        # (in case of streaming data we may get only a single datum, so check
+        # first for number of data)
+        if (not is_streaming) and \
+                (not (pd.to_datetime(data['Date-Time']).iloc[1] -
+                      pd.to_datetime(data['Date-Time']).iloc[0]).seconds <= 1):
+            print("The data seems to have a difference in time of 1 "
+                  "second or more?")
+            print("The frequency is expected to be closer to 1/100th of a "
+                  "second!")
             print("Please double-check the date-times.")
             raise Exception("Date-time frequency error in collection!")
 
@@ -109,17 +118,24 @@ class BaseData(object):
         # plt.ylim(0, 100)
         # plt.show()
 
-        print("> # of data before filtering for NaNs... = {}".format(len(data)))
+        print("> # of data before filtering for NaNs... = "
+              "{}".format(len(data)))
         data.dropna(how='any', inplace=True)
-        print("> # of data after filtering away NaNs... = {}".format(len(data)))
+        print("> # of data after filtering away NaNs... = "
+              "{}".format(len(data)))
 
         try:
-            # shape of data before filtering the specific names we are asking for:
-            print("  > Before getting the relevant columns the data has # of columns = {} (len names = {})".format(data.shape[1], len(names)))
+            # shape of data before filtering the specific names
+            # we are asking for:
+            print("  > Before getting the relevant columns the data has # of "
+                  "columns = {} (len names = {})".format(data.shape[1],
+                                                         len(names)))
             data = data[names]  # just get the names above
-            print("  > After getting the relevant columns the data has # of columns = {}".format(data.shape[1]))
+            print("  > After getting the relevant columns the data has # of "
+                  "columns = {}".format(data.shape[1]))
         except KeyError:
-            print("Looks like the delta values may not be in the data? Delta yaw etc.? So skipping the last 3 columns")
+            print("Looks like the delta values may not be in the data? "
+                  "Delta yaw etc.? So skipping the last 3 columns")
             # delta values may not be in the index, so ignore those:
             data = data[names[:-3]]
 
@@ -134,10 +150,12 @@ class BaseData(object):
         # we should reset the index too
         print("Resetting the index too")
         data = data.reset_index(drop=True)
-        print(f"Summary: # of data points after basic pre-processing: {len(data)}")
+        print(f"Summary: # of data points after basic pre-processing: "
+              f"{len(data)}")
 
-        if len(data) <= 1:
-            print("The data was in a bad quality - we only have 1 data point left after some basic pre-processing!")
+        if not is_streaming and len(data) <= 1:
+            print("The data was in a bad quality - we only have 1 data point "
+                  "left after some basic pre-processing!")
             raise Exception("Bad quality data")
 
         return data
