@@ -24,6 +24,14 @@ import numpy as np
 from elasticsearch import Elasticsearch
 # ^^^ the python module to work with Elastic Search
 
+# ====================== USER SETTINGS
+# here are some settings for this present script to generate the fake data
+# these settings are just related to how exactly the fake data should
+# be generated:
+data_format = '3'  # please refer to the "settings" module to see what...
+# ...this entails
+# ======================
+
 # note that we provide the hosts to connect to here, this needs to sync
 # up with what your elastic search instance is running (which is localhost
 # and port 9200 by defaut - this can be changed in the elastic search
@@ -63,8 +71,18 @@ es.indices.create(index='iterate-labs-local-poc', ignore=400,
 # Now, let's put some data into the database:
 # datetimes will be serialized into the records (neat!)
 
+if data_format == '1':
+    num_data = 9
+elif data_format == '2':
+    num_data = 24
+elif data_format == '3':
+    num_data = 35  # not counting date-time
+else:
+    raise NotImplementedError("Implement me!")
+
 # base values (we will be creating fake data and perturbing these):
-base_values = np.array([4, -162.98, -10.69, -17, 6.12, 4.1, 8.1, 8.1, 1.2])
+base_values = np.array([4] * num_data)
+
 base_date = datetime.strptime('06/28/19', '%m/%d/%y')
 this_date = base_date
 

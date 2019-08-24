@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Here we share some basic data interface.
+Here we share some basic data interface across all our data parser classes.
+For example, we have a "static" data loader and a "streaming" data loader.
+These both share some commonalities captured here.
 
 @ author Jesper Kristensen
 Copyright 2018
@@ -30,6 +32,10 @@ class BaseData(object):
         :param data:
         :param names:
         :param file_path:
+        :param is_streaming: Helps with some data checks where there is just
+        1 element (which is fine for streaming, but not great if loading a
+        supposedly "entire, say, 8-hour work task")
+
         :return:
         """
 

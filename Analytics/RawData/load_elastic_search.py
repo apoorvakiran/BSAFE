@@ -28,8 +28,8 @@ class LoadElasticSearch(BaseData):
 
         print("Data loading with Elastic Search object created!")
 
-    def retrieve_data(self, mac_addresses=None,
-                      from_date=None, till_date=None, hosts=None, index=None):
+    def retrieve_data(self, mac_addresses=None, from_date=None, till_date=None,
+                      hosts=None, index=None, data_format_code='3'):
         """
         Retrieves the data from the Elastic Search database specified
         by "hosts". See the example under our "Test" folder for more details
@@ -37,12 +37,15 @@ class LoadElasticSearch(BaseData):
 
         Some good details on how to search the Elastic Search database can
         be found here:
-        https://marcobonzanini.com/2015/02/02/how-to-query-elasticsearch-with-python/
+        "https://marcobonzanini.com/2015/02/02/
+        how-to-query-elasticsearch-with-python/"
 
         :param mac_addresses:
         :param from_date:
         :param till_date:
         :param hosts:
+        :param data_format_code: Which data format code are we using? This
+        determines how the data is streaming in (such as, which order etc.)
         :return:
         """
 
@@ -111,7 +114,13 @@ class LoadElasticSearch(BaseData):
 
         if len(data_all_devices) > 0:
 
-            names = COLUMN_NAMES_FORMAT_1
+            # get the correct data format code:
+            try:
+                data_format_code = str(data_format_code)
+            except Exception:
+                raise Exception("Please provide a valid data format code!")
+
+            names = DATA_FORMAT_CODES[data_format_code]
 
             all_data = []
             data = pd.concat(data_all_devices, axis=0)['data'].values

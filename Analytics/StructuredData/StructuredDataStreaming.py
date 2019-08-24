@@ -40,8 +40,8 @@ class StructuredDataStreaming(BaseStructuredData):
     _meta_data = None
 
     def __init__(self, streaming_source='elastic_search',
-                 streaming_settings=None,
-                 name=None, meta_data=None):
+                 streaming_settings=None, name=None, meta_data=None,
+                 data_format_code='3'):
         """
         Construct an experiment class.
         :param path:
@@ -71,19 +71,29 @@ class StructuredDataStreaming(BaseStructuredData):
         self._pitch = dict()
         self._roll = dict()
 
-        self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
-        self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
+        if data_format_code == '3':
+            self._yaw['hand'] = data['yaw[0]'].astype(float)
+            self._yaw['wrist'] = data['yaw[1]'].astype(float)
+        else:
+            self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
+            self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
         self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
 
-        #
-        self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
-        self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
+        if data_format_code == '3':
+            self._pitch['hand'] = data['pitch[0]'].astype(float)
+            self._pitch['wrist'] = data['pitch[1]'].astype(float)
+        else:
+            self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
+            self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
         self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
-        #
-        self._roll['hand'] = data['Roll[0](deg)'].astype(float)
-        self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
+
+        if data_format_code == '3':
+            self._roll['hand'] = data['roll[0]'].astype(float)
+            self._roll['wrist'] = data['roll[1]'].astype(float)
+        else:
+            self._roll['hand'] = data['Roll[0](deg)'].astype(float)
+            self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
         self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
-        #
 
         try:
             delta = self.construct_delta_values()
