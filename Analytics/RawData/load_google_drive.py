@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
+*NOTE*
 <THIS CODE IS NOT DONE.> (June 22, 2019)
+*NOTE*
 
 The Google drive is proving to be a bit difficult at present
 to interact with. For now, it's not top priority, so I will
@@ -19,6 +21,7 @@ __all__ = ["LoadGoogleDrive"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import requests
 from Analytics.RawData import BaseData
 
 
@@ -49,3 +52,44 @@ class LoadGoogleDrive(BaseData):
 
         import pdb
         pdb.set_trace()
+
+    def download_from_google_drive(self, path=None, destination=None):
+        """
+
+        :param path:
+        :param destination:
+        :return:
+        """
+
+        file_id = self.get_id(path)
+        URL = "https://docs.google.com/uc?export=download"
+        session = requests.Session()
+
+        response = session.get(URL, params={'id': file_id}, stream=True)
+        token = self.get_confirm_token(response)
+
+        if token:
+            params = {'id': id, 'confirm': token}
+            response = session.get(URL, params=params, stream=True)
+
+        self.save_response_content(response, destination)
+
+        return destination
+
+    def get_confirm_token(self, response=None):
+        for key, value in response.cookies.items():
+            if key.startswith('download_warning'):
+                return value
+
+        return None
+
+    def save_response_content(self, response=None, destination=None):
+
+        CHUNK_SIZE = 32768
+
+        print("Storing file to disk...")
+        with open(destination, "wb") as f:
+            for chunk in response.iter_content(CHUNK_SIZE):
+                if chunk:  # filter out keep-alive new chunks
+                    f.write(chunk)
+        print("Done storing to disk!")

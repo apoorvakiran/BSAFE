@@ -28,6 +28,7 @@ class CollectionStructuredData(object):
     This is convenient if a task is broken into multiple (disjoint) datasets.
     """
 
+    _data_format_code = None
     _structured_datasets = None
     _all_workers = None
     _all_segments = None
@@ -36,8 +37,9 @@ class CollectionStructuredData(object):
     _good_files = None
     _bad_files = None
 
-    def __init__(self, basepath=None, is_structured=False, list_of_filenames=None, cache_path='cache_experiments.pkl',
-                 ignore_cache=False):
+    def __init__(self, basepath=None, is_structured=False,
+                 list_of_filenames=None, cache_path='cache_experiments.pkl',
+                 ignore_cache=False, data_format_code='3'):
         """
         From a list of incoming files, construct a set of structured_datasets
         :param basepath:
@@ -51,8 +53,11 @@ class CollectionStructuredData(object):
                             "there is no list of filenames provided?\n"
                             "Please provide at least one of the two!")
 
+        self._data_format_code = data_format_code
+
         if not ignore_cache and os.path.isfile(cache_path):
-            print("Loading structured_datasets from cache at location '{}'".format(cache_path))
+            print("Loading structured_datasets from cache at "
+                  "location '{}'".format(cache_path))
 
             with open(cache_path, 'rb') as fd:
                 cache = pickle.load(fd)
@@ -65,11 +70,13 @@ class CollectionStructuredData(object):
             if ignore_cache:
                 print("Cache is ignored. Compute from scratch.")
             else:
-                print("Cache not found at location '{}', computing from scratch".format(cache_path))
+                print("Cache not found at location '{}', computing from "
+                      "scratch".format(cache_path))
 
             if is_structured:
                 structured_datasets, good_files, bad_files = \
-                    self._load_structured_data(basepath=basepath)
+                    self._load_structured_data(basepath=basepath,
+                                               data_format_code=data_format_code)
                 print("Structured data loaded.")
             else:
                 # not structured per se, just load the list of incoming files
@@ -192,7 +199,7 @@ class CollectionStructuredData(object):
     def all_hands(self):
         return self._all_hands
 
-    def _load_structured_data(self, basepath=None):
+    def _load_structured_data(self, basepath=None, data_format_code='3'):
         """
         Loads the structured data.
 
@@ -256,7 +263,8 @@ class CollectionStructuredData(object):
                         # loaded in a robust way:
                         # try:
                         try:
-                            this_structured_dataset = StructuredDataStatic(path=file, name=os.path.splitext(os.path.split(file)[1])[0],
+                            this_structured_dataset = StructuredDataStatic(path=file, data_format_code=data_format_code,
+                                                                           name=os.path.splitext(os.path.split(file)[1])[0],
                                                   meta_data={'hand': hand, 'segment': segment, 'worker': worker_name,
                                                              'task_name': task_name, 'filename': file,
                                                              'basepath': basepath,

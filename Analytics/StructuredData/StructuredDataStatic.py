@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import datetime
 from scipy.interpolate import UnivariateSpline
-from Analytics.RawData import LoadData
+from ..RawData import LoadDataFromLocalDisk
 from . import BaseStructuredData
 
 
@@ -38,8 +38,10 @@ class StructuredDataStatic(BaseStructuredData):
     _metrics = None
 
     _meta_data = None
+    _data_format_code = None
 
-    def __init__(self, path=None, destination=None, name=None, meta_data=None):
+    def __init__(self, path=None, destination=None, name=None, meta_data=None,
+                 data_format_code='3'):
         """
         Construct an experiment class.
         :param path:
@@ -47,11 +49,17 @@ class StructuredDataStatic(BaseStructuredData):
         """
         super().__init__(name=name)
 
-        dataloader = LoadData()
-        data = dataloader.get_data(path=path, destination=destination)
+        self._data_format_code = data_format_code
 
-        print("The data has successfully been loaded from disk and basic pre-processing has been performed.")
-        print("Next step is to construct delta values (delta between wrist and hand).")
+        # this code is responsible for parsing the data from disk:
+        dataloader = LoadDataFromLocalDisk()
+        data = dataloader.get_data(path=path, destination=destination,
+                                   data_format_code=self._data_format_code)
+
+        print("The data has successfully been loaded from disk and basic "
+              "pre-processing has been performed.")
+        print("Next step is to construct delta values "
+              "(delta between wrist and hand).")
 
         self._time = pd.to_datetime(data['Date-Time'])
 
