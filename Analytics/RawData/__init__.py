@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
 """
 The idea of having a "Raw Data" module is to pay special attention to the data
-collection, cleaning, and standardization. This really forms the backbone of
-everything that follows (metrics, reporting, etc.).
+collection process, cleaning, and standardization.
+
+This really forms the backbone of everything
+that follows (metrics, reporting, etc.).
+
+The raw data is turned into something analyzable via the "structured data"
+module (parent module).
 
 @ author Jesper Kristensen
 Copyright 2018

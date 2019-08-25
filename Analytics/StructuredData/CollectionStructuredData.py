@@ -25,7 +25,8 @@ class CollectionStructuredData(object):
     Holds multiple structured datasets at the same time.
     From this, we can, e.g., retrieve the yaw data across all datasets etc.
 
-    This is convenient if a task is broken into multiple (disjoint) datasets.
+    This is convenient if a task is broken into multiple (disjoint) datasets
+    but we still want to query over all sub-tasks how the worker performed.
     """
 
     _data_format_code = None
@@ -43,8 +44,8 @@ class CollectionStructuredData(object):
         """
         From a list of incoming files, construct a set of structured_datasets
         :param basepath:
-        :param is_structured: Specify whether the data is structured in the pre-specified
-        format "Day --> "Task" --> ...
+        :param is_structured: Specify whether the data is structured in
+        the pre-specified format "Day --> "Task" --> ...
         :param list_of_filenames:
         """
 

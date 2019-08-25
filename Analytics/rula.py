@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Performs real-time RULA analysis.
 
 @ author Jesper Kristensen
 Copyright 2018

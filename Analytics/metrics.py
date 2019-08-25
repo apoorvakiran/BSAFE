@@ -50,13 +50,18 @@ class Metrics(object):
         motions = []
         posts = []
         speeds = []
-        for pitch, yaw, roll in self.chunkify(lists=[self._pitches['delta'], self._yaws['delta'],
-                                          self._rolls['delta']], percent=20):
-            # for each percent-sized-chunk (20 % means splitting the list into five chunks, etc.)
+        for pitch, yaw, roll in self.chunkify(lists=[self._pitches['delta'],
+                                                     self._yaws['delta'],
+                                                     self._rolls['delta']],
+                                              percent=20):
+            # for each percent-sized-chunk
+            # (20 % means splitting the list into five chunks, etc.)
 
-            motions.append(self.motionScore(pitch=pitch, yaw=yaw, roll=roll))  # pitchScore, yawScore, rollScore, totalScore
+            # pitchScore, yawScore, rollScore, totalScore
+            motions.append(self.motionScore(pitch=pitch, yaw=yaw, roll=roll))
             speeds.append(self.velcro(pitch=pitch, yaw=yaw, roll=roll))
-            posts.append(self.postScore(pitch=pitch, yaw=yaw, roll=roll, safe=30))
+            posts.append(self.postScore(pitch=pitch, yaw=yaw, roll=roll,
+                                        safe=30))
 
         self._posture = np.mean(posts)
         mots = np.array(motions)
@@ -69,7 +74,8 @@ class Metrics(object):
 
         self._motion = [mot1, mot2, mot3, mot4]
         speedz = np.array(speeds)
-        self._speed = [(np.mean(speedz[:, 0])), (np.mean(speedz[:, 1])), (np.mean(speedz[:, 2]))]
+        self._speed = [(np.mean(speedz[:, 0])), (np.mean(speedz[:, 1])),
+                       (np.mean(speedz[:, 2]))]
 
     @property
     def motion(self):
@@ -147,7 +153,8 @@ class Metrics(object):
 
     def postScore(self, pitch, yaw, roll, safe=None):
         """
-        Takes three lists of values, yaw pitch and roll, and calculates posture score
+        Takes three lists of values, yaw pitch and roll, and
+        calculates posture score
         as percent of time spent outside of a 'safe' posture
         """
         totalVals=0
@@ -183,7 +190,8 @@ class Metrics(object):
 
     def motionScore(self, pitch=None, yaw=None, roll=None):
         """
-        Pass lists of Yaw, Pitch, Roll, returns yaw, pitch, roll, and total motion scores
+        Pass lists of Yaw, Pitch, Roll, returns yaw, pitch, roll, and
+        total motion scores.
         """
 
         bins = [15 * i for i in range(11)]
@@ -215,7 +223,7 @@ class Metrics(object):
 
         return score
 
-#
+
 # def chunkify(pitch=None, yaw=None, roll=None):
 #     sets = []
 #     n = 0

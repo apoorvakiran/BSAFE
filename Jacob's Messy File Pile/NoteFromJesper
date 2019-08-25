@@ -1,0 +1,16 @@
+Thanks for pushing the code forward.
+
+Some thoughts that we have already covered but just to keep documented:
+
++ Going forward let's utilize git better including branching.
++ Variable naming: Let's be verbose about the names as they are more
+descriptive and self-documenting.
++ More documentation/doc-string is better than less.
++ Please have a look at existing (well-tested) libraries like numpy,
+scipy, pandas as they typically have already solved many of the sub-problems
+we are seeing too (e.g.: bin data is covered well with numpy, no need
+to re-invent).
++ More?
+
+Thanks,
+Jesper
