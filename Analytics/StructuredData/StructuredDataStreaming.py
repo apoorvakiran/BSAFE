@@ -56,7 +56,7 @@ class StructuredDataStreaming(BaseStructuredData):
                                 "the data streaming code!")
             dataloader = LoadElasticSearch()
             data = dataloader.retrieve_data(**streaming_settings)
-            
+
         else:
             raise NotImplementedError("Implement the streaming "
                                       "source '{}'!".format(streaming_source))

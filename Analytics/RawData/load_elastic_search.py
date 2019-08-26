@@ -145,5 +145,4 @@ class LoadElasticSearch(BaseData):
 
             all_data = pd.concat(all_data)
 
-            return self._check_data(data=all_data, names=names, file_path=None,
-                                    is_streaming=True)
+            return all_data

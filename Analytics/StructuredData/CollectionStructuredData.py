@@ -267,23 +267,22 @@ class CollectionStructuredData(object):
                         # this hand & segment loaded in a robust way:
                         try:
 
-                            import pdb
-                            pdb.set_trace()
-
-                            this_structured_dataset = StructuredDataStatic(path=file, data_format_code=data_format_code,
-                                                                           name=os.path.splitext(os.path.split(file)[1])[0],
-                                                  meta_data={'hand': hand, 'segment': segment, 'worker': worker_name,
-                                                             'task_name': task_name, 'filename': file,
-                                                             'basepath': basepath,
-                                                             'date_loaded': datetime.datetime.today().strftime(
-                                                                 '%Y-%m-%d %H:%M:%S')})
+                            this_structured_dataset = \
+                                StructuredDataStatic(path=file,
+                                            data_format_code=data_format_code,
+                            name=os.path.splitext(os.path.split(file)[1])[0],
+                            meta_data={'hand': hand, 'segment': segment,
+                                       'worker': worker_name,
+                                       'task_name': task_name,
+                                       'filename': file, 'basepath': basepath,
+                                       'date_loaded':
+                                           datetime.datetime.today().strftime(
+                                               '%Y-%m-%d %H:%M:%S')})
                         except Exception as e:
-                            print("There was an error '{}' in loading the data at {}, continuing...".format(e,
-                                                                                                            os.path.split(
-                                                                                                                file)[
-                                                                                                                1]))
-                            # import pdb
-                            # pdb.set_trace()
+                            print("There was an error '{}' in loading "
+                                  "the data at {}, continuing...".format(e,
+                                                     os.path.split(file)[1]))
+
                             bad_files[os.path.split(file)[1]] = e
                             continue
 

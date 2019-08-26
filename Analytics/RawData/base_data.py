@@ -15,7 +15,7 @@ __version__ = "Alpha"
 
 class BaseData(object):
 
-    _data_column_names = None
+    _data_column_names = None  # name of columns in the data
 
     def __init__(self):
         pass

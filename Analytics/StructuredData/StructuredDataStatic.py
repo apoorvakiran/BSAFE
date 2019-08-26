@@ -56,8 +56,8 @@ class StructuredDataStatic(BaseStructuredData):
         data = dataloader.get_data(path=path, destination=destination,
                                    data_format_code=self._data_format_code)
         # now run through pre-processing and validation:
-        data = BaseStructuredData._pre_process_data(data,
-                                            names=dataloader.data_column_names)
+        data = self._pre_process_data(data=data,
+                                      names=dataloader.data_column_names)
 
         print("The data has successfully been loaded from disk and basic "
               "pre-processing has been performed.")

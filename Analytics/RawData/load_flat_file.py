@@ -41,15 +41,14 @@ class LoadDataFromLocalDisk(BaseData):
         :return: Pandas DataFrame with data loaded from disk.
         """
 
-        names = DATA_FORMAT_CODES[data_format_code]
-        self._names = names
+        data_column_names = DATA_FORMAT_CODES[data_format_code]
+        self._data_column_names = data_column_names
 
         if not os.path.isfile(path):
             raise Exception(f"Could not find local file at '{path}'!")
-        local_path = path
 
         try:
-            data = pd.read_csv(path, names=names)
+            data = pd.read_csv(path, names=self.data_column_names)
             print("Successful loading of data...")
 
             data = self._find_numeric_and_correct_columns(data)
@@ -67,9 +66,9 @@ class LoadDataFromLocalDisk(BaseData):
             current_index = len(all_lines) - 1
             for ix, line in enumerate(all_lines):
                 line_split = line.split(',')
-                if len(line_split) == len(names) and \
-                        (names[0] == line_split[0] and
-                         names[1] == line_split[1]):
+                if len(line_split) == len(self.data_column_names) and \
+                        (self.data_column_names[0] == line_split[0] and
+                         self.data_column_names[1] == line_split[1]):
                     start_index = ix  # the data starts here
                     if not start_index == current_index:
                         print("Success >> We found the start index of "
@@ -84,7 +83,7 @@ class LoadDataFromLocalDisk(BaseData):
                 # now walk backwards to find where the data ends
                 this_line = all_lines[current_index]
 
-                if len(this_line.split(',')) == len(names):
+                if len(this_line.split(',')) == len(self.data_column_names):
                     # found the end index
                     end_index = current_index
                     found_end = True

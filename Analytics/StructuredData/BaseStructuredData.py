@@ -33,8 +33,7 @@ class BaseStructuredData(object):
     def name(self):
         return self._name
 
-    def _pre_process_data(self, data=None, names=None,
-                          is_streaming=False, data_format_code='3'):
+    def _pre_process_data(self, data=None, names=None, is_streaming=False):
         """
         Take an incoming DataFrame in an alleged correct format and check
         the data quality and format. The output is a DataFrame containing
@@ -126,7 +125,7 @@ class BaseStructuredData(object):
         return data
 
     @staticmethod
-    def _sigma_filter(self, data=None, last_index=None):
+    def _sigma_filter(data=None, last_index=None):
         """
         Apply sigma filter (standard deviation filter) to find out when
         the device started collecting stable time points.
