@@ -93,3 +93,11 @@ class LoadGoogleDrive(BaseData):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
         print("Done storing to disk!")
+
+    @staticmethod
+    def get_id(full_url=None):
+
+        if full_url is None:
+            raise Exception("The URL is None! Please provide a valid URL!")
+
+        return full_url.split('id')[1][1:]

@@ -7,6 +7,7 @@
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+from .utilities import *
 from .RawData import *
 from .StructuredData import *
 from .rula import *

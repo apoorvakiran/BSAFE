@@ -38,19 +38,19 @@ class CollectionStructuredData(object):
     _good_files = None
     _bad_files = None
 
-    def __init__(self, basepath=None, is_structured=False,
+    def __init__(self, basepath=None, is_cataloged=False,
                  list_of_filenames=None, cache_path='cache_experiments.pkl',
                  ignore_cache=False, data_format_code='3'):
         """
         From a list of incoming files, construct a set of structured_datasets
         :param basepath:
-        :param is_structured: Specify whether the data is structured in
-        the pre-specified format "Day --> "Task" --> ...
+        :param is_cataloged: Specify whether the data is cataloged in
+        this pre-specified format "Day --> "Task" --> ...
         :param list_of_filenames:
         """
 
-        if not is_structured and list_of_filenames is None:
-            raise Exception("Your input: The data is not structured and "
+        if not is_cataloged and list_of_filenames is None:
+            raise Exception("Your input: The data is not cataloged and "
                             "there is no list of filenames provided?\n"
                             "Please provide at least one of the two!")
 
@@ -74,7 +74,7 @@ class CollectionStructuredData(object):
                 print("Cache not found at location '{}', computing from "
                       "scratch".format(cache_path))
 
-            if is_structured:
+            if is_cataloged:
                 structured_datasets, good_files, bad_files = \
                     self._load_structured_data(basepath=basepath,
                                                data_format_code=data_format_code)
@@ -174,6 +174,9 @@ class CollectionStructuredData(object):
                                         exp.meta_data['task_name'].lower().strip().replace(' ', '') == task):
                                     all_data[task].append(exp.get_data(type=type, loc=loc, delta=delta))
 
+        else:
+            raise NotImplementedError("Implement me!")
+
         return all_data
 
     @property
@@ -260,10 +263,13 @@ class CollectionStructuredData(object):
                         assert basename_list[2].lower() == task_name.lower()
                         assert basename_list[3].lower() == worker_name.lower()
 
-                        # Data for this day, this task, this worker, this hand & segment
-                        # loaded in a robust way:
-                        # try:
+                        # Data for this day, this task, this worker,
+                        # this hand & segment loaded in a robust way:
                         try:
+
+                            import pdb
+                            pdb.set_trace()
+
                             this_structured_dataset = StructuredDataStatic(path=file, data_format_code=data_format_code,
                                                                            name=os.path.splitext(os.path.split(file)[1])[0],
                                                   meta_data={'hand': hand, 'segment': segment, 'worker': worker_name,
@@ -364,6 +370,9 @@ class CollectionStructuredData(object):
         raise NotImplementedError("Implement me!")
 
     def printer(self, outfile):
+
+        raise Exception("Move Me to Reporter class!")
+
         totalz = self.totaller()
         printed = open(outfile, 'w')
 
@@ -416,6 +425,11 @@ class CollectionStructuredData(object):
         printed.close()
 
     def totaller(self):
+        """
+        TODO: Jacob: What does this code do?
+        :return:
+        """
+
         rankings = {}
         for exp in self._structured_datasets:
             name = exp.name.split('_')

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This file handles data loading from Elastic Search.
+This file handles data loading from Elastic Search database.
 
 @ author Jesper Kristensen
 Copyright 2018-
@@ -19,10 +19,17 @@ from . import BaseData
 
 
 class LoadElasticSearch(BaseData):
+    """
+    This code is responsible for loading "Elastic Search" database data.
+
+    For example: We use it with streaming data:
+    Data streams from the wearable to the cloud and then SAFE can query
+    the elastic search database, analyze the data, and send back the results.
+    """
 
     def __init__(self):
         """
-        Constructor.
+        Construct the data loader.
         """
         super().__init__()
 

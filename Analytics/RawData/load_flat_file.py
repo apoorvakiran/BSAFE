@@ -3,6 +3,9 @@
 Loads data from a flat file from disk. The most basic data loader.
 Just provide data which has, say, been downloaded from the hardware to disk.
 
+The code is simple since no checks are done - this is postponed to the
+structured data loader.
+
 @ author Jesper Kristensen
 """
 
@@ -14,6 +17,7 @@ import os
 import numpy as np
 import pandas as pd
 from . import BaseData
+from .. import is_numeric
 from Settings import *
 
 
@@ -30,14 +34,15 @@ class LoadDataFromLocalDisk(BaseData):
 
     def _read_datafile(self, path=None, data_format_code='3'):
         """
-        This methods helps read the datafile. There can be different formats of the data
-        depending on the source and collection process. Here, we want to try to capture all of
-        them.
+        This methods helps read the datafile. There can be different
+        formats of the data depending on the source and collection process.
+        Here, we want to try to capture all of them.
 
-        :return:
+        :return: Pandas DataFrame with data loaded from disk.
         """
 
         names = DATA_FORMAT_CODES[data_format_code]
+        self._names = names
 
         if not os.path.isfile(path):
             raise Exception(f"Could not find local file at '{path}'!")
@@ -45,31 +50,9 @@ class LoadDataFromLocalDisk(BaseData):
 
         try:
             data = pd.read_csv(path, names=names)
-            print("Successful loading of data with pandas read_csv...")
+            print("Successful loading of data...")
 
-            if data_format_code == '3':
-                az_name = 'az[0](mg)'
-            else:
-                az_name = 'az[0]'
-
-            # now, we want to make sure to skip certain rows until we
-            # have numerics.
-            # We can use "az" as an example column:
-            ix = 0
-            while True:
-                try:
-                    val = data.iloc[ix][az_name]
-                    if not is_numeric(val) or (np.isnan(float(val)) or
-                                               data.iloc[ix].isna().any()):
-                        # make sure we have values for all columns
-                        ix += 1
-                        continue
-                    else:
-                        break
-
-                except ValueError:
-                    ix += 1
-            data = data.iloc[ix:, :]
+            data = self._find_numeric_and_correct_columns(data)
 
         except Exception as e:
             print("Found exception when straight loading the "
@@ -123,15 +106,7 @@ class LoadDataFromLocalDisk(BaseData):
                                skiprows=start_index).iloc[:end_index -
                                                            start_index]
 
-        return self._check_data(data, names=names, file_path=local_path)
-
-    @staticmethod
-    def get_id(full_url=None):
-
-        if full_url is None:
-            raise Exception("The URL is None! Please provide a valid URL!")
-
-        return full_url.split('id')[1][1:]
+        return data
 
     def get_data(self, path=None, destination=None, data_format_code='3'):
         """
@@ -156,10 +131,33 @@ class LoadDataFromLocalDisk(BaseData):
 
         return data
 
+    def _find_numeric_and_correct_columns(self, data=None,
+                                          data_format_code='3'):
+        """the following code ensures that we skip rows until we reach
+        numeric values and we have all the columns we seek
+        """
 
-def is_numeric(val):
-    try:
-        float(val)
-        return True
-    except Exception:
-        return False
+        if data_format_code == '3':
+            az_name = 'az[0](mg)'
+        else:
+            az_name = 'az[0]'
+
+        # now, we want to make sure to skip certain rows until we
+        # have numerics.
+        # We can use "az" as an example column:
+        ix = 0
+        while True:
+            try:
+                val = data.iloc[ix][az_name]
+                if not is_numeric(val) or (np.isnan(float(val)) or
+                                           data.iloc[ix].isna().any()):
+                    # make sure we have values for all columns
+                    ix += 1
+                    continue
+                else:
+                    break
+
+            except ValueError:
+                ix += 1
+
+        return data.iloc[ix:, :]

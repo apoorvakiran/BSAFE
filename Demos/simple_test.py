@@ -21,14 +21,15 @@ from Analytics import Metrics
 basepath_structured = "demo-data"  # just some demo data for testing
 
 msd = CollectionStructuredData(basepath=basepath_structured,
-                               is_structured=True, ignore_cache=True,
+                               is_cataloged=True, ignore_cache=True,
                                data_format_code='2')
+
 
 
 for structured_data in msd.datasets():
     # loop over individual structured data objects
 
-    mets = Metrics(experiment_obj=structured_data)
+    mets = Metrics(collection_structured_data_obj=structured_data)
 
     # just print some things for testing purposes
     # TODO: Make these actual checks in pytest...

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Computes metrics for analyzing the data.
+Computes metrics for analyzing a collection of structured data.
 
 @ author Jesper Kristensen
 Copyright 2018
@@ -22,7 +22,7 @@ class Metrics(object):
     Takes an Experiments object and creates and stores a list of events.
     """
 
-    _experiment = None
+    _collection_structured_data_obj = None
     _yaws = None
     _rolls = None
     _pitches = None
@@ -32,18 +32,19 @@ class Metrics(object):
     _posture = None
     _events = None
 
-    def __init__(self, experiment_obj=None):
+    def __init__(self, collection_structured_data_obj=None):
         """
-        Constructs an object from which metrics can be computed based off of an "Experiments" object.
+        Constructs an object from which metrics can be computed
+        based off of a "Collection of Structured Data" object.
 
         :param experiment_obj:
         """
-        self._experiment = experiment_obj
+        self._collection_structured_data_obj = collection_structured_data_obj
 
-        self._yaws = self._experiment._yaw
-        self._pitches = self._experiment._pitch
-        self._rolls = self._experiment._roll
-        self._duration = self.durChecker(self._experiment)
+        self._yaws = self._collection_structured_data_obj._yaw
+        self._pitches = self._collection_structured_data_obj._pitch
+        self._rolls = self._collection_structured_data_obj._roll
+        self._duration = self.durChecker(self._collection_structured_data_obj)
 
         # chunks = chunkify(self._pitches['delta'], self._yaws['delta'], self._rolls['delta'])
 
