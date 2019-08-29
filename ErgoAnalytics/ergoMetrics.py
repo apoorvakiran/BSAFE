@@ -223,28 +223,3 @@ class ErgoMetrics(object):
             n += 1
 
         return score
-
-
-# def chunkify(pitch=None, yaw=None, roll=None):
-#     sets = []
-#     n = 0
-#     lenny = len(pitch)
-#     chunks = max(8, int(lenny / 9000))
-#
-#     #print (chunks)
-#     while n < chunks:
-#         nines = n * 9000
-#         samples = []
-#         # print(nines)
-#         for _ in np.arange(0, 4, 1):
-#             samples.append(randint(nines, nines + 9000))
-#         for samp in samples:
-#             thisYaSample = pitch[samp:(samp + 1200)]
-#             thisPiSample = yaw[samp:(samp + 1200)]
-#             thisRollSample = roll[samp:(samp+1200)]
-#             if (np.std(thisYaSample)>10 and np.std(thisPiSample)>10 and np.std(thisRollSample) > 10):
-#                  sets.append([thisPiSample, thisYaSample, thisRollSample])
-#
-#         n = n + 1
-#     print(sets)
-#     return sets

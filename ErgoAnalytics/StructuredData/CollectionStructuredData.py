@@ -258,8 +258,6 @@ class CollectionStructuredData(object):
                         segment = basename_list[-2]
 
                         assert basename_list[0].lower() == day_name.lower()
-                        # print(basename_list)
-                        # print(task_name.lower())
                         assert basename_list[2].lower() == task_name.lower()
                         assert basename_list[3].lower() == worker_name.lower()
 
@@ -329,14 +327,6 @@ class CollectionStructuredData(object):
                              )]
 
         elif vary_this == 'worker':
-
-            # data all workers
-            # data = [exp.get_data(type=type, loc=loc, delta=delta) for exp in self._experiments if \
-            #         (exp.meta_data['task_name'].lower().strip().replace(' ', '') == task_name and
-            #          exp.meta_data['hand'].lower().strip().replace(' ', '') == hand and
-            #          exp.meta_data['segment'].lower().strip().replace(' ', '') == segment
-            #          )]
-
             list_of_exps = [exp for exp in self._structured_datasets if \
                             (exp.meta_data['task_name'].lower().strip().replace(' ', '') == task_name and
                              exp.meta_data['hand'].lower().strip().replace(' ', '') == hand and

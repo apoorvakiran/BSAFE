@@ -159,7 +159,6 @@ class StructuredDataStatic(BaseStructuredData):
         :return:
         """
         return data
-        # return np.degrees(np.arcsin(np.sin(np.radians(data))))
 
     def get_data(self, type='yaw', loc='hand', interpolate=True, delta=False):
 
@@ -180,76 +179,6 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
-        # raw_data = self._yaw[loc].values.reshape(-1, 1)
-        #
-        # # standardize
-        # raw_data_scaled = self._scale(raw_data)
-        #
-        # raw_10deg = 10
-        # raw_1deg = 1
-        #
-        # scaled_10deg = self._scale([raw_10deg])
-        # scaled_1deg = self._scale([raw_1deg])
-        #
-        # x = np.arange(len(raw_data_scaled))
-        #
-        # yaw_data = savgol_filter(raw_data_scaled.reshape(1, -1), 11, 4)
-        #
-        # df = pd.DataFrame(data=np.vstack([x, yaw_data]).T, columns=['Time', "Yaw"])
-        # df = df.rolling(11).mean()
-        #
-        # level_zero = np.mean(df.loc[:280, 'Yaw'])
-        # df.loc[:, 'Yaw'] = df.loc[:, 'Yaw'] - level_zero
-        #
-        # plt.figure()
-        # plt.subplot(211)
-        # plt.title("Raw Data")
-        # plt.plot(x, raw_data, 'bx', zorder=1)
-        # plt.axvline(280)
-        # plt.grid()
-        #
-        # plt.subplot(212)
-        # plt.title("Processed data")
-        # plt.plot(df['Time'] / 10, self.scale_to_angles(data=df['Yaw']), 'r-', zorder=2)
-        # plt.axhline(10, linestyle='--', color='k')
-        # plt.axhline(20, linestyle='--', color='k')
-        # plt.axhline(30, linestyle='--', color='k')
-        # plt.xlabel("Time (s)")
-        # plt.ylabel("Angle (deg)")
-        # plt.grid()
-        # plt.tight_layout()
-        #
-        # plt.figure()
-        #
-        # max_y_level = self.scale_to_angles(data=df['Yaw']).max()
-        #
-        # # plt.subplot(211)
-        # # plt.title("Processed data")
-        # # plt.plot(df['Time'] / 10, self.scale_to_angles(data=df['Yaw']), 'r-', zorder=2)
-        # # plt.axhline(10, linestyle='--', color='k')
-        # # plt.axhline(20, linestyle='--', color='k')
-        # # plt.axhline(30, linestyle='--', color='k')
-        # # plt.xlabel("Time (s)")
-        # # plt.ylabel("Angle (deg)")
-        # # plt.grid()
-        #
-        # # plt.subplot(212)
-        # x = df['Time'] / 10
-        # rula_threshold = 15
-        # plt.plot(x, self.scale_to_angles(data=df['Yaw']), 'r-', zorder=2)
-        # # plt.axhline(rula_threshold, linestyle='--', color='k')
-        #
-        # plt.axhspan(0, rula_threshold * 0.8, color='g', alpha=0.2)
-        # plt.axhspan(rula_threshold * 0.8, rula_threshold, color='y', alpha=0.2)
-        # plt.axhspan(rula_threshold, max_y_level, color='r', alpha=0.2)
-        #
-        # plt.xlabel("Time (s)")
-        # plt.ylabel("Angle (deg)")
-        # plt.grid()
-        # plt.tight_layout()
-        #
-        # plt.show()
-
         if delta:
             return self._yaw['delta']
 
@@ -350,65 +279,7 @@ class StructuredDataStatic(BaseStructuredData):
 
         alpha_interp = w_interp.derivative(n=1)  # alpha = dw(t)/dt --> angular acceleration
 
-        # plt.figure()
-        # plt.plot(x, w, 'r--')
-        # plt.plot(x, w_interp(x_conv), 'bx')
-        # plt.show()
-
         return alpha_interp(x_conv)
-
-    # def quadCorrect(self, swing = 180):
-    # """
-    # Take an experiment object and reduce large swings in angle from measurement to measurement.
-    # swing is the maximum value by which an angle will be allowed to change in one timestep
-    # """
-    # start by grabbing the length of the array
-    # lend=len(self._time)
-    # dictions=[self._yaw, self._pitch, self._roll]
-    # #these three dictionaries need to be checked and updated on multiple values
-    # n=1
-    # #Switching to np array objects, easier to perform updates here.
-    # self._yaw['hand']=np.array(self._yaw['hand'])
-    # self._yaw['wrist']=np.array(self._yaw['wrist'])
-    # self._yaw['delta']=np.array(self._yaw['delta'])
-    # self._pitch['hand']=np.array(self._pitch['hand'])
-    # self._pitch['wrist']=np.array(self._pitch['wrist'])
-    # self._pitch['delta']=np.array(self._pitch['delta'])
-    # self._roll['hand']=np.array(self._roll['hand'])
-    # self._roll['wrist']=np.array(self._roll['wrist'])
-    # self._roll['delta']=np.array(self._roll['delta'])
-    # while (n<lend) :
-    #  for set in dictions:
-    #    changed=False #set to true if changes are made, then update delta.
-    #    #print(set.keys())
-    #    handSwing=abs(set['hand'][n]-set['hand'][n-1])
-    #    #print(handSwing)
-    #    wristSwing=abs(set['wrist'][n]-set['wrist'][n-1])
-    #    if (handSwing >swing):
-    #      #print(set['hand'][n-1])
-    #      set['hand'][n]=set['hand'][n-1] #sets it to the previous value (swing of 0)
-    #      #print(set['hand'][n])
-    #      changed=True
-    #    if (wristSwing>swing):
-    #      set['wrist'][n]=set['wrist'][n-1]
-    #      changed=True
-    #    if changed:
-    #      set['delta'][n]=set['wrist'][n]-set['hand'][n]
-    #    #print('Updated quadrant for value ' + str(n))
-    #    #print(handSwing)
-    #    #print(wristSwing)
-    #  n=n+1
-    ##Transferring between Series and np.array objects, back to a Series.
-    # self._yaw['hand']=pd.Series(self._yaw['hand'])
-    # self._yaw['wrist']=pd.Series(self._yaw['wrist'])
-    # self._yaw['delta']=pd.Series(self._yaw['delta'])
-    # self._pitch['hand']=pd.Series(self._pitch['hand'])
-    # self._pitch['wrist']=pd.Series(self._pitch['wrist'])
-    # self._pitch['delta']=pd.Series(self._pitch['delta'])
-    # self._roll['hand']=pd.Series(self._roll['hand'])
-    # self._roll['wrist']=pd.Series(self._roll['wrist'])
-    # self._roll['delta']=pd.Series(self._roll['delta'])
-    # return(self)
 
     def truncate(self, lowEnd, highEnd):
         """
@@ -461,14 +332,8 @@ class StructuredDataStatic(BaseStructuredData):
             lastThreePitch.pop(0)
             lastThreeYaw.append(scipy.std(yawDel[n:highEnd]))
             lastThreePitch.append(scipy.std(pitchDel[n:highEnd]))
-            # print(startPitchDev)
-            # print(lastThreePitch)
-            # print(startYawDev)
-            # print(lastThreeYaw)
             n = n + 100
         startPoint = n - 200
-        # print(startPoint)
-        # print(n)
         n = -1
         lastThreeYaw = [0, 0, 0]
         lastThreePitch = [0, 0, 0]
@@ -485,7 +350,6 @@ class StructuredDataStatic(BaseStructuredData):
             lastThreePitch.append(scipy.std(pitchDel[lowEnd:n]))
             n = n - 100
         endPoint = n + 200
-        # print(''+str(startPoint) + '  , ' + str(endPoint))
         return (self.truncate(startPoint, endPoint))
 
     def construct_delta_values(self):
@@ -533,7 +397,6 @@ class StructuredDataStatic(BaseStructuredData):
         return newList
 
     def quadrant_fix(self, list_data=None):
-        # print(listy)
         n = 0
         try:
             while n < len(list_data):

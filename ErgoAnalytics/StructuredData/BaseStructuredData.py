@@ -161,16 +161,6 @@ class BaseStructuredData(object):
 
             current_index += 1  # move it
 
-        # import numpy as np
-        # import matplotlib.pyplot as plt
-        # plt.subplot(211)
-        # plt.plot(data['Date-Time'].iloc[:600])
-        # plt.subplot(212)
-        # plt.plot(np.abs(np.diff(all_std_sec)))
-        # plt.axhline(1)
-        # plt.ylim(0, 100)
-        # plt.show()
-
         return data.iloc[max(0, current_index - 1):, :]
 
     def _delta_t_filter(self, data=None, is_streaming=False):

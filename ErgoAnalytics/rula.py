@@ -65,7 +65,6 @@ class Rula(object):
                 sns.set(style="whitegrid")
 
             total_scores['exp'] = exp_ix
-            # total_scores['within_exp_score'] = total_scores['scores']
 
             all_scores.append(total_scores)
 
@@ -77,9 +76,6 @@ class Rula(object):
             plt.grid()
 
             plt.subplot(212)
-            # import pdb
-            # pdb.set_trace()
-            # total_scores['time'] = time.index
             plt.plot(total_scores.index, total_scores['total'], '.')
             plt.xlabel('time')
             plt.ylabel('RULA score')
@@ -125,17 +121,6 @@ class Rula(object):
             print('*' * 12)
             print(exp.name)
 
-            # # for this person, try these:
-            # # now look at how this move over segments of the data:
-            # window_size = 3600
-            # for j in [0, 1, 2]:
-            #     print('----')
-            #     this_data = gdata['total'][j * window_size:(j + 1) * window_size]
-            #     print(this_data.mean())
-            #     perc = (np.abs(gdata[0][j * window_size:(j + 1) * window_size]) > 15).sum() / gdata[0][j * window_size:(j + 1) * window_size].count() * 100
-            #     print(perc)
-            #     print(gdata[0][j * window_size:(j + 1) * window_size].count() / 2 * perc / 100 / 60)
-
         compute_average = pd.concat(all_data, axis=1)
         compute_average = compute_average.mean(axis=1)
 
@@ -144,15 +129,6 @@ class Rula(object):
         plt.grid('on')
         plt.legend(loc='best')
         plt.savefig('rula_vs_time.png')
-        # plt.show()
-
-        # # demonstrate some plots
-        # plt.figure()
-        # plt.plot(gdata['total'][2100:2600], '.', label=exp.name)
-        # plt.grid()
-        # plt.xlabel('time [.]')
-        # plt.ylabel('RULA')
-        # plt.show()
 
     def _summarize_rula(self, scores=None, exp_ix=None, threshold_degrees=15):
         """
@@ -189,12 +165,6 @@ class Rula(object):
         yaw_wrist = yaw_wrist.iloc[from_:till_]
         delta_yaw = (yaw_hand - yaw_wrist).iloc[from_:till_]
 
-        # hand = go.Scatter(x=yaw_hand.index, y=yaw_hand)
-        # wrist = go.Scatter(x=yaw_wrist.index, y=yaw_wrist)
-        # delta = go.Scatter(x=delta_yaw.index, y=delta_yaw)
-        # fig = go.Figure(data=[hand, wrist, delta])
-        # plot(fig, auto_open=True)
-
         hi = np.percentile(delta_yaw, 99.9)
         lo = np.percentile(delta_yaw, 0.1)
         delta_yaw = np.clip(delta_yaw, lo, hi)
@@ -212,21 +182,15 @@ class Rula(object):
         import pdb
         pdb.set_trace()
 
-        # # plt.subplot(211)
         import matplotlib.pyplot as plt
         import seaborn as sns
         plt.figure()
         sns.set(style="whitegrid")
-        # g = sns.catplot(x="total", y='within_exp_score', hue="exp", data=all_scores, height=6, kind="bar", palette="muted")
-        # g = sns.catplot(x="total", data=total_scores, height=6, kind="bar", palette="muted")
-
 
         sns.barplot(x="total", y='exp', hue="exp", data=all_scores)
 
         plt.show()
-        # import pdb
-        # pdb.set_trace()
-        #
+
         import pdb
         pdb.set_trace()
 
@@ -234,10 +198,6 @@ class Rula(object):
 
         time = experiment.time
 
-        # separate out a chunk of data that looks good
-        # from_ = 4000
-        # till_ = 15000
-        # if you want to use all data:
         from_ = time.index[0]
         till_ = time.index[-1]
 
@@ -249,12 +209,6 @@ class Rula(object):
         yaw_hand = yaw_hand.iloc[from_:till_]
         yaw_wrist = yaw_wrist.iloc[from_:till_]
         delta_yaw = (yaw_hand - yaw_wrist).iloc[from_:till_]
-
-        # hand = go.Scatter(x=yaw_hand.index, y=yaw_hand)
-        # wrist = go.Scatter(x=yaw_wrist.index, y=yaw_wrist)
-        # delta = go.Scatter(x=delta_yaw.index, y=delta_yaw)
-        # fig = go.Figure(data=[hand, wrist, delta])
-        # plot(fig, auto_open=True)
 
         hi = np.percentile(delta_yaw, 99.9)
         lo = np.percentile(delta_yaw, 0.1)
@@ -272,10 +226,6 @@ class Rula(object):
 
         time = experiment.time
 
-        # separate out a chunk of data that looks good
-        # from_ = 4000
-        # till_ = 15000
-        # if you want to use all data:
         from_ = time.index[0]
         till_ = time.index[-1]
 
@@ -290,12 +240,6 @@ class Rula(object):
         yaw_wrist = yaw_wrist.iloc[from_:till_]
         delta_yaw = (yaw_hand - yaw_wrist).iloc[from_:till_]
 
-        # hand = go.Scatter(x=yaw_hand.index, y=yaw_hand)
-        # wrist = go.Scatter(x=yaw_wrist.index, y=yaw_wrist)
-        # delta = go.Scatter(x=delta_yaw.index, y=delta_yaw)
-        # fig = go.Figure(data=[hand, wrist, delta])
-        # plot(fig, auto_open=True)
-
         hi = np.percentile(delta_yaw, 99.9)
         lo = np.percentile(delta_yaw, 0.1)
         delta_yaw = np.clip(delta_yaw, lo, hi)
@@ -308,42 +252,3 @@ class Rula(object):
         scores.loc[(np.abs(delta_yaw) > 15), 'scores'] = 3
 
         return time, scores
-
-    # def _construct_rula_scores(self, type='yaw', experiment=None, levels=None, scores=None, time=None):
-    #
-    #     time = experiment.time
-    #
-    #     # separate out a chunk of data that looks good
-    #     # from_ = 4000
-    #     # till_ = 15000
-    #     # if you want to use all data:
-    #     from_ = time.index[0]
-    #     till_ = time.index[-1]
-    #
-    #     yaw_hand = experiment.get_data(type=type, loc='hand')
-    #     yaw_wrist = experiment.get_data(type=type, loc='wrist')
-    #
-    #     time = time.iloc[from_:till_]
-    #
-    #     yaw_hand = yaw_hand.iloc[from_:till_]
-    #     yaw_wrist = yaw_wrist.iloc[from_:till_]
-    #     delta_yaw = (yaw_hand - yaw_wrist).iloc[from_:till_]
-    #
-    #     # hand = go.Scatter(x=yaw_hand.index, y=yaw_hand)
-    #     # wrist = go.Scatter(x=yaw_wrist.index, y=yaw_wrist)
-    #     # delta = go.Scatter(x=delta_yaw.index, y=delta_yaw)
-    #     # fig = go.Figure(data=[hand, wrist, delta])
-    #     # plot(fig, auto_open=True)
-    #
-    #     hi = np.percentile(delta_yaw, 99.9)
-    #     lo = np.percentile(delta_yaw, 0.1)
-    #     delta_yaw = np.clip(delta_yaw, lo, hi)
-    #
-    #     scores = delta_yaw.to_frame()
-    #     scores['scores'] = 0
-    #
-    #     scores.loc[(np.abs(delta_yaw) <= 5), 'scores'] = 1
-    #     scores.loc[(np.abs(delta_yaw) > 5) & (np.abs(delta_yaw) <= 15), 'scores'] = 2
-    #     scores.loc[(np.abs(delta_yaw) > 15), 'scores'] = 3
-    #
-    #     return time, scores
