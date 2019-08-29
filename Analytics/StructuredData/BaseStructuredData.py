@@ -84,7 +84,7 @@ class BaseStructuredData(object):
             raise Exception("There is <= 1 data point(s) in the file!")
 
         self._delta_t_filter(data, is_streaming=is_streaming)
-        self._nan_filter(data)
+        self._data_imputation_filter(data)
 
         try:
             # shape of data before filtering the specific names
@@ -188,16 +188,25 @@ class BaseStructuredData(object):
             print("Please double-check the date-times.")
             raise Exception("Date-time frequency error in collection!")
 
-    def _nan_filter(self, data=None):
+    def _data_imputation_filter(self, data=None, method='nan_filter'):
         """
-        Filters the NaNs out of the data.
+        Imputes the data or rids of it depending on the method used.
 
         :param data:
         :return:
         """
 
-        print("> # of data before filtering for NaNs... = "
-              "{}".format(len(data)))
-        data.dropna(how='any', inplace=True)
-        print("> # of data after filtering away NaNs... = "
-              "{}".format(len(data)))
+        # right now the data imputation is easy: Just get rid
+        # of the NaN values - but going forward we can have more
+        # complex methods such as sampling from statistical distributions:
+        # For example: Create a multi-variate Gaussian on all data we do have
+        # and then sample from it conditioned on the data we _do_ have at other
+        # rows to find likely values for the missing data.
+        if method == 'nan_filter':
+            print("> # of data before filtering for NaNs... = "
+                  "{}".format(len(data)))
+            data.dropna(how='any', inplace=True)
+            print("> # of data after filtering away NaNs... = "
+                  "{}".format(len(data)))
+        else:
+            raise NotImplementedError("Implement me!")
