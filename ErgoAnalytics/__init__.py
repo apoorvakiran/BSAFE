@@ -12,4 +12,4 @@ from .RawData import *
 from .StructuredData import *
 from .rula import *
 from .acceleration import *
-from .metrics import *
+from .ergoMetrics import *

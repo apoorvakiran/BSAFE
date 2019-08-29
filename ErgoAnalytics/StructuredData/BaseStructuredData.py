@@ -101,12 +101,12 @@ class BaseStructuredData(object):
             # delta values may not be in the index, so ignore those:
             data = data[names[:-3]]
 
-
         # now we have the filtered data;
         # make sure to sort it by date:
         print("Sorting the data by time...")
 
         data.sort_values(by=['Date-Time'], ascending=True, inplace=True)
+
         print("Dropping duplicates...")
         print("    # rows before = {}".format(len(data)))
         data.drop_duplicates(subset=['Date-Time'], inplace=True)
@@ -174,10 +174,18 @@ class BaseStructuredData(object):
         return data.iloc[max(0, current_index - 1):, :]
 
     def _delta_t_filter(self, data=None, is_streaming=False):
+        """
+        Check that the delta time between measurements is reasonable.
+        Currently just a very simple sanity check but can be expanded.
 
-        # sanity check:
-        # (in case of streaming data we may get only a single datum, so check
-        # first for number of data)
+        If the data is "streaming" we may just get a single datum in which
+        case we don't check.
+
+        :param data:
+        :param is_streaming:
+        :return:
+        """
+
         if (not is_streaming) and \
                 (not (pd.to_datetime(data['Date-Time']).iloc[1] -
                       pd.to_datetime(data['Date-Time']).iloc[0]).seconds <= 1):

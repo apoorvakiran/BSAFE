@@ -12,14 +12,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-__all__ = ["Metrics"]
+__all__ = ["ErgoMetrics"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 
-class Metrics(object):
+class ErgoMetrics(object):
     """
-    Takes an Experiments object and creates and stores a list of events.
+    Computes ergonomics metrics.
     """
 
     _collection_structured_data_obj = None

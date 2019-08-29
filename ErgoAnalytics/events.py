@@ -15,7 +15,7 @@ So far this seems to have been working out.
 """
 
 import numpy as np
-from Analytics.metrics import Metrics, velcro, motionScore
+from Analytics.ergoMetrics import ergoMetrics, velcro, motionScore
 
 
 def eventFinder(eventual, angle):
