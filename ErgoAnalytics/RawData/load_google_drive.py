@@ -22,7 +22,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import requests
-from Analytics.RawData import BaseData
+from . import BaseData
 
 
 class LoadGoogleDrive(BaseData):
