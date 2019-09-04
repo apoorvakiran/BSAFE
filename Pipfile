@@ -21,6 +21,7 @@ flask-cors = "*"
 gunicorn = "*"
 pika = "*"
 dramatiq = "*"
+redis = "*"
 
 [requires]
 python_version = "3.7"
