@@ -1,7 +1,8 @@
 .git
 .gitignore
 .k8s
-circle.yml
+.circleci
+.dockerignore
 Dockerfile
 tmp/*
 log/*
