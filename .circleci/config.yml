@@ -113,8 +113,6 @@ workflows:
               only: 
                 - ci-fix
       - build_image_and_deploy_prod:
-          requires:
-            - build_test
           filters:
             branches:
               only: 
