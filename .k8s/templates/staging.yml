@@ -25,29 +25,29 @@ spec:
 
 ---
 
-# apiVersion: extensions/v1beta1
-# kind: Ingress
-# metadata:
-#   name: safe-core
-#   namespace: ${STG_NAMESPACE}
-#   annotations:
-#     kubernetes.io/ingress.class: nginx-iteratelabs
-#     certmanager.k8s.io/cluster-issuer: letsencrypt
-#     certmanager.k8s.io/acme-challenge-type: dns01
-#     certmanager.k8s.io/acme-dns01-provider: aws-route53
-# spec:
-#   tls:
-#   - hosts:
-#     - staging-api.iteratelabs.co
-#     secretName: staging-api.iteratelabs.co-tls
-#   rules:
-#   - host: staging-api.iteratelabs.co
-#     http:
-#       paths:
-#         - path: /
-#           backend:
-#             serviceName: infinity-gauntlet
-#             servicePort: 5000
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: safe-core
+  namespace: ${STG_NAMESPACE}
+  annotations:
+    kubernetes.io/ingress.class: nginx-iteratelabs
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    certmanager.k8s.io/acme-challenge-type: dns01
+    certmanager.k8s.io/acme-dns01-provider: aws-route53
+spec:
+  tls:
+  - hosts:
+    - staging-analytics.iteratelabs.co
+    secretName: staging-analytics.iteratelabs.co-tls
+  rules:
+  - host: staging-analytics.iteratelabs.co
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: safe-core
+            servicePort: 5000
 
 ---  
 
