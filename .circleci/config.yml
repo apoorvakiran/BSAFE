@@ -3,9 +3,6 @@ version: 2.1
 jobs:
   
   build_image_and_deploy_staging:
-    
-    machine:
-      docker_layer_caching: true
     docker:
       - image: circleci/python:3.7
 
