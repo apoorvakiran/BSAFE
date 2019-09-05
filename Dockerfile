@@ -10,6 +10,6 @@ RUN pip3 install pipenv
                                            
 ADD . /usr/src/app
 
-RUN pipenv install 
+RUN pipenv install --deploy
 
 CMD foreman s

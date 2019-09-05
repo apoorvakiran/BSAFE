@@ -9,7 +9,9 @@ jobs:
     working_directory: ~/safe-core
 
     steps:
-
+      
+      - checkout
+      
       - run:
           name: Install awscli and gettext-base
           command: |
