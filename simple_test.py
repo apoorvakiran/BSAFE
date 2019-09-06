@@ -16,7 +16,7 @@ __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
 from ErgoAnalytics import CollectionStructuredData
-from ErgoAnalytics import ergoMetrics
+from ErgoAnalytics import ErgoMetrics
 
 basepath_structured = "Demos/demo-data"  # just some demo data for testing
 
@@ -29,7 +29,7 @@ msd = CollectionStructuredData(basepath=basepath_structured,
 for structured_data in msd.datasets():
     # loop over individual structured data objects
 
-    mets = ergoMetrics(collection_structured_data_obj=structured_data)
+    mets = ErgoMetrics(collection_structured_data_obj=structured_data)
 
     # just print some things for testing purposes
     # TODO: Make these actual checks in pytest...
