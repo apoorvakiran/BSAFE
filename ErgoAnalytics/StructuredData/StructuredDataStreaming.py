@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Holds an Experiment object and everything related to it.
-
 @ author Jesper Kristensen, Jacob Tyrrell
 Copyright 2018
 """
@@ -41,7 +40,7 @@ class StructuredDataStreaming(BaseStructuredData):
 
     def __init__(self, streaming_source='elastic_search',
                  streaming_settings=None, name=None, meta_data=None,
-                 data_format_code='3'):
+                 data_format_code='2'):
         """
         Construct an experiment class.
         :param path:
@@ -276,7 +275,6 @@ class StructuredDataStreaming(BaseStructuredData):
     def angular_acc_x(self, loc='hand'):
         """
         Angular acceleration around x-axis.
-
         :param loc:
         :return:
         """
@@ -323,7 +321,6 @@ class StructuredDataStreaming(BaseStructuredData):
     def construct_delta_values(self):
         """
         Construct delta values.
-
         :param experiment:
         :return:
         """
