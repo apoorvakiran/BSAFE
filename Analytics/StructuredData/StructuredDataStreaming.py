@@ -41,15 +41,15 @@ class StructuredDataStreaming(BaseStructuredData):
 
     def __init__(self, streaming_source='elastic_search',
                  streaming_settings=None, name=None, meta_data=None,
-                 data_format_code='3'):
+                 data_format_code='2'):
         """
         Construct an experiment class.
         :param path:
         :param destination:
         """
         super().__init__(name=name)
-
         # where is the data streaming from?
+        print("test1")
         if streaming_source == 'elastic_search':
             if not streaming_settings:
                 raise Exception("Please provide settings for "
@@ -65,6 +65,8 @@ class StructuredDataStreaming(BaseStructuredData):
             # no data was loaded!
             print("No data was loaded in the streaming process!")
             return
+        print("test2")
+        print(data)
 
         self._time = pd.to_datetime(data['Date-Time'])
 

@@ -13,6 +13,7 @@ __version__ = "Alpha"
 import datetime
 import numpy as np
 import pandas as pd
+from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from Settings import *
 from . import BaseData
@@ -77,47 +78,18 @@ class LoadElasticSearch(BaseData):
 
             # search_on_addresses = [{"match_phrase": {"device": ma}}
             #                        for ma in mac_addresses]
-
-            documents_this_devie = es.search(index=index, body={
-                'query': {
-                    'bool': {'must': [{"match_phrase": {"device": ma}}],
-                             "filter": {
-                                 "range": {
-                                     "timestamp": {
-                                         "gte": datetime.datetime.strptime(
-                                             from_date, "%m/%d/%Y"),
-                                         "lte": datetime.datetime.strptime(
-                                             till_date, "%m/%d/%Y"),
-                                     }
-                                 }
-                             }
-                             }
-                }
-            })
-
-            print("{} documents found for device.".format(
-                documents_this_devie['hits']['total']['value']))
-
-            number_of_documents_retrieved = \
-                documents_this_devie['hits']['total']['value']
-
-            if number_of_documents_retrieved  == 0:
-                continue
-            elif number_of_documents_retrieved == 1:
-                # Series needs conversion to DataFrame
-                this_data = documents_this_devie['hits']['hits']
-                device_data = pd.DataFrame(pd.concat(
-                    map(pd.DataFrame.from_dict, this_data), axis=1)
-                                           ['_source']).T
-            else:
-
-                # get the data and turn into DataFrame:
-                this_data = documents_this_devie['hits']['hits']
-                device_data = pd.concat(map(pd.DataFrame.from_dict,
-                                            this_data), axis=1)['_source'].T
-
-            data_this_device = device_data.reset_index(drop=True)
-            data_all_devices.append(data_this_device)
+            scanner = Search(using = es, index=index).query("match", device = ma).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+            this_device_data = []
+            for hit in scanner.scan():
+                #print('scanning')
+                #print(hit)
+                this_data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
+                this_device_data.append(this_data)
+            this_device_frame = pd.DataFrame(this_device_data)
+            this_device_frame.columns = ['data', 'device', 'timestamp']
+            print(this_device_frame)
+            print("{} documents found for device.".format(len(this_device_frame)))
+            data_all_devices.append(this_device_frame)
 
         if len(data_all_devices) > 0:
 
@@ -131,8 +103,10 @@ class LoadElasticSearch(BaseData):
 
             all_data = []
             data = pd.concat(data_all_devices, axis=0)['data'].values
+            #print(data)
+            totalSize=len(data)
             for datum in data:
-                datum = datum.rstrip('\n').rstrip('\r').rstrip('\r'.rstrip('\n'))
+                datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
                 this_datum = np.asarray(datum.split(','))
 
                 date = this_datum[0]
@@ -142,6 +116,8 @@ class LoadElasticSearch(BaseData):
                 this_data.columns = names
 
                 all_data.append(this_data)
+                totalSize = totalSize - 1
+                #print(totalSize)
 
             all_data = pd.concat(all_data)
 
