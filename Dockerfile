@@ -1,8 +1,8 @@
-FROM python:3.7
+FROM python:3.7-slim
 
 WORKDIR /usr/src/app
 
-RUN apt update && apt install -y ruby-full
+RUN apt-get update && apt-get install -y ruby-full
 
 RUN gem install foreman
 
@@ -13,3 +13,8 @@ ADD . /usr/src/app
 RUN pipenv install --deploy
 
 CMD foreman s
+
+
+
+
+
