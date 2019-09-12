@@ -6,7 +6,11 @@ metadata:
   labels:
     app: safe-core
 data:
-  BROKER_URL: safe-core-staging.vkpnka.0001.use1.cache.amazonaws.com:6379
+  BROKER_URL: ${STAGING_BROKER_URL}
+  ELASTIC_SEARCH_INDEX: ${STAGING_ELASTIC_SEARCH_INDEX}
+  AWS_ACCESS_KEY: ${STAGING_AWS_ACCESS_KEY}
+  AWS_SECRET_KEY: ${STAGING_AWS_SECRET_KEY}
+  ELASTIC_SEARCH_HOST: ${STAGING_ELASTIC_SEARCH_HOST}
 
 ---
 
