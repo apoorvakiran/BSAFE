@@ -116,7 +116,7 @@ workflows:
           filters:
             branches:
               only: 
-                - ci-fix
+                - master
       - build_image_and_deploy_prod:
           filters:
             branches:
