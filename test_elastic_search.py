@@ -21,7 +21,7 @@ from ErgoAnalytics import StructuredDataStreaming
 
 # doesn't matter which exact address - just to test - so take the first:
 ####JACOB - Pulled in a test case data file, assigned address 
-some_test_address = ['F6:12:3D:BD:DE:44']
+test_address = ['F6:12:3D:BD:DE:44']
 
 
 def test_retrieve_elastic_search():
@@ -32,7 +32,7 @@ def test_retrieve_elastic_search():
     index = "iterate-labs-local-poc"
     es_safe_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
-                                           {"mac_addresses": some_test_address,
+                                           {"mac_addresses": test_address,
                                             "from_date": '2019-03-01',
                                             "till_date": '2019-04-01',
                                             "hosts": None, "index": index,
@@ -40,8 +40,8 @@ def test_retrieve_elastic_search():
     # *note* the "streaming settings". This argument will be passed on to
     # the specific streamer in question...
     print("Data Loaded from Streaming:")
-    print(es_safe_data.get_data())
-    print(es_safe_data.pitch())
+    #print(es_safe_data.get_data())
+    #print(es_safe_data.pitch())
     mets = ErgoMetrics(es_safe_data)
     print(mets._strain)
 

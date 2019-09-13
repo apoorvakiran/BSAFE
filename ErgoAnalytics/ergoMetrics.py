@@ -178,7 +178,6 @@ class ErgoMetrics(object):
             totalVals = totalVals + 1
             n = n + 1
         postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)]
-        #print(postScores)
         self._posture = postScores
 
     def _digitize_values(self, values=None, bins=None):

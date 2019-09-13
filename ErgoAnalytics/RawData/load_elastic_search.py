@@ -72,24 +72,18 @@ class LoadElasticSearch(BaseData):
         mac_addresses = np.atleast_1d(mac_addresses).tolist()
 
         data_all_devices = []
-
-        for ma in mac_addresses:
-            # for each mac address/device
-
-            # search_on_addresses = [{"match_phrase": {"device": ma}}
-            #                        for ma in mac_addresses]
-            scanner = Search(using = es, index=index).query("match", device = ma).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
-            this_device_data = []
-            for hit in scanner.scan():
-                #print('scanning')
-                #print(hit)
-                this_data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
-                this_device_data.append(this_data)
-            this_device_frame = pd.DataFrame(this_device_data)
-            this_device_frame.columns = ['data', 'device', 'timestamp']
-            print(this_device_frame)
-            print("{} documents found for device.".format(len(this_device_frame)))
-            data_all_devices.append(this_device_frame)
+        # for each mac address/device
+        # search_on_addresses = [{"match_phrase": {"device": ma}}
+        #                        for ma in mac_addresses]
+        scanner = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+        device_data = []
+        for hit in scanner.scan():
+            data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
+            device_data.append(data)
+        this_device_frame = pd.DataFrame(device_data)
+        this_device_frame.columns = ['data', 'device', 'timestamp']
+        print("{} documents found for device.".format(len(this_device_frame)))
+        data_all_devices.append(this_device_frame)
 
         if len(data_all_devices) > 0:
 
@@ -105,15 +99,15 @@ class LoadElasticSearch(BaseData):
             data = pd.concat(data_all_devices, axis=0)['data'].values
             for datum in data:
                 datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
-                this_datum = np.asarray(datum.split(','))
+                datum = np.asarray(datum.split(','))
 
-                date = this_datum[0]
-                values = this_datum[1:].astype(float)
+                date = datum[0]
+                values = datum[1:].astype(float)
 
-                this_data = pd.DataFrame(data=np.append([date], values)).T
-                this_data.columns = names
+                data = pd.DataFrame(data=np.append([date], values)).T
+                data.columns = names
 
-                all_data.append(this_data)
+                all_data.append(data)
 
             all_data = pd.concat(all_data)
 
