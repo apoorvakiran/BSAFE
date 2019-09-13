@@ -4,6 +4,7 @@ from periodiq import PeriodiqMiddleware
 
 from .extensions import dramatiq
 from .api import api
+
 def create_app():
     app = Flask(__name__)
 
