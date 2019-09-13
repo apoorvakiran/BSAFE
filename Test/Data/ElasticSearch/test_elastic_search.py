@@ -10,7 +10,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import json
-from Analytics import StructuredDataStreaming
+from ErgoAnalytics import StructuredDataStreaming
 
 # these are just some mac addresses that were created in generating
 # the fake data (just so that we can test it out and grab a random valid one):
