@@ -20,8 +20,8 @@ from ErgoAnalytics import StructuredDataStreaming
     # mac_addresses_in_fake_database = list of mac addresses (hypothetical)
 
 # doesn't matter which exact address - just to test - so take the first:
-####JACOB - Pulled in a test case data file, assigned address 
-test_address = ['F6:12:3D:BD:DE:44']
+####JACOB - Pulled in a test case data file, assigned address
+test_address = 'F6:12:3D:BD:DE:44'
 
 
 def test_retrieve_elastic_search():
@@ -32,7 +32,7 @@ def test_retrieve_elastic_search():
     index = "iterate-labs-local-poc"
     es_safe_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
-                                           {"mac_addresses": test_address,
+                                           {"mac_address": test_address,
                                             "from_date": '2019-03-01',
                                             "till_date": '2019-04-01',
                                             "hosts": None, "index": index,

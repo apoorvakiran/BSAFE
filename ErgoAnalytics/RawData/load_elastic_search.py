@@ -34,7 +34,7 @@ class LoadElasticSearch(BaseData):
 
         print("Data loading with Elastic Search object created!")
 
-    def retrieve_data(self, mac_addresses=None, from_date=None, till_date=None,
+    def retrieve_data(self, mac_address=None, from_date=None, till_date=None,
                       hosts=None, index=None, data_format_code='3'):
         """
         Retrieves the data from the Elastic Search database specified
@@ -44,7 +44,7 @@ class LoadElasticSearch(BaseData):
         be found here:
         "https://marcobonzanini.com/2015/02/02/
         how-to-query-elasticsearch-with-python/"
-        :param mac_addresses:
+        :param mac_address:
         :param from_date:
         :param till_date:
         :param hosts:
@@ -65,21 +65,16 @@ class LoadElasticSearch(BaseData):
                            use_ssl=False,
                            verify_certs=False)
 
-        mac_addresses = np.atleast_1d(mac_addresses).tolist()
-
         data_all_devices = []
-        # for each mac address/device
-        # search_on_addresses = [{"match_phrase": {"device": ma}}
-        #                        for ma in mac_addresses]
         scanner = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
         device_data = []
         for hit in scanner.scan():
             data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
             device_data.append(data)
-        this_device_frame = pd.DataFrame(device_data)
-        this_device_frame.columns = ['data', 'device', 'timestamp']
-        print("{} documents found for device.".format(len(this_device_frame)))
-        data_all_devices.append(this_device_frame)
+        device_df = pd.DataFrame(device_data)
+        device_df.columns = ['data', 'device', 'timestamp']
+        print("{} documents found for device.".format(len(device_df)))
+        data_all_devices.append(device_df)
 
         if len(data_all_devices) > 0:
 
