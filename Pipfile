@@ -22,6 +22,7 @@ gunicorn = "*"
 pika = "*"
 dramatiq = "*"
 redis = "*"
+elasticsearch-dsl = "*"
 
 [requires]
 python_version = "3.7"

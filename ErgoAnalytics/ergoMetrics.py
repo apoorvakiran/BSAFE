@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Computes metrics for analyzing a collection of structured data.
-
 @ author Jesper Kristensen
 Copyright 2018
 """
@@ -28,15 +27,17 @@ class ErgoMetrics(object):
     _pitches = None
     _duration = None
     _speed = None
-    _motion = None
+    _speedNormal = None
+    _speedScore = None
+    _strain = None
     _posture = None
+    _totalScore = None
     _events = None
 
     def __init__(self, collection_structured_data_obj=None):
         """
         Constructs an object from which metrics can be computed
         based off of a "Collection of Structured Data" object.
-
         :param experiment_obj:
         """
         self._collection_structured_data_obj = collection_structured_data_obj
@@ -61,10 +62,9 @@ class ErgoMetrics(object):
             # pitchScore, yawScore, rollScore, totalScore
             motions.append(self.motionScore(pitch=pitch, yaw=yaw, roll=roll))
             speeds.append(self.velcro(pitch=pitch, yaw=yaw, roll=roll))
-            posts.append(self.postScore(pitch=pitch, yaw=yaw, roll=roll,
-                                        safe=30))
+            self.postScore(pitch=pitch, yaw=yaw, roll=roll,
+                                        safe=30)
 
-        self._posture = np.mean(posts)
         mots = np.array(motions)
 
         # compute means:
@@ -73,10 +73,13 @@ class ErgoMetrics(object):
         mot3 = np.mean(mots[:, 2])  # rollScore
         mot4 = np.mean(mots[:, 3])  # totalScore
 
-        self._motion = [mot1, mot2, mot3, mot4]
+        self._strain = [mot1, mot2, mot3, mot4]
         speedz = np.array(speeds)
         self._speed = [(np.mean(speedz[:, 0])), (np.mean(speedz[:, 1])),
                        (np.mean(speedz[:, 2]))]
+        self._speedNormal = [self._speed[0]/21, self._speed[1]/21, self._speed[2]/21]
+        self._speedScore = max(self._speedNormal)
+        self._totalScore = (self._speedScore + self._strain[3] + self._posture[3])/2
 
     @property
     def motion(self):
@@ -99,12 +102,9 @@ class ErgoMetrics(object):
     def chunkify(self, lists=None, percent=None):
         """
         Yield successive chunks from the lists based on the percentage wanted.
-
         For example, if percent = 20, then each list in "lists" is broken into
         five consecutive pieces as such:
-
         lists = [[1,2,3,4,5], [10,20,30,40,50]] (as an example)
-
         return (on each yield):
             [1, 10]
             [2, 20]
@@ -150,35 +150,34 @@ class ErgoMetrics(object):
             print(msg)
             raise Exception(msg)
 
-        return np.std(pitch), np.std(yaw), np.std(roll)
+        return [np.std(pitch)*7, np.std(yaw)*7, np.std(roll)*7]
 
-    def postScore(self, pitch, yaw, roll, safe=None):
-        """
-        Takes three lists of values, yaw pitch and roll, and
-        calculates posture score
-        as percent of time spent outside of a 'safe' posture
-        """
-        totalVals=0
-        unsafe=0
-        for val in yaw:
-            if val > safe:
-                unsafe=unsafe+1
-            totalVals=totalVals+1
-        for val in pitch:
-            if val > safe:
-                unsafe=unsafe+1
-            totalVals=totalVals+1
-        for val in roll:
-            if val > safe:
-                unsafe = unsafe+1
-            totalVals=totalVals+1
-
-        return unsafe / totalVals
+    def postScore(self, pitch, yaw, roll, safe):
+        """Takes three lists of values, yaw pitch and roll, and calculates posture score
+        as percent of time spent outside of a 'safe' posture"""
+        totalVals = 0
+        unsafe = 0
+        n = 0
+        pitchn = 0
+        yawn = 0
+        rolln = 0
+        while n < len(pitch):
+            if yaw[n] > safe or pitch[n] > safe or roll[n] > safe:
+                unsafe = unsafe + 1
+                if yaw[n] > safe:
+                    yawn = yawn+1
+                if roll[n] > safe:
+                    rolln = rolln+1
+                if pitch[n] > safe:
+                    pitchn = pitchn+1
+            totalVals = totalVals + 1
+            n = n + 1
+        postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)]
+        self._posture = postScores
 
     def _digitize_values(self, values=None, bins=None):
         """
         Digitizes a set of values into the bins given.
-
         :param values:
         :param bins:
         :return:
