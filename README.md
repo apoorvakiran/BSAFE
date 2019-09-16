@@ -37,6 +37,7 @@ If any issues, reach out to jesper.kristensen@iteratelabs.co for help.
 
 + Jesper Kristensen - Data Science Consultant
 + Jacob Tyrell - Data Scientist
++ James Russo - SWE
 + Fnu Apoorva - CTO
 + Jason Guss - CEO
 
