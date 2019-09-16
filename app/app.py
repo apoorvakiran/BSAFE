@@ -16,4 +16,15 @@ def create_app():
 
     app.register_blueprint(api)
     CORS(app)
+    configure_logging(app)
     return app
+
+def configure_logging(app):
+    import logging
+    logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+    handlers=[
+        logging.FileHandler("{0}/{1}.log".format(app.config['LOG_FOLDER'], 'log')),
+        logging.StreamHandler()
+    ])

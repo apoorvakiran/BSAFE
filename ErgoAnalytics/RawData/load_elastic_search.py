@@ -10,6 +10,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import datetime
+import logging
 import numpy as np
 import pandas as pd
 from elasticsearch_dsl import Search
@@ -17,6 +18,7 @@ from elasticsearch import Elasticsearch
 from Settings import *
 from . import BaseData
 
+logger = logging.getLogger()
 
 class LoadElasticSearch(BaseData):
     """
@@ -32,7 +34,7 @@ class LoadElasticSearch(BaseData):
         """
         super().__init__()
 
-        print("Data loading with Elastic Search object created!")
+        logger.info("Data loading with Elastic Search object created!")
 
     def retrieve_data(self, mac_address=None, from_date=None, till_date=None,
                       hosts=None, index=None, data_format_code='3'):
@@ -73,7 +75,7 @@ class LoadElasticSearch(BaseData):
             device_data.append(data)
         device_df = pd.DataFrame(device_data)
         device_df.columns = ['data', 'device', 'timestamp']
-        print("{} documents found for device.".format(len(device_df)))
+        logger.info("{} documents found for device.".format(len(device_df)))
         data_all_devices.append(device_df)
 
         if len(data_all_devices) > 0:
