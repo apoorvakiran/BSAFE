@@ -12,7 +12,7 @@ def create_app():
     environment = os.getenv('ENVIRONMENT', 'development')
     if environment != 'development':
         sentry_sdk.init(
-            dsn="https://4ca7cdcc54274295af09b1f2d98f4960@sentry.io/1728777",
+            dsn=os.getenv('SENTRY_DSN'),
             integrations=[FlaskIntegration()],
             environment=environment
         )
