@@ -1,4 +1,4 @@
-# Scientific Analytics For Ergonomics (SAFE)
+# Preventative Scientific Analytics For Ergonomics (PSAFE)
 
 This is the core data analytics platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
 data including code for generating results and insights.
