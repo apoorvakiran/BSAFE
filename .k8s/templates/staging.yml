@@ -11,6 +11,7 @@ data:
   AWS_ACCESS_KEY: ${STAGING_AWS_ACCESS_KEY}
   AWS_SECRET_KEY: ${STAGING_AWS_SECRET_KEY}
   ELASTIC_SEARCH_HOST: ${STAGING_ELASTIC_SEARCH_HOST}
+  ENVIRONMENT: staging
 
 ---
 
@@ -53,7 +54,7 @@ spec:
             serviceName: safe-core
             servicePort: 5000
 
----  
+---
 
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -83,4 +84,3 @@ spec:
           - configMapRef:
               name: safe-core-config
 
-        

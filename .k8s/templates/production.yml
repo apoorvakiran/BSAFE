@@ -6,6 +6,7 @@ metadata:
   labels:
     app: safe-core
 data:
+  ENVIRONMENT: production
   BROKER_URL: safe-core-prod.vkpnka.clustercfg.use1.cache.amazonaws.com:6379
 
 ---
@@ -49,7 +50,7 @@ spec:
             serviceName: safe-core
             servicePort: 5000
 
----  
+---
 
 apiVersion: apps/v1beta1
 kind: Deployment
@@ -79,4 +80,3 @@ spec:
           - configMapRef:
               name: safe-core-config
 
-        
