@@ -4,7 +4,7 @@ from dramatiq.brokers.redis import RedisBroker
 def make_dir(dir_path):
   try:
     if not os.path.exists(dir_path):
-      os.mkdirs(dir_path, exist_ok=True)
+      os.makedirs(dir_path, exist_ok=True)
   except Exception as e:
     raise e
 
