@@ -13,3 +13,4 @@ from .StructuredData import *
 from .rula import *
 from .acceleration import *
 from .ergoMetrics import *
+from .ergoReport import *
