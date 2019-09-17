@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c8b0613c1afa59342845e5be7c6fd41042f8940d8c2f8b16b66aedfd6291f648"
+            "sha256": "f97a36c6718a62ef710259f71368d31bc263cd19d4b086ee5892eb3f450dbd69"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -359,6 +359,14 @@
             "index": "pypi",
             "version": "==2.22.0"
         },
+        "requests-aws4auth": {
+            "hashes": [
+                "sha256:c9973af472d6d358ee301f077608361e078642aa019785139b588d526f50a23c",
+                "sha256:e20e4941ccd5706973068f9214d40cb2e669461536b3a57b9ac824ae87744c2c"
+            ],
+            "index": "pypi",
+            "version": "==0.9"
+        },
         "s3transfer": {
             "hashes": [
                 "sha256:6efc926738a3cd576c2a79725fed9afde92378aa5c6a957e3af010cb019fac9d",
@@ -395,6 +403,14 @@
             ],
             "index": "pypi",
             "version": "==0.9.0"
+        },
+        "sentry-dramatiq": {
+            "hashes": [
+                "sha256:ce1dbc711a3d5846072c0a7d42f3e7b2366e7b57b0bcaee0a44618f14416d7dc",
+                "sha256:ee64c55d9132d71b15d23294706d493fd23488aeb0dc733412031166a80c9a74"
+            ],
+            "index": "pypi",
+            "version": "==0.3.1"
         },
         "sentry-sdk": {
             "extras": [

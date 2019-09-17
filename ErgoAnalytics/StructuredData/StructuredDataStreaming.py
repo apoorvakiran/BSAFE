@@ -9,6 +9,7 @@ __all__ = ["StructuredDataStreaming"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import logging
 import numpy as np
 import pandas as pd
 import datetime
@@ -16,6 +17,7 @@ from scipy.interpolate import UnivariateSpline
 from ..RawData import LoadElasticSearch
 from . import BaseStructuredData
 
+logger = logging.getLogger()
 
 class StructuredDataStreaming(BaseStructuredData):
     """
@@ -62,7 +64,7 @@ class StructuredDataStreaming(BaseStructuredData):
 
         if data is None:
             # no data was loaded!
-            print("No data was loaded in the streaming process!")
+            logger.info("No data was loaded in the streaming process!")
             return
 
         self._time = pd.to_datetime(data['Date-Time'])
@@ -97,9 +99,9 @@ class StructuredDataStreaming(BaseStructuredData):
 
         try:
             delta = self.construct_delta_values()
-            print("Delta values successfully constructed!")
+            logger.info("Delta values successfully constructed!")
         except Exception:
-            print("There was an error processing/creating the 'delta' "
+            logger.info("There was an error processing/creating the 'delta' "
                   "values of the data!")
             raise Exception("There was an error in creating delta values!")
 
@@ -121,7 +123,7 @@ class StructuredDataStreaming(BaseStructuredData):
             self._az['hand'] = data['az[0](mg)'].astype(float)
             self._az['wrist'] = data['az[1](mg)'].astype(float)
         else:
-            print("Raw acceleration data not included!")
+            logger.info("Raw acceleration data not included!")
 
         self._gx = dict()
         self._gy = dict()
@@ -371,8 +373,8 @@ class StructuredDataStreaming(BaseStructuredData):
                     list_data[n] = list_data[n] + 360
                 n = n + 1
         except:
-            print("Failure on processing quadrant correction/fix for ")
-            print(list_data)
+            logger.info("Failure on processing quadrant correction/fix for ")
+            logger.info(list_data)
         return self.quadzTwo(list_data)
 
     def quadzTwo(self, list_data=None):
@@ -392,6 +394,6 @@ class StructuredDataStreaming(BaseStructuredData):
                         list_data[n] = -90
                 n = n + 1
         except:
-            print("Failure in Quadztwo")
+            logger.info("Failure in Quadztwo")
 
         return list_data

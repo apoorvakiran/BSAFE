@@ -4,6 +4,7 @@ from flask_cors import CORS
 from periodiq import PeriodiqMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_dramatiq import DramatiqIntegration
 
 from .extensions import dramatiq
 from .api import api
@@ -13,7 +14,7 @@ def create_app():
     if environment != 'development':
         sentry_sdk.init(
             dsn=os.getenv('SENTRY_DSN'),
-            integrations=[FlaskIntegration()],
+            integrations=[FlaskIntegration(), DramatiqIntegration()],
             environment=environment
         )
     app = Flask(__name__)

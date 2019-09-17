@@ -21,13 +21,16 @@ def heartbeat():
 def safety_score_analysis(mac_address, from_date, till_date):
     logger.info("Getting safety score for #%s.", mac_address)
     index = os.getenv('ELASTIC_SEARCH_INDEX', 'iterate-labs-local-poc')
+    host = os.getenv('ELASTIC_SEARCH_HOST')
     es_safe_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
                                            {"mac_address": mac_address,
                                             "from_date": from_date,
                                             "till_date": till_date,
-                                            "hosts": None, "index": index,
+                                            "host": host, "index": index,
                                             "data_format_code": "2"})
-    mets = ErgoMetrics(es_safe_data)
-    logger.info("Created safety_score for #%s.", mac_address)
-
+    if es_safe_data._time is not None:
+        mets = ErgoMetrics(es_safe_data)
+        logger.info("Created safety_score for #%s.", mac_address)
+    else:
+        logger.info("No values to analyze for #%s.", mac_address)

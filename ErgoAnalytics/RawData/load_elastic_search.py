@@ -9,12 +9,14 @@ __all__ = ["LoadElasticSearch"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import os
 import datetime
 import logging
 import numpy as np
 import pandas as pd
 from elasticsearch_dsl import Search
-from elasticsearch import Elasticsearch
+from elasticsearch import Elasticsearch, RequestsHttpConnection
+from requests_aws4auth import AWS4Auth
 from Settings import *
 from . import BaseData
 
@@ -37,7 +39,7 @@ class LoadElasticSearch(BaseData):
         logger.info("Data loading with Elastic Search object created!")
 
     def retrieve_data(self, mac_address=None, from_date=None, till_date=None,
-                      hosts=None, index=None, data_format_code='3'):
+                      host=None, index=None, data_format_code='3'):
         """
         Retrieves the data from the Elastic Search database specified
         by "hosts". See the example under our "Test" folder for more details
@@ -59,23 +61,35 @@ class LoadElasticSearch(BaseData):
             raise Exception("Please provide both the from_date and the "
                             "till_date parameters!")
 
-        if hosts is None:
+        es = None
+        # used locally
+        if host is None:
             hosts = ["localhost:9200"]
-
-        # connect to the database via provided hosts:
-        es = Elasticsearch(hosts=hosts,
+            es = Elasticsearch(hosts=hosts,
                            use_ssl=False,
                            verify_certs=False)
-
+        # used in staging and production on AWS to connect to ES cluster on AWS
+        else:
+            awsauth = AWS4Auth(os.getenv('AWS_ACCESS_KEY'), os.getenv('AWS_SECRET_KEY'), os.getenv('AWS_REGION'), 'es')
+            es = Elasticsearch(
+                hosts=[{'host': host, 'port': 443}],
+                http_auth=awsauth,
+                use_ssl=True,
+                verify_certs=True,
+                connection_class=RequestsHttpConnection
+            )
         data_all_devices = []
-        scanner = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+        search = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
         device_data = []
-        for hit in scanner.scan():
+        if search.count() == 0:
+            logger.info("No documents found for device {}".format(mac_address))
+            return None
+        for hit in search.scan():
             data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
             device_data.append(data)
         device_df = pd.DataFrame(device_data)
         device_df.columns = ['data', 'device', 'timestamp']
-        logger.info("{} documents found for device.".format(len(device_df)))
+        logger.info("{} documents found for device.".format(len(device_df), mac_address))
         data_all_devices.append(device_df)
 
         if len(data_all_devices) > 0:
