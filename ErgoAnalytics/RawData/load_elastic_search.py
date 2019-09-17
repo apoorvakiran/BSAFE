@@ -81,13 +81,10 @@ class LoadElasticSearch(BaseData):
         data_all_devices = []
         search = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
         device_data = []
-        logger.info("search {}".format(search))
         if search.count() == 0:
             logger.info("No documents found for device {}".format(mac_address))
             return None
         for hit in search.scan():
-            logger.info("here")
-            logger.info("in loop {}".format(hit))
             data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
             device_data.append(data)
         device_df = pd.DataFrame(device_data)
