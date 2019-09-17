@@ -14,7 +14,7 @@ def generate_safety_score():
     till_date = request.args.get('till_date', default = None, type = str)
     if mac is None or from_date is None or till_date is None:
         return jsonify({'error': 'Missing required parameter'}), 422
-    logger.info("Received mac #%s.", mac)
+    logger.info(f"Received mac {mac}")
     safety_score_analysis.send(mac, from_date, till_date)
     return jsonify({'status': 'processed'}), 200
 
