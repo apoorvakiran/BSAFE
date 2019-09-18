@@ -42,16 +42,16 @@ def loader():
         }
     }
 
-    
+
 # status code 400 (index already exists)
     es.indices.create(index='iterate-labs-local-poc',
                   body=settings, ignore=400)
 
-                  
 
 
-                  
-    reader = open('./demo-data/Thursday_TeamA_BladeBone_Miguel_Segment2_Left.csv', 'r'
+
+
+    reader = open('./demo-data/Thursday_TeamA_BladeBone_Miguel_Segment2_Left.csv', 'r')
 
     n=0
     for line in reader.readlines():
@@ -60,7 +60,7 @@ def loader():
         date=datestamp[0]
         sortdate = date.split('/')
         year = '20' + sortdate[2]
-        date = year + '-' + sortdate[0] + '-' + sortdate[1] + 'T' + datestamp[1] + 'Z'  
+        date = year + '-' + sortdate[0] + '-' + sortdate[1] + 'T' + datestamp[1] + 'Z'
         data = splitup[1]
     #    print(date)
         datapoints = ','.join(splitup[1:])
@@ -74,8 +74,8 @@ def loader():
                        "data": "{}\r\n".format(','.join(map(str, splitup[1:])))
                    }
                 )
-        n = n + 1    
+        n = n + 1
         #print(n)
-        
-                
+
+
 loader()

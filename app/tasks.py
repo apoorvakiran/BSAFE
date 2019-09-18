@@ -25,7 +25,7 @@ def safety_score_analysis(mac_address, from_date, till_date):
                                             "till_date": till_date,
                                             "host": host, "index": index,
                                             "data_format_code": "2"})
-    if es_safe_data._time is not None:
+    if es_data._time is not None:
         metrics = ErgoMetrics(es_data)
         ErgoReport(
             'http',
