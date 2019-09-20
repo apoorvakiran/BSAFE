@@ -16,6 +16,8 @@ host = os.getenv('ELASTIC_SEARCH_HOST')
 reader = open('./demo-data/Thursday_TeamA_BladeBone_Miguel_Segment2_Left.csv', 'r')
 
 for n, line in enumerate(reader.readlines()[0:60000]):
+    if n < 388:
+        continue
     splitup = line.split(',')
     datestamp = splitup[0].split(' ')
     date=datestamp[0]
