@@ -28,6 +28,7 @@ class ErgoReport (object):
                     'Authorization': self._authorization}
                 self._sent = requests.post(self._locationOut, headers=headers,
                                      data=payload)
+                self._sent.raise_for_status()
             except Exception:
                 logger.error("Failure to send request", exc_info=true)
         if typ == 'string':
