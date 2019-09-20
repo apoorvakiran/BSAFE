@@ -53,13 +53,14 @@ class ErgoReport (object):
         payload_dict['posture_roll_score'] = self._metrics._posture[2]
         payload_dict['posture_score'] = self._metrics._posture[3]
         payload_dict['safety_score'] = self._metrics._totalScore
-        timeZero = self._metrics._experiment.time._index[0]
-        timeEnd = self._metrics._experiment.time._index[-1]
-        startTime = self._metrics._experiment.time[timeZero]
-        endTime = self._metrics._experiment.time[timeEnd]
+        time = self._metrics._collection_structured_data_obj.time
+        timeZero = time._index[0]
+        timeEnd = time._index[-1]
+        startTime = time[timeZero]
+        endTime = time[timeEnd]
         payload_dict['start_time'] = startTime
         payload_dict['end_time'] = endTime
-        analyzed = datetime.now().isoformat()
+        analyzed = datetime.now().utcnow().isoformat()
         payload_dict['analyzed_at'] = analyzed
         return payload_dict
 
