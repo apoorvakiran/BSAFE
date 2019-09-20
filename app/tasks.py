@@ -37,7 +37,7 @@ def safety_score_analysis(mac_address, from_date, till_date):
             f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/safety_scores",
             mac_address
         )
-        logger.info(f"{report._sent.status_code} {report._sent.json()}")
+        logger.info(f"{report._sent.status_code} {report._sent.text}")
         logger.info(f"Created safety_score for {mac_address}")
     else:
         logger.info(f"No values to analyze for {mac_address}")
