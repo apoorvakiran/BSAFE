@@ -29,8 +29,7 @@ class ErgoReport (object):
                 self._sent = requests.post(self._locationOut, headers=headers,
                                      data=payload)
             except Exception:
-                logger.error("Failure to send request")
-                logger.error(Exception)
+                logger.error("Failure to send request", exc_info=true)
         if typ == 'string':
             self.outString()
         if typ == 'csv':
