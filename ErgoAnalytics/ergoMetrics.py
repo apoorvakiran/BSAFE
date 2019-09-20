@@ -4,7 +4,7 @@ Computes metrics for analyzing a collection of structured data.
 @ author Jesper Kristensen
 Copyright 2018
 """
-
+import logging
 from random import randint
 import numpy as np
 import pandas as pd
@@ -15,6 +15,7 @@ __all__ = ["ErgoMetrics"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+logger = logging.getLogger()
 
 class ErgoMetrics(object):
     """
@@ -64,7 +65,7 @@ class ErgoMetrics(object):
             speeds.append(self.velcro(pitch=pitch, yaw=yaw, roll=roll))
             self.postScore(pitch=pitch, yaw=yaw, roll=roll,
                                         safe=30)
-
+        logger.info("Generating scores")
         mots = np.array(motions)
 
         # compute means:
@@ -147,7 +148,7 @@ class ErgoMetrics(object):
                 n += 1
         except Exception:
             msg = "Failure occured while checking value " + str(n)
-            print(msg)
+            logger.error(msg)
             raise Exception(msg)
 
         return [np.std(pitch)*7, np.std(yaw)*7, np.std(roll)*7]
