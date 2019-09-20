@@ -1,8 +1,10 @@
+import logging
 from datetime import datetime
 import requests
 
 __all__ = ['ErgoReport']
 
+logger = logging.getLogger()
 
 class ErgoReport (object):
     """Feed a metrics object and a desired output type (string, HTTP request, csv), receive an output"""
@@ -26,8 +28,9 @@ class ErgoReport (object):
                     'Authorization': self._authorization}
                 self._sent = requests.post(self._locationOut, headers=headers,
                                      data=payload)
-            except:
-                print("Failure to send request")
+            except Exception:
+                logger.error("Failure to send request")
+                logger.error(Exception)
         if typ == 'string':
             self.outString()
         if typ == 'csv':
