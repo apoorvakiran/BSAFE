@@ -30,7 +30,7 @@ class ErgoReport (object):
                                      data=payload)
                 self._sent.raise_for_status()
             except Exception:
-                logger.error("Failure to send request", exc_info=true)
+                logger.error("Failure to send request", exc_info=True)
         if typ == 'string':
             self.outString()
         if typ == 'csv':
