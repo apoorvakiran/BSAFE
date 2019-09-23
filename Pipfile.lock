@@ -75,11 +75,11 @@
         },
         "dramatiq": {
             "hashes": [
-                "sha256:1b198b9283c76b37c7f4b2eca073b0cb360a21b86a4d722209ea43819f8ab21b",
-                "sha256:ce612dcc5a7fb51283be365b6e6bf4346f8a24ec1ce5b714088d388a82bad41d"
+                "sha256:6d4b21b52baa275c4664126237b3f0029545815b84553904814e43b3b2f58b31",
+                "sha256:9cec395ac460eb804e3cca6021cb274011b085843fa85d48d94e9339f7bc2ac3"
             ],
             "index": "pypi",
-            "version": "==1.6.1"
+            "version": "==1.7.0"
         },
         "elasticsearch": {
             "hashes": [
