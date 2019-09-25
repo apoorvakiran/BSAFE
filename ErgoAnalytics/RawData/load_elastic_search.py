@@ -14,6 +14,7 @@ import datetime
 import logging
 import numpy as np
 import pandas as pd
+import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
@@ -42,7 +43,7 @@ class LoadElasticSearch(BaseData):
                       host=None, index=None, data_format_code='3'):
         """
         Retrieves the data from the Elastic Search database specified
-        by "hosts". See the example under our "Test" folder for more details
+        by "host". See the example under our "Test" folder for more details
         and/or the official website.
         Some good details on how to search the Elastic Search database can
         be found here:
@@ -51,7 +52,7 @@ class LoadElasticSearch(BaseData):
         :param mac_address:
         :param from_date:
         :param till_date:
-        :param hosts:
+        :param host: 
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
         :return:
@@ -64,8 +65,8 @@ class LoadElasticSearch(BaseData):
         es = None
         # used locally
         if host is None:
-            hosts = ["localhost:9200"]
-            es = Elasticsearch(hosts=hosts,
+            host = ["localhost:9200"]
+            es = Elasticsearch(hosts=host,
                            use_ssl=False,
                            verify_certs=False)
         # used in staging and production on AWS to connect to ES cluster on AWS
@@ -79,7 +80,12 @@ class LoadElasticSearch(BaseData):
                 connection_class=RequestsHttpConnection
             )
         data_all_devices = []
-        search = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+        try:
+            search = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+            search.count()  # used to test connection
+        except elasticsearch.exceptions.ConnectionError:
+            raise Exception("\nHave you started the Elasticnet server?\n")
+
         device_data = []
         if search.count() == 0:
             logger.info("No documents found for device {}".format(mac_address))

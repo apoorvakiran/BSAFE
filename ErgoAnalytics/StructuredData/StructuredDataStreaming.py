@@ -72,7 +72,7 @@ class StructuredDataStreaming(BaseStructuredData):
         self._yaw = dict()
         self._pitch = dict()
         self._roll = dict()
-
+        
         if data_format_code == '3':
             self._yaw['hand'] = data['yaw[0]'].astype(float)
             self._yaw['wrist'] = data['yaw[1]'].astype(float)
