@@ -62,16 +62,17 @@ class LoadElasticSearch(BaseData):
             raise Exception("Please provide both the from_date and the "
                             "till_date parameters!")
 
-        es = None
-        # used locally
         if host is None:
+            # used locally
             host = ["localhost:9200"]
             es = Elasticsearch(hosts=host,
                            use_ssl=False,
                            verify_certs=False)
-        # used in staging and production on AWS to connect to ES cluster on AWS
         else:
-            awsauth = AWS4Auth(os.getenv('AWS_ACCESS_KEY'), os.getenv('AWS_SECRET_KEY'), os.getenv('AWS_REGION'), 'es')
+            # used in staging and production on AWS to connect to ES cluster on AWS
+            awsauth = AWS4Auth(os.getenv('AWS_ACCESS_KEY'),
+                               os.getenv('AWS_SECRET_KEY'),
+                               os.getenv('AWS_REGION'), 'es')
             es = Elasticsearch(
                 hosts=[{'host': host, 'port': 443}],
                 http_auth=awsauth,
@@ -79,9 +80,15 @@ class LoadElasticSearch(BaseData):
                 verify_certs=True,
                 connection_class=RequestsHttpConnection
             )
+
+        import pdb
+        pdb.set_trace()
+
         data_all_devices = []
         try:
-            search = Search(using = es, index=index).query("match", device = mac_address).query("range", **{"timestamp": {"gte": from_date, "lte": till_date}})
+            search = Search(using=es, index=index).query("match",
+                        device=mac_address).query("range",
+                        **{"timestamp": {"gte": from_date, "lte": till_date}})
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
             raise Exception("\nHave you started the Elasticnet server?\n")

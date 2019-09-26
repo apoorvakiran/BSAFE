@@ -2,14 +2,16 @@
 """
 Test the Elastic Search implementation in SAFE.
 
-@ author Jesper Kristensen
+Please run "es_load_test_data.py" first to generate the test data
+to use with Elastic Search.
+
+@ author Iterate Labs, Inc.
 Copyright 2018-
 """
 
-__author__ = "Jesper Kristensen"
+__author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
-import json
 from ErgoAnalytics import ErgoMetrics
 from ErgoAnalytics import StructuredDataStreaming
 
@@ -47,4 +49,3 @@ def test_retrieve_elastic_search():
 
 test_retrieve_elastic_search()
 print("All done!")
-
