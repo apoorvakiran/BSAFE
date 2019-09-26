@@ -1,6 +1,6 @@
-# Preventative Scientific Analytics For Ergonomics (PSAFE)
+# Behavioral and Safety Analysis for Ergonomics (BSAFE)
 
-This is the core data analytics platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
+This is the core data analytics & Machine Learning platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
 data including code for generating results and insights.
 
 The code is structured in a modern, modular, object oriented way to support rapid development, complex analyzes with
