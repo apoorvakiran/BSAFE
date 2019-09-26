@@ -83,10 +83,6 @@ class ErgoMetrics(object):
         self._totalScore = (self._speedScore + self._strain[3] + self._posture[3])/2
 
     @property
-    def motion(self):
-        return self._motion
-
-    @property
     def posture(self):
         return self._posture
 

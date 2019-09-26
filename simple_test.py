@@ -25,7 +25,6 @@ msd = CollectionStructuredData(basepath=basepath_structured,
                                data_format_code='2')
 
 
-
 for structured_data in msd.datasets():
     # loop over individual structured data objects
 
@@ -35,6 +34,5 @@ for structured_data in msd.datasets():
     # TODO: Make these actual checks in pytest...
     print(structured_data.name)
 
-    print(mets.motion)
     print(mets.posture)
     print(mets.speed)

@@ -17,6 +17,7 @@ import datetime
 from scipy.interpolate import UnivariateSpline
 from ..RawData import LoadDataFromLocalDisk
 from . import BaseStructuredData
+from .. import StandardDeviationFilter
 
 
 class StructuredDataStatic(BaseStructuredData):
@@ -125,7 +126,9 @@ class StructuredDataStatic(BaseStructuredData):
         self._gz['wrist'] = data['gz[1](dps)'].astype(float)
 
         self._meta_data = meta_data
-        self.filter_data_on_standard_deviation()  # way to find the start and end
+
+        std_filter = StandardDeviationFilter()
+        std_filter.filter_data_on_standard_deviation(structured_data=self)
 
     @property
     def meta_data(self):
@@ -337,11 +340,11 @@ class StructuredDataStatic(BaseStructuredData):
         n = -1
         lastThreeYaw = [0, 0, 0]
         lastThreePitch = [0, 0, 0]
-        while (startYawDev >= lastThreeYaw[0] or \
-               startYawDev >= lastThreeYaw[1] or \
-               startYawDev >= lastThreeYaw[2] or \
-               startPitchDev >= lastThreePitch[0] or \
-               startPitchDev >= lastThreePitch[1] or \
+        while (startYawDev >= lastThreeYaw[0] or
+               startYawDev >= lastThreeYaw[1] or
+               startYawDev >= lastThreeYaw[2] or
+               startPitchDev >= lastThreePitch[0] or
+               startPitchDev >= lastThreePitch[1] or
                startPitchDev >= lastThreePitch[2]):
             lowEnd = n - 99
             lastThreeYaw.pop(0)
