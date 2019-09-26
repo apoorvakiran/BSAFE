@@ -19,6 +19,7 @@ from . import BaseStructuredData
 
 logger = logging.getLogger()
 
+
 class StructuredDataStreaming(BaseStructuredData):
     """
     This is a Structured Data class which is "streaming" meaning: It analyzes
@@ -293,32 +294,6 @@ class StructuredDataStreaming(BaseStructuredData):
         alpha_interp = w_interp.derivative(n=1)  # alpha = dw(t)/dt --> angular acceleration
 
         return alpha_interp(x_conv)
-
-    def truncate(self, lowEnd, highEnd):
-        """
-        Going to truncate to just the low:high values in the data ranges.
-        """
-        for key in self._yaw:
-            self._yaw[key] = self._yaw[key][lowEnd:highEnd]
-
-        for key in self._pitch:
-            self._pitch[key] = self._pitch[key][lowEnd:highEnd]
-
-        for key in self._roll:
-            self._roll[key] = self._roll[key][lowEnd:highEnd]
-
-        for key in self._ax:
-            self._ax[key] = self._ax[key][lowEnd:highEnd]
-
-        for key in self._ay:
-            self._ay[key] = self._ay[key][lowEnd:highEnd]
-
-        for key in self._az:
-            self._az[key] = self._az[key][lowEnd:highEnd]
-
-        self._time = self._time[lowEnd:highEnd]
-
-        return (self)
 
     def construct_delta_values(self):
         """
