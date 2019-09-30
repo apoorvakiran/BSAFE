@@ -74,14 +74,19 @@ ax[0]
 COLUMN_NAMES_FORMAT_3 = list(map(lambda x: x.strip().rstrip(',').lstrip(','),
                                  COLUMN_NAMES_FORMAT_3))
 
+# bluetooth capabilities limit amount of data that can be transferred:
+COLUMN_NAMES_FORMAT_4 = ['Date-Time', 'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+
 # *DO NOT DELETE*
 # when loading data, we allow that, say, 30% is missing/not useful:
 FRACTION_OF_DATA_USEFUL = 0.7  # prevent too much missing data for the analysis
 
 # *DO NOT DELETE VARIABLE; BUT CHANGE AS PER INSTRUCTIONS ABOVE*
 # here we collect all the data format codes into an easy-to-access dictionary
-# that can be accessed programmatically later on:
+# that can be accessed programmatically later on - as this grows (if it does)
+# we can turn this into a database like postgres or similar:
 DATA_FORMAT_CODES = {"1": COLUMN_NAMES_FORMAT_1,
                      "2": COLUMN_NAMES_FORMAT_2,
-                     "3": COLUMN_NAMES_FORMAT_3}
+                     "3": COLUMN_NAMES_FORMAT_3,
+                     "4": COLUMN_NAMES_FORMAT_4}
 # ====
