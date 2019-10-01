@@ -18,6 +18,7 @@ from scipy.interpolate import UnivariateSpline
 from ..RawData import LoadDataFromLocalDisk
 from . import BaseStructuredData
 from .. import StandardDeviationFilter
+from .. import QuadrantFilter
 
 
 class StructuredDataStatic(BaseStructuredData):
@@ -79,6 +80,8 @@ class StructuredDataStatic(BaseStructuredData):
         self._gy = dict()
         self._gz = dict()
 
+        quadrant_filter = QuadrantFilter()
+
         if data_format_code not in ['4']:
             self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
             self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
@@ -91,22 +94,19 @@ class StructuredDataStatic(BaseStructuredData):
             self._roll['hand'] = data['Roll[0](deg)'].astype(float)
             self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
             self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
-            #
-            try:
-                delta = self.construct_delta_values()
-                print("Delta values successfully constructed!")
-            except Exception:
-                print(
-                    "There was an error processing/creating the "
-                    "'delta' values of the data!")
-                raise Exception("There was an error in creating delta values!")
+
+            raise Exception("Needs fixing!")
+            delta = self.construct_delta_values(yaw=self._yaw,
+                                                pitch=self._pitch,
+                                                roll=self._roll)
+
         else:
             # we only have delta values coming in:
-            self._yaw['delta'] = self.quadrant_fix(data['DeltaYaw'])
-            self._pitch['delta'] = self.quadrant_fix(data['DeltaPitch'])
-            self._roll['delta'] = self.quadrant_fix(data['DeltaRoll'])
+            self._yaw['delta'] = quadrant_filter.apply(data['DeltaYaw'])
+            self._pitch['delta'] = quadrant_filter.apply(data['DeltaPitch'])
+            self._roll['delta'] = quadrant_filter.apply(data['DeltaRoll'])
 
-        if 'ax[0](mg)' in data:
+        if data_format_code not in ['4']:
             self._ax['hand'] = data['ax[0](mg)'].astype(float)
             self._ax['wrist'] = data['ax[1](mg)'].astype(float)
             #
@@ -118,7 +118,7 @@ class StructuredDataStatic(BaseStructuredData):
         else:
             print("Raw acceleration data not included!")
 
-        if 'gx[0](dps)' in data:
+        if data_format_code not in ['4']:
             self._gx['hand'] = data['gx[0](dps)'].astype(float)
             self._gx['wrist'] = data['gx[1](dps)'].astype(float)
             #
@@ -130,10 +130,12 @@ class StructuredDataStatic(BaseStructuredData):
         else:
             print("Gravitational data not included!")
 
+        print("Delta values successfully constructed!")
+
         self._meta_data = meta_data
 
         std_filter = StandardDeviationFilter()
-        std_filter.filter_data_on_standard_deviation(structured_data=self)
+        std_filter.apply(structured_data=self)
 
     @property
     def meta_data(self):
@@ -187,7 +189,7 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
-        if delta:
+        if delta or self._data_format_code in ['4']:
             return self._yaw['delta']
 
         return self._yaw[loc]
@@ -198,7 +200,7 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
-        if delta:
+        if delta or self._data_format_code in ['4']:
             return self._pitch['delta']
 
         return self._pitch[loc]
@@ -209,7 +211,7 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
-        if delta:
+        if delta or self._data_format_code in ['4']:
             return self._roll['delta']
 
         return self._roll[loc]
@@ -220,6 +222,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._ax:
             return self._ax[loc]
 
@@ -229,6 +234,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._ay:
             return self._ay[loc]
 
@@ -238,6 +246,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._az:
             return self._az[loc] / 1000 - 1  # subtract gravity
 
@@ -247,6 +258,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._gx:
             return self._gx[loc]
 
@@ -256,6 +270,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._gy:
             return self._gy[loc]
 
@@ -265,6 +282,9 @@ class StructuredDataStatic(BaseStructuredData):
         :param loc:
         :return:
         """
+        if self._data_format_code in ['4']:
+            return
+
         if loc in self._gz:
             return self._gz[loc]
 
@@ -360,7 +380,7 @@ class StructuredDataStatic(BaseStructuredData):
         endPoint = n + 200
         return (self.truncate(startPoint, endPoint))
 
-    def construct_delta_values(self):
+    def construct_delta_values(self, yaw=None, pitch=None, roll=None):
         """
         Construct delta values.
 
@@ -403,38 +423,3 @@ class StructuredDataStatic(BaseStructuredData):
         """
         newList = list_uncentered - np.mean(list_uncentered)
         return newList
-
-    def quadrant_fix(self, list_data=None):
-        n = 0
-        try:
-            while n < len(list_data):
-                if list_data[n] > 180:
-                    list_data[n] = list_data[n] - 360
-                if list_data[n] < -180:
-                    list_data[n] = list_data[n] + 360
-                n = n + 1
-        except:
-            print("Failure on processing quadrant correction/fix for ")
-            print(list_data)
-        return self.quadzTwo(list_data)
-
-    def quadzTwo(self, list_data=None):
-
-        n = 0
-        try:
-            while n < len(list_data):
-                if list_data[n] > 90:
-                    if n > 0:
-                        list_data[n] = list_data[n - 1]
-                    else:
-                        list_data[n] = 90
-                if list_data[n] < -90:
-                    if n > 0:
-                        list_data[n] = list_data[n - 1]
-                    else:
-                        list_data[n] = -90
-                n = n + 1
-        except:
-            print("Failure in Quadztwo")
-
-        return list_data

@@ -58,8 +58,8 @@ class BaseStructuredData(object):
         logger.info("Checking that dates make sense...")
 
         # demand that at least 70% of the data is useful
-        logger.info(f"Demanding that at least {FRACTION_OF_DATA_USEFUL * 100}% of "
-              f"the data is useful!")
+        logger.info(f"Demanding that at least "
+                    f"{FRACTION_OF_DATA_USEFUL * 100}% of the data is useful!")
         last_index = int(data.shape[0] * FRACTION_OF_DATA_USEFUL)
 
         try:
@@ -76,8 +76,8 @@ class BaseStructuredData(object):
             logger.info("Please manually change this to the correct format!")
             raise
 
-        logger.info("loop to find if there are date-issues regarding back-and-forth "
-              "in time, use std dev")
+        logger.info("loop to find if there are date-issues regarding "
+                    "back-and-forth in time, use std dev")
 
         data = BaseStructuredData._sigma_filter(data, last_index=last_index)
 
@@ -120,8 +120,9 @@ class BaseStructuredData(object):
               f"{len(data)}")
 
         if not is_streaming and len(data) <= 1:
-            logger.info("The data was in a bad quality - we only have 1 data point "
-                  "left after some basic pre-processing!")
+
+            logger.info("The data was in a bad quality - we only have "
+                        "1 data point left after some basic pre-processing!")
             raise Exception("Bad quality data")
 
         return data

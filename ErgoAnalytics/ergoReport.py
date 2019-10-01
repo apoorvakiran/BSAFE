@@ -6,6 +6,7 @@ __all__ = ['ErgoReport']
 
 logger = logging.getLogger()
 
+
 class ErgoReport (object):
     """Feed a metrics object and a desired output type (string, HTTP request, csv), receive an output"""
     _type = None

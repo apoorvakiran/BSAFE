@@ -51,7 +51,8 @@ class LoadDataFromLocalDisk(BaseData):
             data = pd.read_csv(path, names=self.data_column_names)
             print("Successful loading of data...")
 
-            data = self._find_numeric_and_correct_columns(data)
+            data = self._find_numeric_and_correct_columns(data,
+                                            data_format_code=data_format_code)
 
         except Exception as e:
             print("Found exception when straight loading the "
