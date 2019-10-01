@@ -40,8 +40,12 @@ class ErgoMetrics(object):
         based off of a "Collection of Structured Data" object.
         :param experiment_obj:
         """
+
         self._collection_structured_data_obj = collection_structured_data_obj
 
+
+        import pdb
+        pdb.set_trace()
         self._yaws = self._collection_structured_data_obj._yaw
         self._pitches = self._collection_structured_data_obj._pitch
         self._rolls = self._collection_structured_data_obj._roll

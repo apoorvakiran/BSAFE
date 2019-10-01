@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Holds an Experiment object and everything related to it.
-@ author Jesper Kristensen, Jacob Tyrrell
-Copyright 2018
+Handles streaming data.
+
+@ author Jesper Kristensen and Jacob Tyrrell
+Copyright Iterate Labs, Inc. 2018+
 """
 
 __all__ = ["StructuredDataStreaming"]
@@ -16,6 +17,7 @@ import datetime
 from scipy.interpolate import UnivariateSpline
 from ..RawData import LoadElasticSearch
 from . import BaseStructuredData
+from .. import QuadrantFilter
 
 logger = logging.getLogger()
 
@@ -53,14 +55,14 @@ class StructuredDataStreaming(BaseStructuredData):
 
         # where is the data streaming from?
         if streaming_source == 'elastic_search':
+
             if not streaming_settings:
                 raise Exception("Please provide settings for "
                                 "the data streaming code!")
-            dataloader = LoadElasticSearch()
-            data = dataloader.retrieve_data(**streaming_settings)
 
-            import pdb
-            pdb.set_trace()
+            dataloader = LoadElasticSearch()
+            data = dataloader.retrieve_data(data_format_code=data_format_code,
+                                            **streaming_settings)
 
         else:
             raise NotImplementedError("Implement the streaming "
@@ -76,73 +78,88 @@ class StructuredDataStreaming(BaseStructuredData):
         self._yaw = dict()
         self._pitch = dict()
         self._roll = dict()
-        
+
+        quadrant_filter = None
         if data_format_code == '3':
             self._yaw['hand'] = data['yaw[0]'].astype(float)
             self._yaw['wrist'] = data['yaw[1]'].astype(float)
+            self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
+        elif data_format_code == '4':
+            quadrant_filter = QuadrantFilter()
+            self._yaw['delta'] = quadrant_filter.apply(data['DeltaYaw'])
         else:
             self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
             self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
-        self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
+            self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
 
         if data_format_code == '3':
             self._pitch['hand'] = data['pitch[0]'].astype(float)
             self._pitch['wrist'] = data['pitch[1]'].astype(float)
+            self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
+        elif data_format_code == '4':
+            self._pitch['delta'] = quadrant_filter.apply(data['DeltaPitch'])
         else:
             self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
             self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
-        self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
+            self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
 
         if data_format_code == '3':
             self._roll['hand'] = data['roll[0]'].astype(float)
             self._roll['wrist'] = data['roll[1]'].astype(float)
+            self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
+        elif data_format_code == '4':
+            self._roll['delta'] = quadrant_filter.apply(data['DeltaRoll'])
         else:
             self._roll['hand'] = data['Roll[0](deg)'].astype(float)
             self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
-        self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
+            self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
 
-        try:
-            delta = self.construct_delta_values()
-            logger.info("Delta values successfully constructed!")
-        except Exception:
-            logger.info("There was an error processing/creating the 'delta' "
-                  "values of the data!")
-            raise Exception("There was an error in creating delta values!")
+        if data_format_code not in ['4']:
 
-        self._yaw = delta[0]
-        self._pitch = delta[1]
-        self._roll = delta[2]
+            delta = self.construct_delta_values(yaw=self._yaw,
+                                                pitch=self._pitch,
+                                                roll=self._roll)
 
-        self._ax = dict()
-        self._ay = dict()
-        self._az = dict()
-        #
-        if 'ax[0](mg)' in data:
-            self._ax['hand'] = data['ax[0](mg)'].astype(float)
-            self._ax['wrist'] = data['ax[1](mg)'].astype(float)
+            self._yaw['delta'] = delta['yaw']['delta']
+            self._pitch['delta'] = delta['pitch']['delta']
+            self._roll['delta'] = delta['roll']['delta']
+
+            self._yaw = delta[0]
+            self._pitch = delta[1]
+            self._roll = delta[2]
+
+            self._ax = dict()
+            self._ay = dict()
+            self._az = dict()
             #
-            self._ay['hand'] = data['ay[0](mg)'].astype(float)
-            self._ay['wrist'] = data['ay[1](mg)'].astype(float)
-            #
-            self._az['hand'] = data['az[0](mg)'].astype(float)
-            self._az['wrist'] = data['az[1](mg)'].astype(float)
-        else:
-            logger.info("Raw acceleration data not included!")
+            if 'ax[0](mg)' in data:
+                self._ax['hand'] = data['ax[0](mg)'].astype(float)
+                self._ax['wrist'] = data['ax[1](mg)'].astype(float)
+                #
+                self._ay['hand'] = data['ay[0](mg)'].astype(float)
+                self._ay['wrist'] = data['ay[1](mg)'].astype(float)
+                #
+                self._az['hand'] = data['az[0](mg)'].astype(float)
+                self._az['wrist'] = data['az[1](mg)'].astype(float)
+            else:
+                logger.info("Raw acceleration data not included!")
 
-        self._gx = dict()
-        self._gy = dict()
-        self._gz = dict()
-        if "gx[0](dps)" in data:
+            self._gx = dict()
+            self._gy = dict()
+            self._gz = dict()
+            if "gx[0](dps)" in data:
 
-            self._gx['hand'] = data['gx[0](dps)'].astype(float)
-            self._gx['wrist'] = data['gx[1](dps)'].astype(float)
-            #
-            self._gy['hand'] = data['gy[0](dps)'].astype(float)
-            self._gy['wrist'] = data['gy[1](dps)'].astype(float)
-            #
-            self._gz['hand'] = data['gz[0](dps)'].astype(float)
-            self._gz['wrist'] = data['gz[1](dps)'].astype(float)
+                self._gx['hand'] = data['gx[0](dps)'].astype(float)
+                self._gx['wrist'] = data['gx[1](dps)'].astype(float)
+                #
+                self._gy['hand'] = data['gy[0](dps)'].astype(float)
+                self._gy['wrist'] = data['gy[1](dps)'].astype(float)
+                #
+                self._gz['hand'] = data['gz[0](dps)'].astype(float)
+                self._gz['wrist'] = data['gz[1](dps)'].astype(float)
 
+        import pdb
+        pdb.set_trace()
         self._meta_data = meta_data
 
     @property
@@ -298,80 +315,53 @@ class StructuredDataStreaming(BaseStructuredData):
 
         return alpha_interp(x_conv)
 
-    def construct_delta_values(self):
+    def construct_delta_values(self, yaw=None, pitch=None, roll=None):
         """
         Construct delta values.
+
         :param experiment:
         :return:
         """
-        handy = np.array(self.yaw(loc='hand')) - np.mean(self.yaw(loc='hand'))
-        wristy = np.array(self.yaw(loc='wrist')) - np.mean(self.yaw(loc='wrist'))
-        handp = np.array(self.pitch(loc='hand')) - np.mean(self.pitch(loc='hand'))
-        wristp = np.array(self.pitch(loc='wrist')) - np.mean(self.pitch(loc='wrist'))
-        handr = np.array(self.roll(loc='hand')) - np.mean(self.roll(loc='hand'))
-        wristr = np.array(self.roll(loc='wrist')) - np.mean(self.roll(loc='wrist'))
+        # yaw
+        handy = np.array(yaw['hand']) - np.mean(yaw['hand'])
+        wristy = np.array(yaw['wrist']) - np.mean(yaw['wrist'])
+        # pitch
+        handp = np.array(pitch['hand']) - np.mean(pitch['hand'])
+        wristp = np.array(pitch['wrist']) - np.mean(pitch['wrist'])
+        # roll
+        handr = np.array(roll['hand']) - np.mean(roll['hand'])
+        wristr = np.array(roll['wrist']) - np.mean(roll['wrist'])
 
-        newHandy = self.center_values(list_uncentered=handy)
-        newWristy = self.center_values(list_uncentered=wristy)
-        newHandp = self.center_values(list_uncentered=handp)
-        newWristp = self.center_values(list_uncentered=wristp)
-        newHandr = self.center_values(list_uncentered=handr)
-        newWristr = self.center_values(list_uncentered=wristr)
+        newHandy = self.center_values(data_uncentered=handy)
+        newWristy = self.center_values(data_uncentered=wristy)
+        newHandp = self.center_values(data_uncentered=handp)
+        newWristp = self.center_values(data_uncentered=wristp)
+        newHandr = self.center_values(data_uncentered=handr)
+        newWristr = self.center_values(data_uncentered=wristr)
 
-        yawz = {}
-        yawz['hand'] = self.quadrant_fix(newHandy)
-        yawz['wrist'] = self.quadrant_fix(newWristy)
-        yawz['delta'] = self.quadrant_fix(newWristy - newHandy)
-        pitchz = {}
-        pitchz['hand'] = self.quadrant_fix(newHandp)
-        pitchz['wrist'] = self.quadrant_fix(newWristp)
-        pitchz['delta'] = self.quadrant_fix(newWristp - newHandp)
-        rollz = {}
-        rollz['hand'] = self.quadrant_fix(newHandr)
-        rollz['wrist'] = self.quadrant_fix(newWristr)
-        rollz['delta'] = self.quadrant_fix(newWristr - newHandr)
+        quadrant_filter = QuadrantFilter()
 
-        return yawz, pitchz, rollz
+        yawz = dict()
+        yawz['hand'] = quadrant_filter.apply(data=newHandy)
+        yawz['wrist'] = quadrant_filter.apply(data=newWristy)
+        yawz['delta'] = quadrant_filter.apply(data=newWristy - newHandy)
 
-    def center_values(self, list_uncentered=None):
+        pitchz = dict()
+        pitchz['hand'] = quadrant_filter.apply(data=newHandp)
+        pitchz['wrist'] = quadrant_filter.apply(data=newWristp)
+        pitchz['delta'] = quadrant_filter.apply(data=newWristp - newHandp)
+
+        rollz = dict()
+        rollz['hand'] = quadrant_filter.apply(data=newHandr)
+        rollz['wrist'] = quadrant_filter.apply(data=newWristr)
+        rollz['delta'] = quadrant_filter.apply(data=newWristr - newHandr)
+
+        return {'yaw': yawz, 'pitch': pitchz, 'roll': rollz}
+
+    def center_values(self, data_uncentered=None):
         """
         Takes a list of angle data and returns a list
         of data centered at zero.
         """
-        newList = list_uncentered - np.mean(list_uncentered)
+        newList = data_uncentered - np.mean(data_uncentered)
         return newList
-
-    def quadrant_fix(self, list_data=None):
-        n = 0
-        try:
-            while n < len(list_data):
-                if list_data[n] > 180:
-                    list_data[n] = list_data[n] - 360
-                if list_data[n] < -180:
-                    list_data[n] = list_data[n] + 360
-                n = n + 1
-        except:
-            logger.info("Failure on processing quadrant correction/fix for ")
-            logger.info(list_data)
-        return self.quadzTwo(list_data)
-
-    def quadzTwo(self, list_data=None):
-
-        n = 0
-        try:
-            while n < len(list_data):
-                if list_data[n] > 90:
-                    if n > 0:
-                        list_data[n] = list_data[n - 1]
-                    else:
-                        list_data[n] = 90
-                if list_data[n] < -90:
-                    if n > 0:
-                        list_data[n] = list_data[n - 1]
-                    else:
-                        list_data[n] = -90
-                n = n + 1
-        except:
-            logger.info("Failure in Quadztwo")
-
-        return list_data

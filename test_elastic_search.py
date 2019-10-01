@@ -12,18 +12,19 @@ Copyright 2018-
 __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
+import json
 from ErgoAnalytics import ErgoMetrics
 from ErgoAnalytics import StructuredDataStreaming
 
 # these are just some mac addresses that were created in generating
 # the fake data (just so that we can test it out and grab a random valid one):
-#with open("all_device_addresses.json", "r") as fd:
- #   mac_addresses_in_fake_database = json.load(fd)['addresses']
-    # mac_addresses_in_fake_database = list of mac addresses (hypothetical)
+with open("all_device_addresses.json", "r") as fd:
+  mac_addresses_in_fake_database = json.load(fd)['addresses']
 
 # doesn't matter which exact address - just to test - so take the first:
 ####JACOB - Pulled in a test case data file, assigned address
 test_address = 'F6:12:3D:BD:DE:44'
+# test_address = mac_addresses_in_fake_database[0]
 
 
 def test_retrieve_elastic_search():
@@ -35,10 +36,10 @@ def test_retrieve_elastic_search():
     es_safe_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
                                            {"mac_address": test_address,
-                                            "from_date": '2019-03-01T00:00:00-05:00',
-                                            "till_date": '2019-04-01T00:00:00-05:00',
-                                            "host": None, "index": index,
-                                            "data_format_code": "2"})
+                                            "from_date": '2019-09-28T00:00:00-05:00',
+                                            "till_date": '2019-10-02T00:00:00-05:00',
+                                            "host": None, "index": index},
+                                           data_format_code='4')
     # *note* the "streaming settings". This argument will be passed on to
     # the specific streamer in question...
     print("Data Loaded from Streaming:")
