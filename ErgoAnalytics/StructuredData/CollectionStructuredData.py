@@ -269,7 +269,6 @@ class CollectionStructuredData(object):
                         # this hand & segment loaded in a robust way:
                         try:
                             logger.info("Loading file: {}".format(file))
-                            print(file)
                             this_structured_dataset = \
                                 StructuredDataStatic(path=file,
                                             data_format_code=data_format_code,

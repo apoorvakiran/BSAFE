@@ -9,7 +9,7 @@ communicated between SAFE and AWS.
 The point is to keep all these rarely-of-ever changing variables in one place
 and reference them from here.
 
-Iterate Labs, Co.
+Jesper Kristensen @ Iterate Labs, Co.
 Copyright 2018-
 """
 

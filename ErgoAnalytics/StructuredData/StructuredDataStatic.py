@@ -57,6 +57,7 @@ class StructuredDataStatic(BaseStructuredData):
         dataloader = LoadDataFromLocalDisk()
         data = dataloader.get_data(path=path, destination=destination,
                                    data_format_code=self._data_format_code)
+
         # now run through pre-processing and validation:
         data = self._pre_process_data(data=data,
                                       names=dataloader.data_column_names)
@@ -80,28 +81,28 @@ class StructuredDataStatic(BaseStructuredData):
         self._gy = dict()
         self._gz = dict()
 
-        quadrant_filter = QuadrantFilter()
-
         if data_format_code not in ['4']:
             self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
             self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
-            self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
             #
             self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
             self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
-            self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
             #
             self._roll['hand'] = data['Roll[0](deg)'].astype(float)
             self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
-            self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
 
-            raise Exception("Needs fixing!")
             delta = self.construct_delta_values(yaw=self._yaw,
                                                 pitch=self._pitch,
                                                 roll=self._roll)
 
+            self._yaw['delta'] = delta['yaw']['delta']
+            self._pitch['delta'] = delta['pitch']['delta']
+            self._roll['delta'] = delta['roll']['delta']
+
         else:
             # we only have delta values coming in:
+            quadrant_filter = QuadrantFilter()
+
             self._yaw['delta'] = quadrant_filter.apply(data['DeltaYaw'])
             self._pitch['delta'] = quadrant_filter.apply(data['DeltaPitch'])
             self._roll['delta'] = quadrant_filter.apply(data['DeltaRoll'])
@@ -387,39 +388,46 @@ class StructuredDataStatic(BaseStructuredData):
         :param experiment:
         :return:
         """
-        handy = np.array(self.yaw(loc='hand')) - np.mean(self.yaw(loc='hand'))
-        wristy = np.array(self.yaw(loc='wrist')) - np.mean(self.yaw(loc='wrist'))
-        handp = np.array(self.pitch(loc='hand')) - np.mean(self.pitch(loc='hand'))
-        wristp = np.array(self.pitch(loc='wrist')) - np.mean(self.pitch(loc='wrist'))
-        handr = np.array(self.roll(loc='hand')) - np.mean(self.roll(loc='hand'))
-        wristr = np.array(self.roll(loc='wrist')) - np.mean(self.roll(loc='wrist'))
+        # yaw
+        handy = np.array(yaw['hand']) - np.mean(yaw['hand'])
+        wristy = np.array(yaw['wrist']) - np.mean(yaw['wrist'])
+        # pitch
+        handp = np.array(pitch['hand']) - np.mean(pitch['hand'])
+        wristp = np.array(pitch['wrist']) - np.mean(pitch['wrist'])
+        # roll
+        handr = np.array(roll['hand']) - np.mean(roll['hand'])
+        wristr = np.array(roll['wrist']) - np.mean(roll['wrist'])
 
-        newHandy = self.center_values(list_uncentered=handy)
-        newWristy = self.center_values(list_uncentered=wristy)
-        newHandp = self.center_values(list_uncentered=handp)
-        newWristp = self.center_values(list_uncentered=wristp)
-        newHandr = self.center_values(list_uncentered=handr)
-        newWristr = self.center_values(list_uncentered=wristr)
+        newHandy = self.center_values(data_uncentered=handy)
+        newWristy = self.center_values(data_uncentered=wristy)
+        newHandp = self.center_values(data_uncentered=handp)
+        newWristp = self.center_values(data_uncentered=wristp)
+        newHandr = self.center_values(data_uncentered=handr)
+        newWristr = self.center_values(data_uncentered=wristr)
+
+        quadrant_filter = QuadrantFilter()
 
         yawz = dict()
-        yawz['hand'] = self.quadrant_fix(newHandy)
-        yawz['wrist'] = self.quadrant_fix(newWristy)
-        yawz['delta'] = self.quadrant_fix(newWristy - newHandy)
+        yawz['hand'] = quadrant_filter.apply(data=newHandy)
+        yawz['wrist'] = quadrant_filter.apply(data=newWristy)
+        yawz['delta'] = quadrant_filter.apply(data=newWristy - newHandy)
+
         pitchz = dict()
-        pitchz['hand'] = self.quadrant_fix(newHandp)
-        pitchz['wrist'] = self.quadrant_fix(newWristp)
-        pitchz['delta'] = self.quadrant_fix(newWristp - newHandp)
+        pitchz['hand'] = quadrant_filter.apply(data=newHandp)
+        pitchz['wrist'] = quadrant_filter.apply(data=newWristp)
+        pitchz['delta'] = quadrant_filter.apply(data=newWristp - newHandp)
+
         rollz = dict()
-        rollz['hand'] = self.quadrant_fix(newHandr)
-        rollz['wrist'] = self.quadrant_fix(newWristr)
-        rollz['delta'] = self.quadrant_fix(newWristr - newHandr)
+        rollz['hand'] = quadrant_filter.apply(data=newHandr)
+        rollz['wrist'] = quadrant_filter.apply(data=newWristr)
+        rollz['delta'] = quadrant_filter.apply(data=newWristr - newHandr)
 
-        return yawz, pitchz, rollz
+        return {'yaw': yawz, 'pitch': pitchz, 'roll': rollz}
 
-    def center_values(self, list_uncentered=None):
+    def center_values(self, data_uncentered=None):
         """
         Takes a list of angle data and returns a list
         of data centered at zero.
         """
-        newList = list_uncentered - np.mean(list_uncentered)
+        newList = data_uncentered - np.mean(data_uncentered)
         return newList

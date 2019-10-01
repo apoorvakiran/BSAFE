@@ -133,11 +133,12 @@ class LoadDataFromLocalDisk(BaseData):
 
     def _find_numeric_and_correct_columns(self, data=None,
                                           data_format_code='3'):
-        """the following code ensures that we skip rows until we reach
-        numeric values and we have all the columns we seek
+        """
+        The following code ensures that we skip rows until we reach
+        numeric values and we have all the columns we seek.
         """
 
-        if data_format_code == '3':
+        if data_format_code in ['2', '3']:
             numeric_variable_name = 'az[0](mg)'
         elif data_format_code == '4':
             numeric_variable_name = 'DeltaYaw'
