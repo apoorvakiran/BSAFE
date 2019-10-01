@@ -9,7 +9,7 @@ def loader():
 
     es = Elasticsearch(hosts=["localhost:9200"],
                        use_ssl=False,
-                       verify_certs=False, timeout=60, retry_on_timeout = True)
+                       verify_certs=False, timeout=60, retry_on_timeout=True)
 
     settings = {
         "settings": {
@@ -37,7 +37,7 @@ def loader():
     es.indices.create(index='iterate-labs-local-poc',
                   body=settings, ignore=400)
 
-    reader = open('./demo-data/Thursday_TeamA_BladeBone_Miguel_Segment2_Left.csv', 'r')
+    reader = open('./Demos/demo-streaming/Thursday_TeamA_BladeBone_Miguel_Segment2_Left.csv', 'r')
 
     n = 0
     for line in reader.readlines():

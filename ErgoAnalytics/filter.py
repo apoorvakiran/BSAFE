@@ -8,8 +8,9 @@ Copyright 2018-
 
 import logging
 import scipy
+import numpy as np
 
-__all__ = ["StandardDeviationFilter"]
+__all__ = ["StandardDeviationFilter", "QuadrantFilter"]
 __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
@@ -24,21 +25,22 @@ class BaseFilter(object):
     def __init__(self):
         pass
 
+    def apply(self, structured_data=None):
+        raise NotImplementedError("Implement me!")
+
 
 class StandardDeviationFilter(BaseFilter):
     """
     Standard deviation filter: Discard data with high standard deviation.
     """
 
-    def filter_data_on_standard_deviation(self, structured_data=None):
+    def apply(self, structured_data=None):
         """
         Toss an experiment at this, it will return a truncated experiment
         Discards values until a point where standard deviation has been higher for 30 seconds
         than it was in the first 10 seconds, for both pitch and yaw.
         Does the same for the end of the list, discarding the end values.
         """
-        lowEnd = None
-        highEnd = None
 
         yawDel = structured_data.get_data(type='yaw', delta=True)
         startYawDev = scipy.std(yawDel[0:100])
@@ -106,3 +108,28 @@ class StandardDeviationFilter(BaseFilter):
             structured_data._az[key] = structured_data._az[key][lo:hi]
 
         structured_data._time = structured_data._time[lo:hi]
+
+
+class QuadrantFilter(BaseFilter):
+    """
+    Applies the quadrant filter to structured data arising at
+    times due primarily to Gimball lock.
+    """
+
+    def __init__(self):
+
+        super().__init__()
+
+    def apply(self, data=None):
+
+        data = data.astype(float)
+
+        # first get indices beyond thresholds:
+        ind_above = data > 180
+        ind_below = data < -180
+
+        # then apply the 180-degree correction:
+        data[ind_above] -= 360
+        data[ind_below] += 360
+
+        return np.clip(data, a_min=-90, a_max=90)  # clip to range [-90, 90]

@@ -18,12 +18,17 @@ __version__ = "Alpha"
 from ErgoAnalytics import CollectionStructuredData
 from ErgoAnalytics import ErgoMetrics
 
-basepath_structured = "Demos/demo-data"  # just some demo data for testing
+# ==== some tests to run:
+# basepath_structured = "Demos/demo-data"  # just some demo data for testing
+# data_format_code = '2'
+#
+basepath_structured = "Demos/demo-data-only-deltas"
+data_format_code = '4'
+# ==========================
 
 msd = CollectionStructuredData(basepath=basepath_structured,
                                is_cataloged=True, ignore_cache=True,
-                               data_format_code='2')
-
+                               data_format_code=data_format_code)
 
 for structured_data in msd.datasets():
     # loop over individual structured data objects
@@ -36,3 +41,6 @@ for structured_data in msd.datasets():
 
     print(mets.posture)
     print(mets.speed)
+
+# [0.0, 0.0, 7.0, 7.0]
+# [41.59958134606569, 139.6475497017071, 110.68980916739281]

@@ -10,7 +10,6 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import os
-import datetime
 import logging
 import numpy as np
 import pandas as pd
@@ -22,6 +21,7 @@ from Settings import *
 from . import BaseData
 
 logger = logging.getLogger()
+
 
 class LoadElasticSearch(BaseData):
     """
@@ -81,29 +81,46 @@ class LoadElasticSearch(BaseData):
                 connection_class=RequestsHttpConnection
             )
 
-        import pdb
-        pdb.set_trace()
+        logger.debug("Established connection to the Elastic Search database.")
 
         data_all_devices = []
         try:
             search = Search(using=es, index=index).query("match",
-                        device=mac_address).query("range",
-                        **{"timestamp": {"gte": from_date, "lte": till_date}})
+                            device=mac_address).query("range",
+                                        **{"timestamp": {"gte": from_date,
+                                                         "lte": till_date}})
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
-            raise Exception("\nHave you started the Elasticnet server?\n")
+            msg = "\nHave you started the Elasticnet server?\n"
+            logger.error(msg)
+            raise Exception(msg)
 
         device_data = []
         if search.count() == 0:
             logger.info("No documents found for device {}".format(mac_address))
             return None
+
         for hit in search.scan():
-            data = [(hit['timestamp']+','+hit['data']), hit['device'], hit['timestamp']]
+
+            # data = hist['data']
+
+            data = hit['data'].split(',')
+            data = data[:3]
+            data = ','.join(data)
+
+            data = [(hit['timestamp'] + ',' + data),
+                    hit['device'], hit['timestamp']]
+
             device_data.append(data)
+
         device_df = pd.DataFrame(device_data)
         device_df.columns = ['data', 'device', 'timestamp']
-        logger.info("{} documents found for device.".format(len(device_df), mac_address))
+        logger.info("{} documents found for device.".format(len(device_df),
+                                                            mac_address))
         data_all_devices.append(device_df)
+
+        import pdb
+        pdb.set_trace()
 
         if len(data_all_devices) > 0:
 

@@ -51,7 +51,8 @@ class LoadDataFromLocalDisk(BaseData):
             data = pd.read_csv(path, names=self.data_column_names)
             print("Successful loading of data...")
 
-            data = self._find_numeric_and_correct_columns(data)
+            data = self._find_numeric_and_correct_columns(data,
+                                            data_format_code=data_format_code)
 
         except Exception as e:
             print("Found exception when straight loading the "
@@ -132,14 +133,17 @@ class LoadDataFromLocalDisk(BaseData):
 
     def _find_numeric_and_correct_columns(self, data=None,
                                           data_format_code='3'):
-        """the following code ensures that we skip rows until we reach
-        numeric values and we have all the columns we seek
+        """
+        The following code ensures that we skip rows until we reach
+        numeric values and we have all the columns we seek.
         """
 
-        if data_format_code == '3':
-            az_name = 'az[0](mg)'
+        if data_format_code in ['2', '3']:
+            numeric_variable_name = 'az[0](mg)'
+        elif data_format_code == '4':
+            numeric_variable_name = 'DeltaYaw'
         else:
-            az_name = 'az[0]'
+            numeric_variable_name = 'az[0]'
 
         # now, we want to make sure to skip certain rows until we
         # have numerics.
@@ -147,7 +151,7 @@ class LoadDataFromLocalDisk(BaseData):
         ix = 0
         while True:
             try:
-                val = data.iloc[ix][az_name]
+                val = data.iloc[ix][numeric_variable_name]
                 if not is_numeric(val) or (np.isnan(float(val)) or
                                            data.iloc[ix].isna().any()):
                     # make sure we have values for all columns

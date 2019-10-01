@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 """
 Computes metrics for analyzing a collection of structured data.
-@ author Jesper Kristensen
+
+@ author Jesper Kristensen with Iterate Labs, Inc.
 Copyright 2018
 """
-import logging
-from random import randint
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 __all__ = ["ErgoMetrics"]
-__author__ = "Jesper Kristensen"
+__author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
+
+import numpy as np
+import logging
 
 logger = logging.getLogger()
 
+
 class ErgoMetrics(object):
     """
-    Computes ergonomics metrics.
+    Computes Ergonomic Metrics for the incoming data.
     """
 
     _collection_structured_data_obj = None
@@ -41,8 +40,12 @@ class ErgoMetrics(object):
         based off of a "Collection of Structured Data" object.
         :param experiment_obj:
         """
+
         self._collection_structured_data_obj = collection_structured_data_obj
 
+
+        import pdb
+        pdb.set_trace()
         self._yaws = self._collection_structured_data_obj._yaw
         self._pitches = self._collection_structured_data_obj._pitch
         self._rolls = self._collection_structured_data_obj._roll
@@ -169,7 +172,8 @@ class ErgoMetrics(object):
                     pitchn = pitchn+1
             totalVals = totalVals + 1
             n = n + 1
-        postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)]
+        postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals),
+                      (7 * rolln / totalVals), (7 * unsafe / totalVals)]
         self._posture = postScores
 
     def _digitize_values(self, values=None, bins=None):

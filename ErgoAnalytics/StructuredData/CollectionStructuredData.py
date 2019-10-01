@@ -18,6 +18,9 @@ import datetime
 import numpy as np
 import pandas as pd
 from . import StructuredDataStatic
+import logging
+
+logger = logging.getLogger()
 
 
 class CollectionStructuredData(object):
@@ -75,6 +78,8 @@ class CollectionStructuredData(object):
                       "scratch".format(cache_path))
 
             if is_cataloged:
+                logger.debug("Loading cataloged data from "
+                             "path: {}".format(basepath))
                 structured_datasets, good_files, bad_files = \
                     self._load_structured_data(basepath=basepath,
                                                data_format_code=data_format_code)
@@ -92,13 +97,12 @@ class CollectionStructuredData(object):
                 bad_files = {}
                 structured_datasets = []
                 for fn in list_of_filenames:
+                    logger.debug("Loading file {}".format(fn))
                     try:
                         exp = StructuredDataStatic(path=os.path.join(basepath,
                                                                      fn),
                                                    name=os.path.splitext(fn)[0],
                                                    destination='.')
-                        import pdb
-                        pdb.set_trace()
                         good_files.append(os.path.split(fn)[1])
                         structured_datasets.append(exp)
                     except Exception as e:
@@ -264,7 +268,7 @@ class CollectionStructuredData(object):
                         # Data for this day, this task, this worker,
                         # this hand & segment loaded in a robust way:
                         try:
-
+                            logger.info("Loading file: {}".format(file))
                             this_structured_dataset = \
                                 StructuredDataStatic(path=file,
                                             data_format_code=data_format_code,
