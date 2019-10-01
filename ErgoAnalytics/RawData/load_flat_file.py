@@ -137,9 +137,11 @@ class LoadDataFromLocalDisk(BaseData):
         """
 
         if data_format_code == '3':
-            az_name = 'az[0](mg)'
+            numeric_variable_name = 'az[0](mg)'
+        elif data_format_code == '4':
+            numeric_variable_name = 'DeltaYaw'
         else:
-            az_name = 'az[0]'
+            numeric_variable_name = 'az[0]'
 
         # now, we want to make sure to skip certain rows until we
         # have numerics.
@@ -147,7 +149,7 @@ class LoadDataFromLocalDisk(BaseData):
         ix = 0
         while True:
             try:
-                val = data.iloc[ix][az_name]
+                val = data.iloc[ix][numeric_variable_name]
                 if not is_numeric(val) or (np.isnan(float(val)) or
                                            data.iloc[ix].isna().any()):
                     # make sure we have values for all columns

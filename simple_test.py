@@ -18,11 +18,12 @@ __version__ = "Alpha"
 from ErgoAnalytics import CollectionStructuredData
 from ErgoAnalytics import ErgoMetrics
 
-basepath_structured = "Demos/demo-data"  # just some demo data for testing
+# basepath_structured = "Demos/demo-data"  # just some demo data for testing
+basepath_structured = "Demos/demo-data-only-deltas"
 
 msd = CollectionStructuredData(basepath=basepath_structured,
                                is_cataloged=True, ignore_cache=True,
-                               data_format_code='2')
+                               data_format_code='4')
 
 
 for structured_data in msd.datasets():
