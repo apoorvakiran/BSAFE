@@ -70,36 +70,42 @@ class StructuredDataStatic(BaseStructuredData):
         self._yaw = dict()
         self._pitch = dict()
         self._roll = dict()
-
-        self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
-        self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
-        self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
-
         #
-        self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
-        self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
-        self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
-        #
-        self._roll['hand'] = data['Roll[0](deg)'].astype(float)
-        self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
-        self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
-        #
-
-        try:
-            delta = self.construct_delta_values()
-            print("Delta values successfully constructed!")
-        except Exception:
-            print("There was an error processing/creating the 'delta' values of the data!")
-            raise Exception("There was an error in creating delta values!")
-
-        self._yaw = delta[0]
-        self._pitch = delta[1]
-        self._roll = delta[2]
-
         self._ax = dict()
         self._ay = dict()
         self._az = dict()
         #
+        self._gx = dict()
+        self._gy = dict()
+        self._gz = dict()
+
+        if data_format_code not in ['4']:
+            self._yaw['hand'] = data['Yaw[0](deg)'].astype(float)
+            self._yaw['wrist'] = data['Yaw[1](deg)'].astype(float)
+            self._yaw['delta'] = self._yaw['wrist'] - self._yaw['hand']
+            #
+            self._pitch['hand'] = data['Pitch[0](deg)'].astype(float)
+            self._pitch['wrist'] = data['Pitch[1](deg)'].astype(float)
+            self._pitch['delta'] = self._pitch['wrist'] - self._pitch['hand']
+            #
+            self._roll['hand'] = data['Roll[0](deg)'].astype(float)
+            self._roll['wrist'] = data['Roll[1](deg)'].astype(float)
+            self._roll['delta'] = self._roll['wrist'] - self._roll['hand']
+            #
+            try:
+                delta = self.construct_delta_values()
+                print("Delta values successfully constructed!")
+            except Exception:
+                print(
+                    "There was an error processing/creating the "
+                    "'delta' values of the data!")
+                raise Exception("There was an error in creating delta values!")
+        else:
+            # we only have delta values coming in:
+            self._yaw['delta'] = self.quadrant_fix(data['DeltaYaw'])
+            self._pitch['delta'] = self.quadrant_fix(data['DeltaPitch'])
+            self._roll['delta'] = self.quadrant_fix(data['DeltaRoll'])
+
         if 'ax[0](mg)' in data:
             self._ax['hand'] = data['ax[0](mg)'].astype(float)
             self._ax['wrist'] = data['ax[1](mg)'].astype(float)
@@ -112,18 +118,17 @@ class StructuredDataStatic(BaseStructuredData):
         else:
             print("Raw acceleration data not included!")
 
-        self._gx = dict()
-        self._gy = dict()
-        self._gz = dict()
-        #
-        self._gx['hand'] = data['gx[0](dps)'].astype(float)
-        self._gx['wrist'] = data['gx[1](dps)'].astype(float)
-        #
-        self._gy['hand'] = data['gy[0](dps)'].astype(float)
-        self._gy['wrist'] = data['gy[1](dps)'].astype(float)
-        #
-        self._gz['hand'] = data['gz[0](dps)'].astype(float)
-        self._gz['wrist'] = data['gz[1](dps)'].astype(float)
+        if 'gx[0](dps)' in data:
+            self._gx['hand'] = data['gx[0](dps)'].astype(float)
+            self._gx['wrist'] = data['gx[1](dps)'].astype(float)
+            #
+            self._gy['hand'] = data['gy[0](dps)'].astype(float)
+            self._gy['wrist'] = data['gy[1](dps)'].astype(float)
+            #
+            self._gz['hand'] = data['gz[0](dps)'].astype(float)
+            self._gz['wrist'] = data['gz[1](dps)'].astype(float)
+        else:
+            print("Gravitational data not included!")
 
         self._meta_data = meta_data
 
@@ -376,15 +381,15 @@ class StructuredDataStatic(BaseStructuredData):
         newHandr = self.center_values(list_uncentered=handr)
         newWristr = self.center_values(list_uncentered=wristr)
 
-        yawz = {}
+        yawz = dict()
         yawz['hand'] = self.quadrant_fix(newHandy)
         yawz['wrist'] = self.quadrant_fix(newWristy)
         yawz['delta'] = self.quadrant_fix(newWristy - newHandy)
-        pitchz = {}
+        pitchz = dict()
         pitchz['hand'] = self.quadrant_fix(newHandp)
         pitchz['wrist'] = self.quadrant_fix(newWristp)
         pitchz['delta'] = self.quadrant_fix(newWristp - newHandp)
-        rollz = {}
+        rollz = dict()
         rollz['hand'] = self.quadrant_fix(newHandr)
         rollz['wrist'] = self.quadrant_fix(newWristr)
         rollz['delta'] = self.quadrant_fix(newWristr - newHandr)
