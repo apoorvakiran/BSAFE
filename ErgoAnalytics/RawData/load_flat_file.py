@@ -118,6 +118,10 @@ class LoadDataFromLocalDisk(BaseData):
 
     def get_data(self, path=None, destination=None, data_format_code='3'):
         """
+        Returns the data given a path and destination folder. The data
+        format code is provided as well to tell BSAFE which data format
+        is being loaded (each different format is another way to load data
+        from the device).
 
         :param path:
         :param destination:
@@ -135,10 +139,15 @@ class LoadDataFromLocalDisk(BaseData):
             os.makedirs(destination_dir)
             print("Creating destination directory {}".format(destination_dir))
 
+        if not os.path.isdir(destination_dir):
+            raise Exception("Not a valid destination "
+                            "directory \"{}\"!".format(destination_dir))
+
         data = self._read_datafile(path=path, data_format_code=data_format_code)
 
         return data
 
+    @staticmethod
     def _find_numeric_and_correct_columns(self, data=None,
                                           data_format_code='3'):
         """
