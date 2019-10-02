@@ -7,6 +7,7 @@ The code is simple since no checks are done - this is postponed to the
 structured data loader.
 
 @ author Jesper Kristensen
+Copyright Iterate Labs, Inc.
 """
 
 __all__ = ["LoadDataFromLocalDisk"]
