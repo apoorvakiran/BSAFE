@@ -1,7 +1,25 @@
 ---
 version: 2.1
 jobs:
-  
+  test:
+    docker:
+      - image: circleci/python:3.7
+    working_directory: ~/safe-core
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |  # use pipenv to install dependencies
+            sudo pip install pipenv
+            pipenv install --dev
+      - run:
+          name: Run Tests
+          command: pipenv run python -m pytest tests
+      - persist_to_workspace:
+          root: ~/safe-core
+          paths:
+            - .
+
   build_image_and_deploy_staging:
     docker:
       - image: circleci/python:3.7
@@ -9,8 +27,9 @@ jobs:
     working_directory: ~/safe-core
 
     steps:
-      
-      - checkout
+
+      - attach_workspace:
+          at: ~/safe-core
 
       - run:
           name: Install awscli and gettext-base
@@ -112,15 +131,20 @@ jobs:
 workflows:
   build-test-and-deploy:
     jobs:
+      - test
       - build_image_and_deploy_staging:
+          requires:
+            - test
           filters:
             branches:
-              only: 
+              only:
                 - master
       - build_image_and_deploy_prod:
+          requires:
+            - test
           filters:
             branches:
-              only: 
+              only:
                 - production
 
 
