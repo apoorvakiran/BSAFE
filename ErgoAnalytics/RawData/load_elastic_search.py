@@ -119,9 +119,6 @@ class LoadElasticSearch(BaseData):
                                                             mac_address))
         data_all_devices.append(device_df)
 
-        import pdb
-        pdb.set_trace()
-
         if len(data_all_devices) > 0:
 
             # get the correct data format code:
