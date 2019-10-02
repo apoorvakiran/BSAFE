@@ -20,6 +20,9 @@ import pandas as pd
 from . import BaseData
 from .. import is_numeric
 from Settings import *
+import logging
+
+logger = logging.getLogger()
 
 
 class LoadDataFromLocalDisk(BaseData):
@@ -31,7 +34,7 @@ class LoadDataFromLocalDisk(BaseData):
 
         super().__init__()
 
-        print("Data loading object created!")
+        logger.debug("Data loading object created!")
 
     def _read_datafile(self, path=None, data_format_code='3'):
         """
@@ -47,19 +50,23 @@ class LoadDataFromLocalDisk(BaseData):
         self._data_column_names = data_column_names
 
         if not os.path.isfile(path):
-            raise Exception(f"Could not find local file at '{path}'!")
+            msg = f"Could not find local file at '{path}'!"
+            logger.error(msg)
+            raise Exception(msg)
 
         try:
             data = pd.read_csv(path, names=self.data_column_names)
-            print("Successful loading of data...")
+
+            logger.debug("Successful loading of data...")
 
             data = self._find_numeric_and_correct_columns(data,
                                             data_format_code=data_format_code)
 
         except Exception as e:
-            print("Found exception when loading the data directly from disk:")
-            print(e)
-            print(">> Now trying to load the data more carefully...")
+            logger.warning("There was an error loading the data from disk "
+                           "directly, taking extra precaution, the error was:")
+            logger.warning(e)
+            logger.warning(">> Now trying to load the data more carefully...")
 
             with open(path, 'r') as fd:
                 all_lines = fd.readlines()
@@ -73,12 +80,14 @@ class LoadDataFromLocalDisk(BaseData):
                          self.data_column_names[1] == line_split[1]):
                     start_index = ix  # the data starts here
                     if not start_index == current_index:
-                        print("Success >> We found the start index of "
-                              "the data at {}!".format(start_index))
+                        logger.debug("Success >> We found the start index of "
+                                     "the data at {}!".format(start_index))
 
             if not start_index:
                 # we cannot recover
-                raise Exception("Was unable to find start index in the data!")
+                msg = "Was unable to find start index in the data!"
+                logger.error(msg)
+                raise Exception(msg)
 
             end_index = None
             found_end = False
@@ -90,18 +99,20 @@ class LoadDataFromLocalDisk(BaseData):
                     # found the end index
                     end_index = current_index
                     found_end = True
-                    print("  > and we found the end "
-                          "index at {}".format(end_index))
+                    logger.debug("  > and we found the end "
+                              "index at {}".format(end_index))
                     break
 
                 current_index -= 1
 
             if not found_end:
-                print("Was unable to find the end point of the data?")
-                print("Printing the first 10 lines of data - maybe that "
+                logger.debug("Was unable to find the end point of the data?")
+                logger.debug("Printing the first 10 lines of data - maybe that "
                       "can help debug this:")
-                print(all_lines[start_index:start_index:10])
-                raise Exception("Data format not currently handled")
+                logger.debug(all_lines[start_index:start_index:10])
+                msg = "Data format not currently handled"
+                logger.error(msg)
+                raise Exception(msg)
 
             # now actually load the part of the file that has good data:
             data = pd.read_csv(path,
@@ -131,25 +142,28 @@ class LoadDataFromLocalDisk(BaseData):
         """
 
         if destination is None:
-            print("Destination folder not provided, using current folder!")
+            logger.info("Destination folder not provided, using "
+                        "current folder!")
             destination = '.'
 
         destination_dir = os.path.dirname(destination)
         if destination_dir and not os.path.isdir(destination_dir):
             os.makedirs(destination_dir)
-            print("Creating destination directory {}".format(destination_dir))
+            logger.info("Creating destination "
+                        "directory {}".format(destination_dir))
 
         if not os.path.isdir(destination_dir):
-            raise Exception("Not a valid destination "
-                            "directory \"{}\"!".format(destination_dir))
+            msg = "Not a valid destination " \
+                  "directory \"{}\"!".format(destination_dir)
+            logger.error(msg)
+            raise Exception(msg)
 
         data = self._read_datafile(path=path, data_format_code=data_format_code)
 
         return data
 
     @staticmethod
-    def _find_numeric_and_correct_columns(self, data=None,
-                                          data_format_code='3'):
+    def _find_numeric_and_correct_columns(data=None, data_format_code='3'):
         """
         The following code ensures that we skip rows until we reach
         numeric values and we have all the columns we seek.
