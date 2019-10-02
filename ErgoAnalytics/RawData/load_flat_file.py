@@ -35,14 +35,15 @@ class LoadDataFromLocalDisk(BaseData):
 
     def _read_datafile(self, path=None, data_format_code='3'):
         """
-        This methods helps read the datafile. There can be different
-        formats of the data depending on the source and collection process.
-        Here, we want to try to capture all of them.
+        This methods helps read a datafile. There can be different
+        formats of the data depending on the source and collection process
+        which is what "data_format_code" is capturing. See "Settings" folder
+        in the main repo for more on this.
 
         :return: Pandas DataFrame with data loaded from disk.
         """
 
-        data_column_names = DATA_FORMAT_CODES[data_format_code]
+        data_column_names = DATA_FORMAT_CODES[data_format_code]['NAMES']
         self._data_column_names = data_column_names
 
         if not os.path.isfile(path):
@@ -56,10 +57,9 @@ class LoadDataFromLocalDisk(BaseData):
                                             data_format_code=data_format_code)
 
         except Exception as e:
-            print("Found exception when straight loading the "
-                  "data from disk:")
+            print("Found exception when loading the data directly from disk:")
             print(e)
-            print("Now trying to load the data more carefully...")
+            print(">> Now trying to load the data more carefully...")
 
             with open(path, 'r') as fd:
                 all_lines = fd.readlines()
@@ -77,6 +77,7 @@ class LoadDataFromLocalDisk(BaseData):
                               "the data at {}!".format(start_index))
 
             if not start_index:
+                # we cannot recover
                 raise Exception("Was unable to find start index in the data!")
 
             end_index = None
@@ -102,10 +103,16 @@ class LoadDataFromLocalDisk(BaseData):
                 print(all_lines[start_index:start_index:10])
                 raise Exception("Data format not currently handled")
 
-            # now load the data:
+            # now actually load the part of the file that has good data:
             data = pd.read_csv(path,
-                               skiprows=start_index).iloc[:end_index -
-                                                           start_index]
+                        skiprows=start_index).iloc[:end_index - start_index]
+
+        # now convert data based on the types we know:
+        data_column_types = DATA_FORMAT_CODES[data_format_code]['TYPES']
+
+        # for cn, ct in zip(data_column_names, data_column_types):
+        #     data[cn] = data[cn].astype(ct)
+        data = data.astype(dict(zip(data_column_names, data_column_types)))
 
         return data
 
@@ -139,6 +146,7 @@ class LoadDataFromLocalDisk(BaseData):
         numeric values and we have all the columns we seek.
         """
 
+        # provide a column we know should be numeric in values:
         if data_format_code in ['2', '3']:
             numeric_variable_name = 'az[0](mg)'
         elif data_format_code == '4':

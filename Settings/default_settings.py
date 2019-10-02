@@ -18,22 +18,39 @@ __copyright__ = "Iterate Labs, Co., 2018-"
 __author__ = "Iterate Labs, Co."
 __version__ = "Alpha"
 
+import pandas as pd
+
 # ==== TOPIC: DATA LOADING ====
 # *NOTE* If adding or removing any "column_names_format_j" you need to update
 # the dict-variable "DATA_FORMAT_CODES" further down as well
 
-COLUMN_NAMES_FORMAT_1 = ['Date-Time', 'Yaw[0](deg)', 'Pitch[0](deg)',
-                         'Roll[0](deg)', 'Yaw[1](deg)', 'Pitch[1](deg)',
-                         'Roll[1](deg)', 'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_NAMES_FORMAT_1 = ['Date-Time',
+                         'Yaw[0](deg)', 'Pitch[0](deg)', 'Roll[0](deg)',
+                         'Yaw[1](deg)', 'Pitch[1](deg)', 'Roll[1](deg)',
+                         'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_TYPES_FORMAT_1 = [pd.to_datetime,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float]
 
-
-COLUMN_NAMES_FORMAT_2 = ["Date-Time", "ax[0](mg)", "ay[0](mg)", "az[0](mg)",
-                         "gx[0](dps)", "gy[0](dps)", "gz[0](dps)", "mx[0](uT)",
-                         "my[0](uT)", "mz[0](uT)", "Yaw[0](deg)",
-                         "Pitch[0](deg)", "Roll[0](deg)", "ax[1](mg)",
-                         "ay[1](mg)", "az[1](mg)", "gx[1](dps)", "gy[1](dps)",
-                         "gz[1](dps)", "mx[1](uT)", "my[1](uT)", "mz[1](uT)",
+COLUMN_NAMES_FORMAT_2 = ["Date-Time",
+                         "ax[0](mg)", "ay[0](mg)", "az[0](mg)",
+                         "gx[0](dps)", "gy[0](dps)", "gz[0](dps)",
+                         "mx[0](uT)", "my[0](uT)", "mz[0](uT)",
+                         "Yaw[0](deg)", "Pitch[0](deg)", "Roll[0](deg)",
+                         "ax[1](mg)", "ay[1](mg)", "az[1](mg)",
+                         "gx[1](dps)", "gy[1](dps)", "gz[1](dps)",
+                         "mx[1](uT)", "my[1](uT)", "mz[1](uT)",
                          "Yaw[1](deg)", "Pitch[1](deg)", "Roll[1](deg)"]
+COLUMN_TYPES_FORMAT_2 = [pd.to_datetime,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float]
 
 COLUMN_NAMES_FORMAT_3 = """Date-Time
 ax[0]
@@ -73,9 +90,25 @@ ax[0]
       delta_roll""".split()
 COLUMN_NAMES_FORMAT_3 = list(map(lambda x: x.strip().rstrip(',').lstrip(','),
                                  COLUMN_NAMES_FORMAT_3))
+COLUMN_TYPES_FORMAT_3 = [pd.to_datetime,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         int, int, int,
+                         int, int, int,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float, float,
+                         float, float]
 
 # bluetooth capabilities limit amount of data that can be transferred:
-COLUMN_NAMES_FORMAT_4 = ['Date-Time', 'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_NAMES_FORMAT_4 = ['Date-Time',
+                         'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_TYPES_FORMAT_4 = [pd.datetime,
+                         float, float, float]
 
 # *DO NOT DELETE*
 # when loading data, we allow that, say, 30% is missing/not useful:
@@ -85,8 +118,13 @@ FRACTION_OF_DATA_USEFUL = 0.7  # prevent too much missing data for the analysis
 # here we collect all the data format codes into an easy-to-access dictionary
 # that can be accessed programmatically later on - as this grows (if it does)
 # we can turn this into a database like postgres or similar:
-DATA_FORMAT_CODES = {"1": COLUMN_NAMES_FORMAT_1,
-                     "2": COLUMN_NAMES_FORMAT_2,
-                     "3": COLUMN_NAMES_FORMAT_3,
-                     "4": COLUMN_NAMES_FORMAT_4}
+DATA_FORMAT_CODES = {"1": {"NAMES": COLUMN_NAMES_FORMAT_1,
+                           "TYPES": COLUMN_TYPES_FORMAT_1},
+                     "2": {"NAMES": COLUMN_NAMES_FORMAT_2,
+                           "TYPES": COLUMN_TYPES_FORMAT_2},
+                     "3": {"NAMES": COLUMN_NAMES_FORMAT_3,
+                           "TYPES": COLUMN_TYPES_FORMAT_3},
+                     "4": {"NAMES": COLUMN_NAMES_FORMAT_4,
+                           "TYPES": COLUMN_TYPES_FORMAT_4}
+                     }
 # ====

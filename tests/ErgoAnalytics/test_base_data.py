@@ -18,6 +18,9 @@ tests/ErgoAnalytics/test_base_data.py .                                  [100%]
 
 Here we see that "1 passed" and we got no errors.
 
+Requirements:
+    You will need pytest installed.
+
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc. 2018-
 """
