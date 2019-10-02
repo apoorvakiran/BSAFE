@@ -130,7 +130,7 @@ class LoadElasticSearch(BaseData):
             except Exception:
                 raise Exception("Please provide a valid data format code!")
 
-            names = DATA_FORMAT_CODES[data_format_code]
+            names = DATA_FORMAT_CODES[data_format_code]['NAMES']
 
             all_data = []
             data = pd.concat(data_all_devices, axis=0)['data'].values
