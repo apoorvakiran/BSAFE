@@ -18,7 +18,7 @@ __copyright__ = "Iterate Labs, Co., 2018-"
 __author__ = "Iterate Labs, Co."
 __version__ = "Alpha"
 
-import pandas as pd
+DATE = 'datetime64[ns]'
 
 # ==== TOPIC: DATA LOADING ====
 # *NOTE* If adding or removing any "column_names_format_j" you need to update
@@ -28,7 +28,7 @@ COLUMN_NAMES_FORMAT_1 = ['Date-Time',
                          'Yaw[0](deg)', 'Pitch[0](deg)', 'Roll[0](deg)',
                          'Yaw[1](deg)', 'Pitch[1](deg)', 'Roll[1](deg)',
                          'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
-COLUMN_TYPES_FORMAT_1 = [pd.to_datetime,
+COLUMN_TYPES_FORMAT_1 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float, float]
@@ -42,7 +42,7 @@ COLUMN_NAMES_FORMAT_2 = ["Date-Time",
                          "gx[1](dps)", "gy[1](dps)", "gz[1](dps)",
                          "mx[1](uT)", "my[1](uT)", "mz[1](uT)",
                          "Yaw[1](deg)", "Pitch[1](deg)", "Roll[1](deg)"]
-COLUMN_TYPES_FORMAT_2 = [pd.to_datetime,
+COLUMN_TYPES_FORMAT_2 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float, float,
@@ -90,7 +90,7 @@ ax[0]
       delta_roll""".split()
 COLUMN_NAMES_FORMAT_3 = list(map(lambda x: x.strip().rstrip(',').lstrip(','),
                                  COLUMN_NAMES_FORMAT_3))
-COLUMN_TYPES_FORMAT_3 = [pd.to_datetime,
+COLUMN_TYPES_FORMAT_3 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float, float,
@@ -107,7 +107,7 @@ COLUMN_TYPES_FORMAT_3 = [pd.to_datetime,
 # bluetooth capabilities limit amount of data that can be transferred:
 COLUMN_NAMES_FORMAT_4 = ['Date-Time',
                          'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
-COLUMN_TYPES_FORMAT_4 = [pd.datetime,
+COLUMN_TYPES_FORMAT_4 = [DATE,
                          float, float, float]
 
 # *DO NOT DELETE*
