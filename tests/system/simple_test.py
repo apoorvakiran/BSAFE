@@ -22,7 +22,7 @@ from ErgoAnalytics import ErgoMetrics
 # basepath_structured = "Demos/demo-data"  # just some demo data for testing
 # data_format_code = '2'
 #
-basepath_structured = "Demos/demo-data-only-deltas"
+basepath_structured = "../../Demos/demo-data-only-deltas"
 data_format_code = '4'
 # ==========================
 
