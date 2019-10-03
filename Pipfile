@@ -24,7 +24,7 @@ pika = "*"
 dramatiq = "*"
 redis = "*"
 elasticsearch-dsl = "*"
-sentry-sdk = {extras = ["flask"],version = "==0.12.2"}
+sentry-sdk = {extras = ["flask"],version = "==0.12.3"}
 requests-aws4auth = "*"
 sentry-dramatiq = "*"
 
