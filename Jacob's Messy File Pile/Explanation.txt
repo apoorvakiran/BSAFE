@@ -1,5 +1,0 @@
-Okay, so....
-I have sloppily been throwing things together, and now I need to go about condensing everything so that we actually have a cohesive file platform.
-
-To that end, I'm placing the current and functioning scripts and objects that I've been using to generate results into here, and will be making an index that will address what each file is, what it does, why it is it's own file, and any existing issues.
-###Jacob, 8-11-2019###
