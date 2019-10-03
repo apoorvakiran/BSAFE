@@ -29,10 +29,10 @@ def test_base_data():
     datadisk = LoadDataFromLocalDisk()
 
     # let's create some fake data:
-    some_data = [['2019/01/01',1.,4.,6.],
-                 ['2019/01/02',8.,6.,8.],
-                 ['2019/01/04',12.,1.,2.],
-                 ['2019/01/08',21.,2.,1.]]
+    some_data = [['2019-01-01',1.,4.,6.],
+                 ['2019-01-02',8.,6.,8.],
+                 ['2019-01-04',12.,1.,2.],
+                 ['2019-01-08',21.,2.,1.]]
     some_names = ['time', 'dyaw', 'dpitch', 'droll']
     fake_data = pd.DataFrame(data=some_data, columns=some_names)
     # ^^ 3x4 matrix
@@ -44,7 +44,13 @@ def test_base_data():
     data = datadisk._read_datafile(path='fake_data.csv', data_format_code='4')
 
     # did we get the data we expect?
-    assert list(data['Date-Time'].values) == \
+
+    # treat date values differently due to datetime datatype:
+    # - convert back to strings we can compare:
+    date_values_after_load = \
+        list(map(lambda x: str(x).split("T")[0], data['Date-Time'].values))
+
+    assert date_values_after_load == \
            list(map(str, fake_data['time'].values))
     assert list(data['DeltaYaw'].values) == \
            list(map(float, fake_data['dyaw'].values))
