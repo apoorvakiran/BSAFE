@@ -27,6 +27,7 @@ elasticsearch-dsl = "*"
 sentry-sdk = {extras = ["flask"],version = "==0.12.2"}
 requests-aws4auth = "*"
 sentry-dramatiq = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.7"
