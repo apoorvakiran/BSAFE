@@ -38,6 +38,10 @@ def test_base_data():
 
     assert bd.data_column_names is None
 
+    #
     bd._data_column_names = ['n1', 'n2']
-
     assert bd.data_column_names == ['n1', 'n2']
+
+    #
+    bd._data_column_names = []
+    assert bd.data_column_names == []
