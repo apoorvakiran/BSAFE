@@ -22,9 +22,12 @@ from unittest.mock import MagicMock
 from ErgoAnalytics.ergoMetrics import ErgoMetrics
 
 data = MagicMock()
-data._pitch = {'delta': [1,2,3,4,2,8] * 2}
-data._yaw = {'delta': [1,2,3,4,2,8] * 2}
-data._roll = {'delta': [1,2,3,4,2,8] * 2}
+data.yaw = MagicMock(return_value=[1,2,3,4,2,8] * 2)
+data.pitch = MagicMock(return_value=[1,2,3,4,2,8] * 2)
+data.roll = MagicMock(return_value=[1,2,3,4,2,8] * 2)
+# data._pitch = {'delta': [1,2,3,4,2,8] * 2}
+# data._yaw = {'delta': [1,2,3,4,2,8] * 2}
+# data._roll = {'delta': [1,2,3,4,2,8] * 2}
 
-em = ErgoMetrics(collection_structured_data_obj=data)
-print(em.motionScore)
+em = ErgoMetrics(structured_data=data)
+em.compute()
