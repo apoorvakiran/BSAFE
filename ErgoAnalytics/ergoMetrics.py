@@ -62,7 +62,7 @@ class ErgoMetrics(object):
                                             delta_yaw=self._delta_yaw,
                                             delta_roll=self._delta_roll)
 
-        speed_score = compute_velocity_score(delta_pitch=self._delta_pitch,
+        speed_score_tmp = compute_velocity_score(delta_pitch=self._delta_pitch,
                                              delta_yaw=self._delta_yaw,
                                              delta_roll=self._delta_roll)
 
@@ -70,26 +70,41 @@ class ErgoMetrics(object):
                                       delta_yaw=self._delta_yaw,
                                       delta_roll=self._delta_roll, safe=30)
         
-        # mots = np.array(motion_score)
+        # re-define some new variable names:
+        raw_strain = motion_score
+        raw_speed = speed_score_tmp
 
-        # # compute means:
-        # mot1 = np.mean(mots[:, 0])  # pitchScore
-        # mot2 = np.mean(mots[:, 1])  # yawScore
-        # mot3 = np.mean(mots[:, 2])  # rollScore
-        # mot4 = np.mean(mots[:, 3])  # totalScore
+        # normalize the speed:
+        normalized_speed = self._normalize_speed(speed=raw_speed)
+        speed_score = self._compute_speed_score(speed=normalized_speed)
 
-        # self._strain = [mot1, mot2, mot3, mot4]
+        scores = {'speed': speed_score, 'strain': raw_strain, 'posture': posture_score}
+        total_score = self._compute_total_score(scores=scores)
+        
+        scores['total'] = total_score
 
-        # speedz = np.array(speeds)
+        self._scores.update(**scores)
 
-        # self._speed = [(np.mean(speedz[:, 0])), (np.mean(speedz[:, 1])),
-        #                (np.mean(speedz[:, 2]))]
-        # self._speedNormal = [self._speed[0]/21, self._speed[1]/21, self._speed[2]/21]
-        # self._speedScore = max(self._speedNormal)
-        # self._totalScore = (self._speedScore + self._strain[3] + self._posture[3])/2
+    def _compute_total_score(self, scores=None):
+        """
+        Computes the total score from the incoming scores.
+        """
+        # combine the speed score with the total scores from strain and posture:
+        return (scores['speed'] + scores['strain'][3] + scores['posture'][3]) / 2
 
-    @property
-    def score(self, name='posture'):
+    def _normalize_speed(self, speed=None):
+        """
+        Normalizes the speed.
+        """
+        return np.asarray(speed) / 21
+
+    def _compute_speed_score(self, speed=None):
+        """
+        Compute the speed score given potentially normalized speeds.
+        """
+        return max(speed)
+
+    def get_score(self, name='posture'):
         """
         Returns the score with "name".
         """

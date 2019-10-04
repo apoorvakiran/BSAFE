@@ -10,12 +10,27 @@ __all__ = ["compute_posture_score"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import numpy as np
+from numpy import absolute
+
 
 def compute_posture_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe=None):
     """
     Takes values of yaw, pitch, and roll, and calculates posture score
     as percent of time spent outside of a "safe" posture degree value.
     """
+    
+    # Whenever any of the delta angles extend beyond the safe region,
+    # count that as an unsafe event:
+    num_unsafe = len(np.where((absolute(delta_pitch) > safe) | 
+                              (absolute(delta_yaw) > safe) | 
+                              (absolute(delta_roll) > safe))[0])
+    
+    # now do similar for yaw, pitch, roll...
+    
+    import pdb
+    pdb.set_trace()
+
     totalVals = 0
     unsafe = 0
     n = 0
@@ -33,6 +48,5 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None, delta_roll=None, saf
                 pitchn = pitchn+1
         totalVals = totalVals + 1
         n = n + 1
-    postScores = [(7 * pitchn / totalVals), (7 * yawn / totalVals),
-                    (7 * rolln / totalVals), (7 * unsafe / totalVals)]
-    return postScores
+    
+    return (7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)
