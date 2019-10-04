@@ -4,7 +4,7 @@ jobs:
   test:
     docker:
       - image: circleci/python:3.7
-    working_directory: ~/safe-core
+    working_directory: ~/BSAFE
     steps:
       - checkout
       - run:
@@ -16,7 +16,7 @@ jobs:
           name: Run Tests
           command: pipenv run python -m pytest --ignore tests/system tests
       - persist_to_workspace:
-          root: ~/safe-core
+          root: ~/BSAFE
           paths:
             - .
 
@@ -24,12 +24,12 @@ jobs:
     docker:
       - image: circleci/python:3.7
 
-    working_directory: ~/safe-core
+    working_directory: ~/BSAFE
 
     steps:
 
       - attach_workspace:
-          at: ~/safe-core
+          at: ~/BSAFE
 
       - run:
           name: Install awscli and gettext-base
@@ -79,7 +79,7 @@ jobs:
     docker:
       - image: circleci/python:3.7
 
-    working_directory: ~/safe-core
+    working_directory: ~/BSAFE
 
     steps:
 
