@@ -18,6 +18,13 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
+from unittest.mock import MagicMock
 from ErgoAnalytics.ergoMetrics import ErgoMetrics
 
-# TODO(Jesper): Need a mock collection of structured data here...
+data = MagicMock()
+data._pitch = {'delta': [1,2,3,4,2,8] * 2}
+data._yaw = {'delta': [1,2,3,4,2,8] * 2}
+data._roll = {'delta': [1,2,3,4,2,8] * 2}
+
+em = ErgoMetrics(collection_structured_data_obj=data)
+print(em.motionScore)
