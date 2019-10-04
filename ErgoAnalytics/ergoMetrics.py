@@ -18,7 +18,11 @@ logger = logging.getLogger()
 
 class ErgoMetrics(object):
     """
-    Computes Ergonomic Metrics for the incoming data.
+    Computes Ergonomic Metrics (ErgoMetrics) for the incoming posture data.
+    
+    The Ergo Metrics is what is responsible for creating the ergonomics
+    scores and provide an evaluation for management and people in
+    charge of the safety.
     """
 
     _collection_structured_data_obj = None
@@ -38,11 +42,12 @@ class ErgoMetrics(object):
         """
         Constructs an object from which metrics can be computed
         based off of a "Collection of Structured Data" object.
-        :param experiment_obj:
+
+        :param collection_structured_data_obj:
         """
 
         self._collection_structured_data_obj = collection_structured_data_obj
-
+        
         self._yaws = self._collection_structured_data_obj._yaw
         self._pitches = self._collection_structured_data_obj._pitch
         self._rolls = self._collection_structured_data_obj._roll
@@ -111,12 +116,12 @@ class ErgoMetrics(object):
         lists = np.atleast_1d(lists)
 
         len_ = len(lists[0])
-        n = int(percent / 100 * len_)
+        n = max(int(percent / 100 * len_), 1)
 
         for l in lists:
             if not len(l) == len_:
-                raise Exception("Data is not the same size?")
-
+                raise Exception("Data {} is not the same size {}?".format(lists, len_))
+        
         for i in range(0, len_, n):
             chunks_from_all_lists = [l[i:i + n] for l in lists]
             yield chunks_from_all_lists
