@@ -2,13 +2,10 @@
 """
 Tests the loading of data from a flat file.
 
-============
-How to run:
-============
->> pytest tests/ErgoAnalytics/test_load_flat_file.py
-
-Requirements:
-    You will need pytest installed.
+================================
+How to run (from project root):
+================================
+>> python -m pytest tests/ErgoAnalytics/RawData/test_load_flat_file.py
 
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc. 2018-
@@ -21,7 +18,7 @@ __version__ = "Alpha"
 import os
 import pandas as pd
 from ErgoAnalytics.RawData import LoadDataFromLocalDisk
-from Settings import *
+from Settings import DATA_FORMAT_CODES
 
 
 def test_base_data():
