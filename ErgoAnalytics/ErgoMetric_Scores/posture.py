@@ -26,27 +26,16 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None, delta_roll=None, saf
                               (absolute(delta_yaw) > safe) | 
                               (absolute(delta_roll) > safe))[0])
     
-    # now do similar for yaw, pitch, roll...
-    
-    import pdb
-    pdb.set_trace()
+    num_yaw = len(np.where(absolute(delta_yaw) > safe)[0])
+    num_pitch = len(np.where(absolute(delta_pitch) > safe)[0])
+    num_roll = len(np.where(absolute(delta_roll) > safe)[0])
 
-    totalVals = 0
-    unsafe = 0
-    n = 0
-    pitchn = 0
-    yawn = 0
-    rolln = 0
-    while n < len(delta_pitch):
-        if delta_yaw[n] > safe or delta_pitch[n] > safe or delta_roll[n] > safe:
-            unsafe = unsafe + 1
-            if delta_yaw[n] > safe:
-                yawn = yawn+1
-            if delta_roll[n] > safe:
-                rolln = rolln+1
-            if delta_pitch[n] > safe:
-                pitchn = pitchn+1
-        totalVals = totalVals + 1
-        n = n + 1
+    num_total = len(delta_yaw)
     
-    return (7 * pitchn / totalVals), (7 * yawn / totalVals), (7 * rolln / totalVals), (7 * unsafe / totalVals)
+    # adjustments:
+    yaw_posture_score = 7 * num_yaw / num_total
+    pitch_posture_score = 7 * num_pitch / num_total
+    roll_posture_score = 7 * num_roll / num_total
+    unsafe_score = 7 * num_unsafe / num_total
+
+    return pitch_posture_score, yaw_posture_score, roll_posture_score, unsafe_score
