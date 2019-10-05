@@ -18,6 +18,7 @@ from Settings import FRACTION_OF_DATA_USEFUL
 
 logger = logging.getLogger()
 
+
 class BaseStructuredData(object):
     """
     Base class of a structured data object.

@@ -9,8 +9,8 @@ __version__ = "Alpha"
 
 from .utilities import *
 from .filter import *
-from .RawData import *
-from .StructuredData import *
+from .Data_Raw import *
+from .Data_Structured import *
 from .rula import *
 from .acceleration import *
 from .ergoMetrics import *

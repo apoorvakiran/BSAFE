@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import datetime
 from scipy.interpolate import UnivariateSpline
-from ..RawData import LoadElasticSearch
+from ..Data_Raw import LoadElasticSearch
 from . import BaseStructuredData
 from .. import QuadrantFilter
 

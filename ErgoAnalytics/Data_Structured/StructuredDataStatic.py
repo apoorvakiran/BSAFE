@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 import datetime
 from scipy.interpolate import UnivariateSpline
-from ..RawData import LoadDataFromLocalDisk
+from ..Data_Raw import LoadDataFromLocalDisk
 from . import BaseStructuredData
 from .. import StandardDeviationFilter
 from .. import QuadrantFilter
