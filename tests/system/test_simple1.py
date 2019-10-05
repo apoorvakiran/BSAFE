@@ -15,32 +15,32 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
-from ErgoAnalytics import CollectionStructuredData
+from ErgoAnalytics.Data_Structured import CollectionStructuredData
 from ErgoAnalytics import ErgoMetrics
 
-# # ==== some tests to run:
-# # basepath_structured = "Demos/demo-data"  # just some demo data for testing
-# # data_format_code = '2'
-# #
-# basepath_structured = "Demos/demo-data-only-deltas"
-# data_format_code = '4'
-# # ==========================
+# ==== some tests to run:
+# basepath_structured = "Demos/demo-data"  # just some demo data for testing
+# data_format_code = '2'
 
-# msd = CollectionStructuredData(basepath=basepath_structured,
-#                                is_cataloged=True, ignore_cache=True,
-#                                data_format_code=data_format_code)
+basepath_structured = "system/demo-data-only-deltas"
+data_format_code = '4'
+# ==========================
 
-# for structured_data in msd.datasets():
-#     # loop over individual structured data objects
+msd = CollectionStructuredData(basepath=basepath_structured,
+                               is_cataloged=True, ignore_cache=True,
+                               data_format_code=data_format_code)
 
-#     mets = ErgoMetrics(collection_structured_data_obj=structured_data)
+for structured_data in msd.datasets():
+    # loop over individual structured data objects
+    
+    mets = ErgoMetrics(structured_data=structured_data)
 
-#     # just print some things for testing purposes
-#     # TODO: Make these actual checks in pytest...
-#     print(structured_data.name)
+    # just print some things for testing purposes
+    # TODO: Make these actual checks in pytest...
+    print(structured_data.name)
 
-#     print(mets.posture)
-#     print(mets.speed)
+    print(mets.get_score(name='posture'))
+    print(mets.get_score(name='speed'))
 
-# # [0.0, 0.0, 7.0, 7.0]
-# # [41.59958134606569, 139.6475497017071, 110.68980916739281]
+# [0.0, 0.0, 7.0, 7.0]
+# [41.59958134606569, 139.6475497017071, 110.68980916739281]
