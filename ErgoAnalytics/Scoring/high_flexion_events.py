@@ -11,11 +11,15 @@ values, to adjust towards the center of 0.
 This requires the assumption that 0 is the correct mean (should be true?).
 So far this seems to have been working out.
 
-@author Jacob Tyrrell
+@author Jacob Tyrrell & Jesper Kristensen
+Copyright 2018- Iterate Labs, Inc.
 """
 
-import numpy as np
-from . import ergoMetrics, velcro, motionScore
+__all__ = [""]
+__author__ = "Jacob Tyrrell & Jesper Kristensen"
+__version__ = "Alpha"
+
+from ErgoAnalytics import velcro, motionScore
 
 
 def eventFinder(eventual, angle):

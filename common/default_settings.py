@@ -13,12 +13,13 @@ Jesper Kristensen @ Iterate Labs, Co.
 Copyright 2018-
 """
 
-__all__ = ['DATA_FORMAT_CODES', "FRACTION_OF_DATA_USEFUL"]
+__all__ = ['DATA_FORMAT_CODES', "FRACTION_OF_DATA_USEFUL", "SAMPLING_RATE",
+           "DATE"]
 __copyright__ = "Iterate Labs, Co., 2018-"
 __author__ = "Iterate Labs, Co."
 __version__ = "Alpha"
 
-DATE = 'datetime64[ns]'
+DATE = 'datetime64[ns]'  # format for dates in incoming data
 
 # ==== TOPIC: DATA LOADING ====
 # *NOTE* If adding or removing any "column_names_format_j" you need to update
@@ -28,13 +29,24 @@ COLUMN_NAMES_FORMAT_1 = ['Date-Time',
                          'Yaw[0](deg)', 'Pitch[0](deg)', 'Roll[0](deg)',
                          'Yaw[1](deg)', 'Pitch[1](deg)', 'Roll[1](deg)',
                          'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_NUMERICS_FORMAT_1 = ['Yaw[0](deg)', 'Pitch[0](deg)', 'Roll[0](deg)',
+                         'Yaw[1](deg)', 'Pitch[1](deg)', 'Roll[1](deg)',
+                         'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
 COLUMN_TYPES_FORMAT_1 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float, float]
-
+# ======
 COLUMN_NAMES_FORMAT_2 = ["Date-Time",
                          "ax[0](mg)", "ay[0](mg)", "az[0](mg)",
+                         "gx[0](dps)", "gy[0](dps)", "gz[0](dps)",
+                         "mx[0](uT)", "my[0](uT)", "mz[0](uT)",
+                         "Yaw[0](deg)", "Pitch[0](deg)", "Roll[0](deg)",
+                         "ax[1](mg)", "ay[1](mg)", "az[1](mg)",
+                         "gx[1](dps)", "gy[1](dps)", "gz[1](dps)",
+                         "mx[1](uT)", "my[1](uT)", "mz[1](uT)",
+                         "Yaw[1](deg)", "Pitch[1](deg)", "Roll[1](deg)"]
+COLUMN_NUMERICS_FORMAT_2 = ["ax[0](mg)", "ay[0](mg)", "az[0](mg)",
                          "gx[0](dps)", "gy[0](dps)", "gz[0](dps)",
                          "mx[0](uT)", "my[0](uT)", "mz[0](uT)",
                          "Yaw[0](deg)", "Pitch[0](deg)", "Roll[0](deg)",
@@ -51,7 +63,7 @@ COLUMN_TYPES_FORMAT_2 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float, float]
-
+# ======
 COLUMN_NAMES_FORMAT_3 = """Date-Time
 ax[0]
       ay[0]
@@ -90,6 +102,7 @@ ax[0]
       delta_roll""".split()
 COLUMN_NAMES_FORMAT_3 = list(map(lambda x: x.strip().rstrip(',').lstrip(','),
                                  COLUMN_NAMES_FORMAT_3))
+COLUMN_NUMERICS_FORMAT_3 = COLUMN_NAMES_FORMAT_3.remove('Date-Time')
 COLUMN_TYPES_FORMAT_3 = [DATE,
                          float, float, float,
                          float, float, float,
@@ -103,10 +116,11 @@ COLUMN_TYPES_FORMAT_3 = [DATE,
                          float, float, float,
                          float, float, float,
                          float, float]
-
-# bluetooth capabilities limit amount of data that can be transferred:
+# ======
+# due to bluetooth requirement - limit amount of data that can be transferred:
 COLUMN_NAMES_FORMAT_4 = ['Date-Time',
                          'DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+COLUMN_NUMERICS_FORMAT_4 = ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']
 COLUMN_TYPES_FORMAT_4 = [DATE,
                          float, float, float]
 
@@ -119,12 +133,18 @@ FRACTION_OF_DATA_USEFUL = 0.7  # prevent too much missing data for the analysis
 # that can be accessed programmatically later on - as this grows (if it does)
 # we can turn this into a database like postgres or similar:
 DATA_FORMAT_CODES = {"1": {"NAMES": COLUMN_NAMES_FORMAT_1,
+                           "NUMERICS": COLUMN_NUMERICS_FORMAT_1,
                            "TYPES": COLUMN_TYPES_FORMAT_1},
                      "2": {"NAMES": COLUMN_NAMES_FORMAT_2,
+                           "NUMERICS": COLUMN_NUMERICS_FORMAT_2,
                            "TYPES": COLUMN_TYPES_FORMAT_2},
                      "3": {"NAMES": COLUMN_NAMES_FORMAT_3,
+                           "NUMERICS": COLUMN_NUMERICS_FORMAT_3,
                            "TYPES": COLUMN_TYPES_FORMAT_3},
                      "4": {"NAMES": COLUMN_NAMES_FORMAT_4,
+                           "NUMERICS": COLUMN_NUMERICS_FORMAT_4,
                            "TYPES": COLUMN_TYPES_FORMAT_4}
                      }
 # ====
+
+SAMPLING_RATE = 10
