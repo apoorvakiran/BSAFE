@@ -2,7 +2,7 @@
 """
 Computes the posture score among the Iterate Labs Ergo Metrics.
 
-@ author Jacob Tyrrell and Jesper Kristensen
+@ author Jesper Kristensen and Jacob Tyrrell
 Copyright Iterate Labs 2018-
 """
 
@@ -29,9 +29,15 @@ def compute_velocity_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     
     This measures the width of the distribution of instantenous velocities.
     """
-    gradient_yaw = gradient(delta_yaw)
-    gradient_pitch = gradient(delta_pitch)
-    gradient_roll = gradient(delta_roll)
+
+    try:
+        gradient_yaw = gradient(delta_yaw)
+        gradient_pitch = gradient(delta_pitch)
+        gradient_roll = gradient(delta_roll)
+    except Exception:
+
+        import pdb
+        pdb.set_trace()
     
     THRESHOLD_GRAD = 100
     #

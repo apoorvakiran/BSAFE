@@ -29,9 +29,7 @@ def test_total_score():
     """
 
     data = MagicMock()
-    data.yaw = MagicMock(return_value=[1,2,3,4,2,8] * 2)
-    data.pitch = MagicMock(return_value=[1,2,3,4,2,8] * 2)
-    data.roll = MagicMock(return_value=[1,2,3,4,2,8] * 2)
+    data.get_data = MagicMock(return_value=[1,2,3,4,2,8] * 2)
 
     em = ErgoMetrics(structured_data=data)
     em.compute()

@@ -20,7 +20,8 @@ def compute_motion_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe
     total motion scores.
     """
 
-    bins_degrees = [15 * i for i in range(10 + 1)]  # [0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150]
+    bins_degrees = [15 * i for i in range(10 + 1)]  # [0, 15, 30, 45, 60, 75,
+    # 90, 105, 120, 135, 150]
     
     # now count each (yaw/pitch/roll) degree in the given degree bins
     # for example - if yaw had a value of 4 at one time instance that
@@ -44,6 +45,7 @@ def compute_motion_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe
     score_total = score_total / 2214
 
     return score_pitch, score_yaw, score_roll, score_total
+
 
 def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     """

@@ -14,7 +14,8 @@ import numpy as np
 from numpy import absolute
 
 
-def compute_posture_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe=None):
+def compute_posture_score(delta_pitch=None, delta_yaw=None,
+                          delta_roll=None, safe=None):
     """
     Takes values of yaw, pitch, and roll, and calculates posture score
     as percent of time spent outside of a "safe" posture degree value.
@@ -38,4 +39,5 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None, delta_roll=None, saf
     roll_posture_score = 7 * num_roll / num_total
     unsafe_score = 7 * num_unsafe / num_total
 
-    return pitch_posture_score, yaw_posture_score, roll_posture_score, unsafe_score
+    return pitch_posture_score, yaw_posture_score, \
+           roll_posture_score, unsafe_score

@@ -6,13 +6,14 @@ Contains utilities for ErgoAnalytics.
 Copyright 2018 Iterate Labs, Inc.
 """
 
-__all__ = ["is_numeric", "digitize_values"]
+__all__ = ["is_numeric", "digitize_values", "rad_to_deg"]
 __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
 from numpy import abs
 from numpy import digitize
+from numpy import degrees
 
 
 def is_numeric(val):
@@ -27,6 +28,7 @@ def is_numeric(val):
         return True
     except Exception:
         return False
+
 
 def digitize_values(values=None, bins=None):
     """
@@ -43,3 +45,13 @@ def digitize_values(values=None, bins=None):
         tmp[val] += 1
 
     return tmp
+
+
+def rad_to_deg(data=None):
+    """
+    Converts dataframe of radians to degrees.
+
+    :param data: incoming data with values in radians.
+    :return: data with values converted to degrees.
+    """
+    return degrees(data)

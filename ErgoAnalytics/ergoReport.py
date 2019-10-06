@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Handles reporting of Ergonomic Metrics and results to customers.
+
+@ author Jacob Tyrrell and Jesper Kristensen
+Copyright Iterate Labs 2018-
+"""
 import logging
 from datetime import datetime
 import requests
@@ -8,7 +15,11 @@ logger = logging.getLogger()
 
 
 class ErgoReport (object):
-    """Feed a metrics object and a desired output type (string, HTTP request, csv), receive an output"""
+    """
+    Feed a metrics object and a desired output type
+    (string, HTTP request, csv), receive an output
+    """
+
     _type = None
     _metrics = None
     _authorization = None
@@ -74,3 +85,80 @@ class ErgoReport (object):
     def outString(self):
         return
 
+
+    # def printer(self, outfile):
+    #
+    #     raise Exception("Move Me to Reporter class!")
+    #
+    #     totalz = self.totaller()
+    #     printed = open(outfile, 'w')
+    #
+    #     printed.write(
+    #         'Day, Shift, Task, Worker, Segment, Hand, Motion - Pitch, '
+    #         'Motion - Yaw, Motion - Roll, Motion, Posture, Speed - Pitch, '
+    #         'Speed - Yaw, Speed - Roll')
+    #
+    #     printed.write('\n')
+    #     for key in totalz:
+    #         printed.write(key)
+    #         printed.write("\n")
+    #         scores = []
+    #         for score in totalz[key]:
+    #             scores.append(score)
+    #         scores.sort(reverse=True)
+    #         n = 0
+    #         summary = [0, 0, 0, 0, 0, 0, 0, 0]
+    #         while n < len(scores):
+    #             for exp in totalz[key][scores[n]]:
+    #                 metric = exp._metrics
+    #                 motion = metric._motion
+    #                 summary[0] = summary[0] + motion[0]
+    #                 summary[1] = summary[1] + motion[1]
+    #                 summary[2] = summary[2] + motion[2]
+    #                 summary[3] = summary[3] + motion[3]
+    #                 post = metric._posture
+    #                 summary[4] = summary[4] + post
+    #                 speeds = metric._speed
+    #                 summary[5] = summary[5] + speeds[0]
+    #                 summary[6] = summary[6] + speeds[1]
+    #                 summary[7] = summary[7] + speeds[2]
+    #                 name = exp.name.replace('_', ', ')
+    #                 printed.write(name + ", " + str(motion[0]) + ", " + str(motion[1]) + ", " + str(motion[2]) + ", "
+    #                               + str(motion[3]) + ", " + str(post) + ", " + str(speeds[0]) + ", " +
+    #                               str(speeds[1]) + ", " + str(speeds[2]) + ", " + "\n")
+    #             n = n + 1
+    #         summary[0] = np.mean(summary[0]) / n
+    #         summary[1] = np.mean(summary[1]) / n
+    #         summary[2] = np.mean(summary[2]) / n
+    #         summary[3] = np.mean(summary[3]) / n
+    #         summary[4] = np.mean(summary[4]) / n
+    #         summary[5] = np.mean(summary[5]) / n
+    #         summary[6] = np.mean(summary[6]) / n
+    #         summary[7] = np.mean(summary[7]) / n
+    #         printed.write(",,,, ,, " + str(summary[0]) + ", " + str(summary[1]) + "," +
+    #                       str(summary[2]) + ", " + str(summary[3]) + ", " + str(summary[4]) + ", " + str(summary[5]) +
+    #                       ", " + str(summary[6]) + ", " + str(summary[7]) + "\n")
+    #         printed.write("\n")
+    #     printed.close()
+
+
+    # def totaller(self):
+    #     """
+    #     TODO(Jesper): Jacob: What does this code do?
+    #     :return:
+    #     """
+    #
+    #     rankings = {}
+    #     for exp in self._structured_datasets:
+    #         name = exp.name.split('_')
+    #         task = name[2]
+    #         score = exp._metrics._motion[3]
+    #         if task not in rankings:
+    #             rankings[task] = {}
+    #             rankings[task][score] = [exp]
+    #         else:
+    #             if score not in rankings[task]:
+    #                 rankings[task][score] = [exp]
+    #             else:
+    #                 rankings[task][score].append(exp)
+    #     return rankings

@@ -6,7 +6,7 @@
 Dockerfile
 tmp/*
 log/*
-Robot/*
+RobotArm/*
 Misc/*
 Demos/*
 data_analytics.jpg

@@ -18,7 +18,7 @@ __version__ = "Alpha"
 import os
 import pandas as pd
 from ErgoAnalytics.Data_Raw import LoadDataFromLocalDisk
-from Settings import DATA_FORMAT_CODES
+from common import DATA_FORMAT_CODES
 
 
 def test_base_data():

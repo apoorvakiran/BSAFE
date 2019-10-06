@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from . import BaseData
 from .. import is_numeric
-from Settings import *
+from common import *
 import logging
 
 logger = logging.getLogger()
@@ -152,7 +152,7 @@ class LoadDataFromLocalDisk(BaseData):
                         "current folder!")
             destination = '.'
 
-        destination_dir = os.path.dirname(destination)
+        destination_dir = os.path.abspath(destination)
         if destination_dir and not os.path.isdir(destination_dir):
             os.makedirs(destination_dir)
             logger.info("Creating destination "
@@ -164,7 +164,10 @@ class LoadDataFromLocalDisk(BaseData):
             logger.error(msg)
             raise Exception(msg)
 
-        data = self._read_datafile(path=path, data_format_code=data_format_code)
+        data = self._read_datafile(path=path,
+                                   data_format_code=data_format_code)
+
+        data = data.reset_index(drop=True, inplace=False)
 
         return data
 

@@ -12,16 +12,17 @@ __version__ = "Alpha"
 
 import numpy as np
 import logging
-from ErgoAnalytics.ErgoMetric_Scores import compute_posture_score
-from ErgoAnalytics.ErgoMetric_Scores import compute_motion_score
-from ErgoAnalytics.ErgoMetric_Scores import compute_velocity_score
+from ErgoAnalytics.Scoring import compute_posture_score
+from ErgoAnalytics.Scoring import compute_motion_score
+from ErgoAnalytics.Scoring import compute_velocity_score
 
 logger = logging.getLogger()
 
 
 class ErgoMetrics(object):
     """
-    Computes Ergonomic Metrics (ErgoMetrics) for the incoming data.
+    Computes Ergonomic Metrics (ErgoMetrics) for the incoming data
+    which is assumed to be in "structured" form as opposed to "raw" data.
     
     The Ergo Metrics is what is responsible for creating the ergonomics
     scores and provide an evaluation for management and people in
@@ -43,17 +44,17 @@ class ErgoMetrics(object):
         """
 
         self._data = structured_data
-        
-        # get the data we need
-        self._delta_yaw = self._data.yaw(delta=True)
-        self._delta_pitch = self._data.pitch(delta=True)
-        self._delta_roll = self._data.roll(delta=True)
+
+        # ergoMetrics currently just cares about delta values:
+        self._delta_yaw = self._data.get_data(type='yaw', loc='delta')
+        self._delta_pitch = self._data.get_data(type='pitch', loc='delta')
+        self._delta_roll = self._data.get_data(type='roll', loc='delta')
 
         self._scores = dict()
-    
+
     def compute(self):
         """
-        Compute the ergo metric scores.
+        Compute the ergo metric scores - the ergoScores if you will.
         """
         # compute the scores
         logger.debug("Computing ErgoMetric scores...")
@@ -78,27 +79,31 @@ class ErgoMetrics(object):
         normalized_speed = self._normalize_speed(speed=raw_speed)
         speed_score = self._compute_speed_score(speed=normalized_speed)
 
-        scores = {'speed': speed_score, 'strain': raw_strain, 'posture': posture_score}
+        scores = {'speed': speed_score, 'strain': raw_strain,
+                  'posture': posture_score}
         total_score = self._compute_total_score(scores=scores)
         
         scores['total'] = total_score
 
         self._scores.update(**scores)
 
-    def _compute_total_score(self, scores=None):
+    @staticmethod
+    def _compute_total_score(scores=None):
         """
         Computes the total score from the incoming scores.
         """
         # combine the speed score with the total scores from strain and posture:
         return (scores['speed'] + scores['strain'][3] + scores['posture'][3]) / 2
 
-    def _normalize_speed(self, speed=None):
+    @staticmethod
+    def _normalize_speed(speed=None):
         """
         Normalizes the speed.
         """
         return np.asarray(speed) / 21
 
-    def _compute_speed_score(self, speed=None):
+    @staticmethod
+    def _compute_speed_score(speed=None):
         """
         Compute the speed score given potentially normalized speeds.
         """
@@ -109,7 +114,8 @@ class ErgoMetrics(object):
         Returns the score with "name".
         """
         if len(self._scores) == 0:
-            raise Exception("Please compute the Ergo Metrics scores first!")
+            raise Exception("Please compute the Ergo Metrics scores first!\n"
+                            "Do this by calling the .compute() method.")
         if name not in self._scores:
             raise Exception("Was unable to find the score with name '{}'\n \
                 valid options are: {}".format(name, list(self._scores.keys())))
