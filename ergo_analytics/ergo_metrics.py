@@ -12,9 +12,9 @@ __version__ = "Alpha"
 
 import numpy as np
 import logging
-from ErgoAnalytics.Metrics import compute_posture_score
-from ErgoAnalytics.Metrics import compute_motion_score
-from ErgoAnalytics.Metrics import compute_velocity_score
+from .metrics import compute_posture_score
+from .metrics import compute_motion_score
+from .metrics import compute_velocity_score
 
 logger = logging.getLogger()
 

@@ -20,7 +20,7 @@ __version__ = "Alpha"
 
 import pytest
 from unittest.mock import MagicMock
-from ErgoAnalytics.ergo_metrics import ErgoMetrics
+from ergo_analytics.ergo_metrics import ErgoMetrics
 
 
 def test_total_score():

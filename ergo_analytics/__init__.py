@@ -9,9 +9,9 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 from .utilities import *
-from .Data_Transformations import *
-from .Data_Raw import *
-from .Data_Structured import *
+from .data_transformations import *
+from .data_raw import *
+from .data_structured import *
 from .data_filter_pipeline import *
 from .ergo_metrics import *
 from .ergo_report import *

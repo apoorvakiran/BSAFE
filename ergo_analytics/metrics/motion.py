@@ -11,7 +11,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import numpy as np
-from ErgoAnalytics.utilities import digitize_values
+from ergo_analytics.utilities import digitize_values
 
 
 def compute_motion_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe=None):

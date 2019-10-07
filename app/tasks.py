@@ -16,9 +16,9 @@ __version__ = "Alpha"
 import logging
 import os
 from periodiq import PeriodiqMiddleware, cron
-from ErgoAnalytics import ErgoMetrics
-from ErgoAnalytics import StructuredDataStreaming
-from ErgoAnalytics import ErgoReport
+from ergo_analytics import ErgoMetrics
+from ergo_analytics import StructuredDataStreaming
+from ergo_analytics import ErgoReport
 
 from .extensions import dramatiq
 
