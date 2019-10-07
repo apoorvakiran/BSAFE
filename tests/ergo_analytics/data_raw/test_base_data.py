@@ -15,7 +15,7 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
-from ErgoAnalytics.RawData import BaseData
+from ergo_analytics.data_raw import BaseData
 
 
 def test_base_data():
