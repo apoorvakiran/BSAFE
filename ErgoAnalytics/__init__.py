@@ -12,6 +12,6 @@ from .utilities import *
 from .Data_Transformations import *
 from .Data_Raw import *
 from .Data_Structured import *
-from .dataFilterPipeline import *
-from .ergoMetrics import *
-from .ergoReport import *
+from .data_filter_pipeline import *
+from .ergo_metrics import *
+from .ergo_report import *

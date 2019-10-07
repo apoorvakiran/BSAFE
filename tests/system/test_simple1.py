@@ -43,7 +43,7 @@ raw_data = raw_data_loader.get_data(path=basepath_raw_data,
                                     data_format_code=data_format_code)
 
 # now pass the raw data through our data filter pipeline:
-pipeline = DataFilterPipeline()
+pipeline = DataFilterPipeline(is_streaming=False)
 structured_data = pipeline.run(raw_data=raw_data)
 
 metrics = ErgoMetrics(structured_data=structured_data)

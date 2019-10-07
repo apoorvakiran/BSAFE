@@ -12,7 +12,7 @@ __version__ = "Alpha"
 
 from pandas import DataFrame
 from . import BaseTransformation
-from common import DATE
+from constants import DATE
 
 
 class FixDateOscillations(BaseTransformation):

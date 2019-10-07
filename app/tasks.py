@@ -1,3 +1,18 @@
+# -*- coding: utf-8 -*-
+"""
+This is a simple system (end-to-end) going from raw data all the way
+through reporting.
+
+This code also serves as a "get started" for newcomers to BSAFE.
+
+@ author James Russo, Jesper Kristensen, Jacob Tyrrell
+Copyright Iterate Labs Inc. 2018-
+"""
+
+__author__ = "James Russo, Jesper Kristensen, Jacob Tyrrell"
+__copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
+__version__ = "Alpha"
+
 import logging
 import os
 from periodiq import PeriodiqMiddleware, cron
@@ -18,6 +33,15 @@ def safety_score_analysis(mac_address, from_date, till_date):
     logger.info(f"Getting safety score for {mac_address}")
     index = os.getenv('ELASTIC_SEARCH_INDEX', 'iterate-labs-local-poc')
     host = os.getenv('ELASTIC_SEARCH_HOST')
+
+
+    # TODO(Jesper): Do the loading from ES in Raw Data format,
+    #  then push through pipeline of transformations,
+    #  then construct structured data!
+    #  So looks like we have a single structured data object (no streaming)
+    #  but that we have a raw data loader supporting ES! Take code from
+    #  below object of course.
+
     es_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
                                            {"mac_address": mac_address,
