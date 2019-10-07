@@ -30,15 +30,10 @@ def compute_velocity_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     This measures the width of the distribution of instantenous velocities.
     """
 
-    try:
-        gradient_yaw = gradient(delta_yaw)
-        gradient_pitch = gradient(delta_pitch)
-        gradient_roll = gradient(delta_roll)
-    except Exception:
+    gradient_yaw = gradient(delta_yaw)
+    gradient_pitch = gradient(delta_pitch)
+    gradient_roll = gradient(delta_roll)
 
-        import pdb
-        pdb.set_trace()
-    
     THRESHOLD_GRAD = 100
     #
     std_yaw = gradient_yaw[absolute(gradient_yaw) < THRESHOLD_GRAD].std()

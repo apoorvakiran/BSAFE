@@ -7,7 +7,7 @@ standard deviation.
 Copyright 2018- Iterate Labs, Inc.
 """
 
-from common import SAMPLING_RATE
+from constants import SAMPLING_RATE
 from . import BaseTransformation
 import logging
 

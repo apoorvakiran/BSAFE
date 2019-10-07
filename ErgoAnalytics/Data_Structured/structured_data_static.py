@@ -12,6 +12,9 @@ __version__ = "Alpha"
 
 import pandas as pd
 from . import BaseStructuredData
+import logging
+
+logger = logging.getLogger()
 
 
 class StructuredDataStatic(BaseStructuredData):
@@ -81,7 +84,9 @@ class StructuredDataStatic(BaseStructuredData):
         elif type == 'roll':
             data = self.roll(loc=loc)
         else:
-            raise Exception("This is an unknown data type '{}'!".format(type))
+            msg = "This is an unknown data type '{}'!".format(type)
+            logger.exception(msg)
+            raise Exception(msg)
 
         return data
 
@@ -103,7 +108,7 @@ class StructuredDataStatic(BaseStructuredData):
         """
         return self._pitch[loc]
 
-    def roll(self, loc='hand', delta=False):
+    def roll(self, loc='delta'):
         """
         Returns the roll data.
 

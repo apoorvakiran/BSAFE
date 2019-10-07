@@ -17,7 +17,7 @@ import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
-from common import *
+from constants import *
 from . import BaseData
 
 logger = logging.getLogger()

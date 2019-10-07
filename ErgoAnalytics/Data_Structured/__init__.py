@@ -10,5 +10,5 @@ Copyright 2018-
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
-from .BaseStructuredData import *
-from .StructuredDataStatic import *
+from .base_structured_data import *
+from .structured_data_static import *

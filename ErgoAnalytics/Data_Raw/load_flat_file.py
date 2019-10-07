@@ -19,7 +19,7 @@ import numpy as np
 import pandas as pd
 from . import BaseData
 from .. import is_numeric
-from common import *
+from constants import *
 import logging
 
 logger = logging.getLogger()
