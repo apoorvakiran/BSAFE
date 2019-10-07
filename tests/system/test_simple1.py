@@ -28,27 +28,28 @@ from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
 
 
-basepath_raw_data = os.path.join(ROOT_DIR,
-                                 "tests/system/Fixtures/demo-data-only-deltas",
-                                 "data_example1.csv")
-data_format_code = '4'  # in which format is the data coming to us?
+def test_simple_system():
+    basepath_raw_data = os.path.join(ROOT_DIR,
+                                     "tests/system/fixtures/demo_data_only_deltas",
+                                     "data_example1.csv")
+    data_format_code = '4'  # in which format is the data coming to us?
 
-assert os.path.isfile(basepath_raw_data)
+    assert os.path.isfile(basepath_raw_data)
 
-put_structured_data_here = os.path.join(ROOT_DIR, "tests", "system")
+    put_structured_data_here = os.path.join(ROOT_DIR, "tests", "system")
 
-raw_data_loader = LoadDataFromLocalDisk()
-raw_data = raw_data_loader.get_data(path=basepath_raw_data,
-                                    destination=put_structured_data_here,
-                                    data_format_code=data_format_code)
+    raw_data_loader = LoadDataFromLocalDisk()
+    raw_data = raw_data_loader.get_data(path=basepath_raw_data,
+                                        destination=put_structured_data_here,
+                                        data_format_code=data_format_code)
 
-# now pass the raw data through our data filter pipeline:
-pipeline = DataFilterPipeline(is_streaming=False)
-structured_data = pipeline.run(raw_data=raw_data)
+    # now pass the raw data through our data filter pipeline:
+    pipeline = DataFilterPipeline(is_streaming=False)
+    structured_data = pipeline.run(raw_data=raw_data)
 
-metrics = ErgoMetrics(structured_data=structured_data)
-metrics.compute()
+    metrics = ErgoMetrics(structured_data=structured_data)
+    metrics.compute()
 
-print(structured_data.name)
-print(metrics.get_score(name='posture'))
-print(metrics.get_score(name='speed'))
+    print(structured_data.name)
+    print(metrics.get_score(name='posture'))
+    print(metrics.get_score(name='speed'))
