@@ -11,4 +11,4 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 from .base_structured_data import *
-from .structured_data_static import *
+from .structured_data import *
