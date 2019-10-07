@@ -18,7 +18,7 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
-from ErgoAnalytics.Data_Structured import BaseStructuredData
+from ergo_analytics.data_structured import BaseStructuredData
 
 
 def test_simple():

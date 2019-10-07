@@ -12,7 +12,7 @@ __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
 from . import BaseTransformation
-from ..Data_Structured import StructuredDataStatic
+from ..data_structured import StructuredDataStatic
 import logging
 
 logger = logging.getLogger()

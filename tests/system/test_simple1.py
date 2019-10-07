@@ -23,9 +23,9 @@ while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
 sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 # ==
 
-from ErgoAnalytics.Data_Raw import LoadDataFromLocalDisk
-from ErgoAnalytics import DataFilterPipeline
-from ErgoAnalytics import ErgoMetrics
+from ergo_analytics.data_raw import LoadDataFromLocalDisk
+from ergo_analytics import DataFilterPipeline
+from ergo_analytics import ErgoMetrics
 
 
 basepath_raw_data = os.path.join(ROOT_DIR,

@@ -19,7 +19,7 @@ __all__ = [""]
 __author__ = "Jacob Tyrrell & Jesper Kristensen"
 __version__ = "Alpha"
 
-from ErgoAnalytics import velcro, motionScore
+from ergo_analytics import velcro, motionScore
 
 
 def eventFinder(eventual, angle):
