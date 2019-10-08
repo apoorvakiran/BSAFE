@@ -53,7 +53,7 @@ class LoadElasticSearch(BaseData):
         :param mac_address:
         :param start_time:
         :param end_time:
-        :param host: 
+        :param host:
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
         :return:

@@ -33,8 +33,8 @@ def test_retrieve_elastic_search():
     es_safe_data = StructuredDataStreaming(streaming_source='elastic_search',
                                            streaming_settings=
                                            {"mac_addresses": some_test_address,
-                                            "from_date": '06/28/2019',
-                                            "till_date": '07/08/2019',
+                                            "start_time": '06/28/2019',
+                                            "end_time": '07/08/2019',
                                             "hosts": None, "index": index,
                                             "data_format_code": "3"})
     # *note* the "streaming settings". This argument will be passed on to

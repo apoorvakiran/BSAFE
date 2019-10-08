@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Handles reporting of Ergonomic Metrics and results to customers.
-
 @ author Jacob Tyrrell and Jesper Kristensen
 Copyright Iterate Labs 2018-
 """
@@ -28,7 +27,6 @@ class ErgoReport (object):
         """
         Create an ErgoReport object with ability to report out the ergo
         metrics and other information.
-
         :param report_out_via:
         :param ergo_metrics:
         :param authorization:
@@ -44,7 +42,6 @@ class ErgoReport (object):
         """
         Stores information about any results from reporting out.
         For example, if sending to an HTTP endpoint: what is the return code?
-
         :return:
         """
         return self._response
@@ -52,7 +49,6 @@ class ErgoReport (object):
     def to_http(self, endpoint=None, authorization=None):
         """
         Reports out to an HTTP endpoint.
-
         :param endpoint:
         :param authorization:
         :return:
@@ -69,7 +65,6 @@ class ErgoReport (object):
     def _construct_payload(self):
         """
         Constructs the payload to send to the HTTP endpoint.
-
         :return:
         """
 

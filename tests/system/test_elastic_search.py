@@ -43,7 +43,7 @@ gem install foreman
 foreman s
 
 5. issue curl request to get safety score and post it
-curl "localhost:5000/api/safety_score?mac=F5:12:3D:BD:DE:44&from_date=2019-03-01T00:00:00-05:00&till_date=2019-04-01T00:00:00-05:00"
+curl "localhost:5000/api/safety_score?mac=F5:12:3D:BD:DE:44&start_time=2019-03-01T00:00:00-05:00&end_time=2019-04-01T00:00:00-05:00"
 
 @ author Iterate Labs, Inc.
 Copyright 2018-
