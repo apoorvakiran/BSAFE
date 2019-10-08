@@ -118,7 +118,7 @@ class DataFilterPipeline(object):
 
         logger.debug("Raw data successfully converted to structured data!")
 
-        if len(structured_data) == 1:
-            logger.warning("You only have 1 data point to analyze!")
+        if structured_data.number_of_points <= 1:
+            logger.warning("You only have <=1 data point to analyze!")
 
         return structured_data

@@ -30,6 +30,7 @@ class StructuredData(BaseStructuredData):
     _delta_yaw = None
     _delta_pitch = None
     _delta_roll = None
+    _number_of_points = None
 
     def __init__(self, data=None, meta_data=None, data_format_code=None):
         """
@@ -56,6 +57,12 @@ class StructuredData(BaseStructuredData):
             self._roll['delta'] = data['DeltaRoll']
 
         self._meta_data = meta_data
+
+        self._number_of_points = len(data)
+
+    @property
+    def number_of_points(self):
+        return self._number_of_points
 
     @property
     def meta_data(self):

@@ -44,7 +44,7 @@ def test_simple_system():
                                         data_format_code=data_format_code)
 
     # now pass the raw data through our data filter pipeline:
-    pipeline = DataFilterPipeline(is_streaming=False)
+    pipeline = DataFilterPipeline()
     structured_data = pipeline.run(raw_data=raw_data)
 
     metrics = ErgoMetrics(structured_data=structured_data)
