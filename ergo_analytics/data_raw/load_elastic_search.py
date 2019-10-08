@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-This file handles data loading from Elastic Search database.
+This file handles data loading from an Elastic Search database.
+
 @ author Jesper Kristensen
-Copyright 2018-
+Copyright 2018- Iterate Labs, Inc.
 """
 
 __all__ = ["LoadElasticSearch"]
@@ -69,7 +70,8 @@ class LoadElasticSearch(BaseData):
                            use_ssl=False,
                            verify_certs=False)
         else:
-            # used in staging and production on AWS to connect to ES cluster on AWS
+            # used in staging and production on AWS to connect to ES
+            # cluster on AWS:
             awsauth = AWS4Auth(os.getenv('AWS_ACCESS_KEY'),
                                os.getenv('AWS_SECRET_KEY'),
                                os.getenv('AWS_REGION'), 'es')
@@ -92,7 +94,7 @@ class LoadElasticSearch(BaseData):
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
             msg = "\nHave you started the Elasticnet server?\n"
-            logger.error(msg)
+            logger.exception(msg)
             raise Exception(msg)
 
         device_data = []
@@ -144,5 +146,8 @@ class LoadElasticSearch(BaseData):
                 all_data.append(data)
 
             all_data = pd.concat(all_data)
+
+            all_data = self._cast_to_correct_types(all_data=all_data,
+                                            data_format_code=data_format_code)
 
             return all_data

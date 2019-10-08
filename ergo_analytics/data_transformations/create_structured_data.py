@@ -12,7 +12,7 @@ __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
 from . import BaseTransformation
-from ..data_structured import StructuredDataStatic
+from ..data_structured import StructuredData
 import logging
 
 logger = logging.getLogger()
@@ -43,5 +43,4 @@ class CreateStructuredData(BaseTransformation):
         :param data_format_code: which format is the data in?
         """
 
-        return StructuredDataStatic(data=data,
-                                    data_format_code=data_format_code)
+        return StructuredData(data=data, data_format_code=data_format_code)

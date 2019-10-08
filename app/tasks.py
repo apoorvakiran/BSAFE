@@ -17,7 +17,8 @@ import logging
 import os
 from periodiq import PeriodiqMiddleware, cron
 from ergo_analytics import ErgoMetrics
-from ergo_analytics import StructuredDataStreaming
+from ergo_analytics import LoadElasticSearch
+from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoReport
 
 from .extensions import dramatiq
@@ -34,25 +35,22 @@ def safety_score_analysis(mac_address, from_date, till_date):
     index = os.getenv('ELASTIC_SEARCH_INDEX', 'iterate-labs-local-poc')
     host = os.getenv('ELASTIC_SEARCH_HOST')
 
+    data_loader = LoadElasticSearch()
+    raw_data = data_loader.retrieve_data(mac_address=mac_address,
+                                         from_date=from_date,
+                                         till_date=till_date,
+                                         host=host, index=index,
+                                         data_format_code=4)
 
-    # TODO(Jesper): Do the loading from ES in Raw Data format,
-    #  then push through pipeline of transformations,
-    #  then construct structured data!
-    #  So looks like we have a single structured data object (no streaming)
-    #  but that we have a raw data loader supporting ES! Take code from
-    #  below object of course.
+    logger.info("Found {} elements in the ES database.".format(len(raw_data)))
 
-    es_data = StructuredDataStreaming(streaming_source='elastic_search',
-                                           streaming_settings=
-                                           {"mac_address": mac_address,
-                                            "from_date": from_date,
-                                            "till_date": till_date,
-                                            "host": host, "index": index,
-                                            "data_format_code": "2"})
+    transformer = DataFilterPipeline(data_format_code='4')
+    structured_data = transformer.run(raw_data=raw_data)
+
     logger.info(f"Retrieved all data for {mac_address}")
-    if es_data.time is not None:
+    if structured_data.number_of_points > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
-        metrics = ErgoMetrics(es_data)
+        metrics = ErgoMetrics(structured_data=structured_data)
         logger.info(f"Metrics generated for {mac_address}")
         report = ErgoReport(
             'http',

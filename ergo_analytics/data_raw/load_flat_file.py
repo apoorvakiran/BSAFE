@@ -118,18 +118,8 @@ class LoadDataFromLocalDisk(BaseData):
             data = pd.read_csv(path,
                         skiprows=start_index).iloc[:end_index - start_index]
 
-        # now convert data based on the types we know:
-        data_column_types = DATA_FORMAT_CODES[data_format_code]['TYPES']
-
-        # data_column_types['Date-Time'] = pd.datetime
-        # for cn, ct in zip(data_column_names, data_column_types):
-        #     data[cn] = data[cn].astype(ct)
-
-        data = data.astype(dict(zip(data_column_names, data_column_types)))
-
-        # make sure index is ints (can convert to "float64" if there are
-        # some NaNs here and there):
-        data.index = list(map(int, data.index))
+        data = self._cast_to_correct_types(all_data=data,
+                                           data_format_code=data_format_code)
 
         return data
 

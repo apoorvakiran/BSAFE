@@ -109,7 +109,7 @@ class ErgoMetrics(object):
         """
         return max(speed)
 
-    def get_score(self, name='posture'):
+    def get_score(self, name='total'):
         """
         Returns the score with "name".
         """

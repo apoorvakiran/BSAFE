@@ -30,6 +30,10 @@ def compute_velocity_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     This measures the width of the distribution of instantenous velocities.
     """
 
+    if len(delta_yaw) < 10:
+        # do not compute gradients (not enough data)
+        return 0, 0, 0
+
     gradient_yaw = gradient(delta_yaw)
     gradient_pitch = gradient(delta_pitch)
     gradient_roll = gradient(delta_roll)

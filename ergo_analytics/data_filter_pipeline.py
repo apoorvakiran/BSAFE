@@ -33,9 +33,8 @@ class DataFilterPipeline(object):
     """
 
     _data_format_code = None
-    _is_streaming = None
 
-    def __init__(self, data_format_code='4', is_streaming=False):
+    def __init__(self, data_format_code='4'):
         """
         Constructs an object from which metrics can be computed
         based off of a "Structured Data" object.
@@ -45,7 +44,6 @@ class DataFilterPipeline(object):
         """
 
         self._data_format_code = data_format_code
-        self._is_streaming = is_streaming
 
     def run(self, raw_data=None):
         """
@@ -102,13 +100,25 @@ class DataFilterPipeline(object):
             data_transformed
 
         # sort, drop duplicates, and reset index:
+        logger.debug("Dropping duplicate data "
+                     "points - currently we have "
+                     "{} pts.".format(len(data_post_pipeline)))
+
         data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
                                        inplace=True)
         data_post_pipeline.drop_duplicates(subset=['Date-Time'], inplace=True)
         data_post_pipeline.reset_index(drop=True, inplace=True)
 
+        logger.debug("After dropping duplicates we have "
+                     "{} pts.".format(len(data_post_pipeline)))
+
         t_str_data = CreateStructuredData(columns='all')
         structured_data = t_str_data.apply(data=data_post_pipeline,
                                         data_format_code=self._data_format_code)
+
+        logger.debug("Raw data successfully converted to structured data!")
+
+        if len(structured_data) == 1:
+            logger.warning("You only have 1 data point to analyze!")
 
         return structured_data

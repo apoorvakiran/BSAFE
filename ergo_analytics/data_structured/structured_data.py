@@ -6,7 +6,7 @@ Holds a Structured Data object and everything related to it.
 Copyright 2018
 """
 
-__all__ = ["StructuredDataStatic"]
+__all__ = ["StructuredData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger()
 
 
-class StructuredDataStatic(BaseStructuredData):
+class StructuredData(BaseStructuredData):
     """
     This is a Structured Data class which is "static" meaning: It analyzes and
     loads data that is meant to represent a full set of cycles from start to
