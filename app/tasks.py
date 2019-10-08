@@ -15,6 +15,8 @@ __version__ = "Alpha"
 
 import logging
 import os
+import datetime
+import requests
 from periodiq import PeriodiqMiddleware, cron
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import LoadElasticSearch
@@ -25,9 +27,30 @@ from .extensions import dramatiq
 
 logger = logging.getLogger()
 
-@dramatiq.actor(periodic=cron('* * * * *'))
-def heartbeat():
-    logger.info("Pulse")
+@dramatiq.actor(periodic=cron('*/15 * * * *'))
+def automated_analysis():
+    logger.info("Running automated analysis")
+    end_time = datetime.datetime.utcnow().isoformat()
+    start_time = end_time - datetime.timedelta(minutes=15)
+    headers = {'Authorization': f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"}
+    try:
+        response = requests.get(
+            f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/wearables?automated=true",
+            headers=headers
+        )
+        response.raise_for_status()
+        wearables = response.json()['data']
+        logger.info(f"Running automated analysis for {len(wearables)}")
+        for wearable in wearables:
+            mac_address = wearable['attributes']['mac']
+            logger.info(f"Running analysis for {mac_address}")
+            safety_score_analysis.send(mac_address, start_time, end_time)
+        logger.info(f"Enqueued all analysis")
+    except HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err}", exc_info=True)
+    except Exception as err:
+        logger.error(f"Failure to send request {err}", exc_info=True)
+
 
 @dramatiq.actor
 def safety_score_analysis(mac_address, start_time, end_time):
