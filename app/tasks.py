@@ -65,8 +65,10 @@ def safety_score_analysis(mac_address, start_time, end_time):
                                          end_time=end_time,
                                          host=host, index=index,
                                          data_format_code=4)
-
-    logger.info("Found {} elements in the ES database.".format(len(raw_data)))
+    if raw_data is None:
+        logger.info(f"Found no elements in the ES database for {mac_address}.")
+        return
+    logger.info(f"Found {len(raw_data)} elements in the ES database for {mac_address}.")
 
     transformer = DataFilterPipeline(data_format_code='4')
     structured_data = transformer.run(raw_data=raw_data)
@@ -75,6 +77,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
     if structured_data.number_of_points > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
         metrics = ErgoMetrics(structured_data=structured_data)
+        metrics.compute()
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:
