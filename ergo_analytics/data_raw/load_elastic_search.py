@@ -40,7 +40,7 @@ class LoadElasticSearch(BaseData):
 
         logger.info("Data loading with Elastic Search object created!")
 
-    def retrieve_data(self, mac_address=None, from_date=None, till_date=None,
+    def retrieve_data(self, mac_address=None, start_time=None, end_time=None,
                       host=None, index=None, data_format_code='3'):
         """
         Retrieves the data from the Elastic Search database specified
@@ -51,17 +51,17 @@ class LoadElasticSearch(BaseData):
         "https://marcobonzanini.com/2015/02/02/
         how-to-query-elasticsearch-with-python/"
         :param mac_address:
-        :param from_date:
-        :param till_date:
+        :param start_time:
+        :param end_time:
         :param host: 
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
         :return:
         """
 
-        if not from_date or not till_date:
-            raise Exception("Please provide both the from_date and the "
-                            "till_date parameters!")
+        if not start_time or not end_time:
+            raise Exception("Please provide both the start_time and the "
+                            "end_time parameters!")
 
         if host is None:
             # used locally
@@ -89,8 +89,8 @@ class LoadElasticSearch(BaseData):
         try:
             search = Search(using=es, index=index).query("match",
                             device=mac_address).query("range",
-                                        **{"timestamp": {"gte": from_date,
-                                                         "lte": till_date}})
+                                        **{"timestamp": {"gte": start_time,
+                                                         "lte": end_time}})
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
             msg = "\nHave you started the Elasticnet server?\n"

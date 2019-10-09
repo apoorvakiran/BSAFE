@@ -6,7 +6,7 @@ Computes the posture score among the Iterate Labs Ergo Metrics.
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["compute_velocity_score"]
+__all__ = ["compute_speed_score"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger()
 
 
-def compute_velocity_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
+def compute_speed_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     """
     Computes the velocity score.
 
@@ -43,6 +43,11 @@ def compute_velocity_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     std_yaw = gradient_yaw[absolute(gradient_yaw) < THRESHOLD_GRAD].std()
     std_pitch = gradient_pitch[absolute(gradient_pitch) < THRESHOLD_GRAD].std()
     std_roll = gradient_roll[absolute(gradient_roll) < THRESHOLD_GRAD].std()
-    
-    # TODO(Jesper): Can also use np.percentile here - curious what would be the diff
-    return std_pitch * 7, std_yaw * 7, std_roll * 7
+
+    # summarize speed scores
+    speed_scores = dict(yaw_raw=std_yaw, pitch_raw=std_pitch, roll_raw=std_roll)
+    speed_scores['yaw'] = speed_scores['yaw_raw'] * 7
+    speed_scores['pitch'] = speed_scores['pitch_raw'] * 7
+    speed_scores['roll'] = speed_scores['roll_raw'] * 7
+
+    return speed_scores

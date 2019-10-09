@@ -13,8 +13,8 @@ __version__ = "Alpha"
 import numpy as np
 import logging
 from .metrics import compute_posture_score
-from .metrics import compute_motion_score
-from .metrics import compute_velocity_score
+from .metrics import compute_strain_score
+from .metrics import compute_speed_score
 
 logger = logging.getLogger()
 
@@ -52,6 +52,10 @@ class ErgoMetrics(object):
 
         self._scores = dict()
 
+    @property
+    def data(self):
+        return self._data
+
     def compute(self):
         """
         Compute the ergo metric scores - the ergoScores if you will.
@@ -59,33 +63,35 @@ class ErgoMetrics(object):
         # compute the scores
         logger.debug("Computing ErgoMetric scores...")
 
-        motion_score = compute_motion_score(delta_pitch=self._delta_pitch,
-                                            delta_yaw=self._delta_yaw,
-                                            delta_roll=self._delta_roll)
+        strain_scores_tmp = compute_strain_score(delta_pitch=self._delta_pitch,
+                                                 delta_yaw=self._delta_yaw,
+                                                 delta_roll=self._delta_roll)
 
-        speed_score_tmp = compute_velocity_score(delta_pitch=self._delta_pitch,
-                                             delta_yaw=self._delta_yaw,
-                                             delta_roll=self._delta_roll)
+        speed_scores_tmp = compute_speed_score(delta_pitch=self._delta_pitch,
+                                               delta_yaw=self._delta_yaw,
+                                               delta_roll=self._delta_roll)
 
-        posture_score = compute_posture_score(delta_pitch=self._delta_pitch,
-                                      delta_yaw=self._delta_yaw,
-                                      delta_roll=self._delta_roll, safe=30)
-        
-        # re-define some new variable names:
-        raw_strain = motion_score
-        raw_speed = speed_score_tmp
+        posture_scores_tmp = compute_posture_score(
+            delta_pitch=self._delta_pitch, delta_yaw=self._delta_yaw,
+            delta_roll=self._delta_roll, safe_threshold=30)
 
-        # normalize the speed:
-        normalized_speed = self._normalize_speed(speed=raw_speed)
-        speed_score = self._compute_speed_score(speed=normalized_speed)
+        # finalize speed scores:
+        speed_scores = speed_scores_tmp
+        # normalize the speed scores:
+        self._normalize_speed(speed_scores=speed_scores)
+        total_speed_score = self._compute_total_speed_score(
+            speed_scores=speed_scores)
+        speed_scores['total'] = total_speed_score
+        self._scores['speed'] = speed_scores
 
-        scores = {'speed': speed_score, 'strain': raw_strain,
-                  'posture': posture_score}
-        total_score = self._compute_total_score(scores=scores)
-        
-        scores['total'] = total_score
+        # finalize posture scores:
+        self._scores['posture'] = posture_scores_tmp
 
-        self._scores.update(**scores)
+        # finalize strain scores:
+        self._scores['strain'] = strain_scores_tmp
+
+        total_score = self._compute_total_score(scores=self._scores)
+        self._scores['total'] = total_score
 
     @staticmethod
     def _compute_total_score(scores=None):
@@ -93,31 +99,48 @@ class ErgoMetrics(object):
         Computes the total score from the incoming scores.
         """
         # combine the speed score with the total scores from strain and posture:
-        return (scores['speed'] + scores['strain'][3] + scores['posture'][3]) / 2
+        return (scores['speed']['total'] + scores['strain']['total'] +
+                scores['posture']['unsafe']) / 2
 
     @staticmethod
-    def _normalize_speed(speed=None):
+    def _normalize_speed(speed_scores=None):
         """
         Normalizes the speed.
         """
-        return np.asarray(speed) / 21
+        for key in ['yaw', 'pitch', 'roll']:
+            speed_scores[key + '_normalized'] = \
+                np.asarray(speed_scores[key]) / 21
 
     @staticmethod
-    def _compute_speed_score(speed=None):
+    def _compute_total_speed_score(speed_scores=None):
         """
         Compute the speed score given potentially normalized speeds.
         """
-        return max(speed)
+        collected = []
+        for key in speed_scores:
+            if key.endswith("_normalized"):
+                collected.append(speed_scores[key])
+        return np.max(collected)
 
     def get_score(self, name='total'):
         """
         Returns the score with "name".
         """
         if len(self._scores) == 0:
-            raise Exception("Please compute the Ergo Metrics scores first!\n"
-                            "Do this by calling the .compute() method.")
-        if name not in self._scores:
-            raise Exception("Was unable to find the score with name '{}'\n \
-                valid options are: {}".format(name, list(self._scores.keys())))
-        
-        return self._scores[name]
+            logger.exception("Please compute the Ergo Metrics scores first!\n"
+                             "Do this by calling the .compute() method.")
+
+        scores = self._scores.copy()
+
+        name = name.split('/')
+        for n in name:
+            if n not in scores:
+                logger.exception(f"Was unable to find the score "
+                                 f"with name '{n}'")
+            try:
+                scores = scores[n]
+            except:
+                import pdb
+                pdb.set_trace()
+
+        return scores
