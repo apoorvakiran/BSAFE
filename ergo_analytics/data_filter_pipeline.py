@@ -53,6 +53,9 @@ class DataFilterPipeline(object):
         :return:
         """
 
+        # make sure the raw data points have unique indices:
+        raw_data.reset_index(drop=True, inplace=True)
+
         initial_data = raw_data
 
         # first - which columns to apply the filter to?

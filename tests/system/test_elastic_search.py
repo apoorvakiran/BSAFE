@@ -91,6 +91,7 @@ raw_data = data_loader.retrieve_data(mac_address=test_address,
 
 logger.info("Found {} elements in the ES database.".format(len(raw_data)))
 
+
 transformer = DataFilterPipeline(data_format_code='4')
 structured_data = transformer.run(raw_data=raw_data)
 
