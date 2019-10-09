@@ -30,8 +30,9 @@ logger = logging.getLogger()
 @dramatiq.actor(periodic=cron('*/15 * * * *'))
 def automated_analysis():
     logger.info("Running automated analysis")
+    current_time = datetime.datetime.utcnow()
     end_time = datetime.datetime.utcnow().isoformat()
-    start_time = end_time - datetime.timedelta(minutes=15)
+    start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
     headers = {'Authorization': f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"}
     try:
         response = requests.get(
