@@ -12,5 +12,5 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 from .posture import *
-from .motion import *
-from .velocity import *
+from .strain import *
+from .speed import *

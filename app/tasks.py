@@ -30,15 +30,15 @@ def heartbeat():
     logger.info("Pulse")
 
 @dramatiq.actor
-def safety_score_analysis(mac_address, from_date, till_date):
+def safety_score_analysis(mac_address, start_time, end_time):
     logger.info(f"Getting safety score for {mac_address}")
     index = os.getenv('ELASTIC_SEARCH_INDEX', 'iterate-labs-local-poc')
     host = os.getenv('ELASTIC_SEARCH_HOST')
 
     data_loader = LoadElasticSearch()
     raw_data = data_loader.retrieve_data(mac_address=mac_address,
-                                         from_date=from_date,
-                                         till_date=till_date,
+                                         start_time=start_time,
+                                         end_time=end_time,
                                          host=host, index=index,
                                          data_format_code=4)
 
@@ -52,14 +52,17 @@ def safety_score_analysis(mac_address, from_date, till_date):
         logger.info(f"Has data to run analysis on for {mac_address}")
         metrics = ErgoMetrics(structured_data=structured_data)
         logger.info(f"Metrics generated for {mac_address}")
-        report = ErgoReport(
-            'http',
-            metrics,
-            f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}",
-            f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/safety_scores",
-            mac_address
-        )
-        logger.info(f"{report._sent.status_code} {report._sent.text}")
+        # the report is set up in the context of a device and its
+        # corresponding ergoMetrics data:
+        report = ErgoReport(ergo_metrics=metrics, mac_address=mac_address)
+        # now we can report to any format we want - here HTTP:
+        auth = f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"
+        report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
+                                f"safety_scores",
+                       authorization=auth)
+
+        logger.info(f"{report.response.status_code} "
+                    f"{report.response.text}")
         logger.info(f"Created safety_score for {mac_address}")
     else:
         logger.info(f"No values to analyze for {mac_address}")

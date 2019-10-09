@@ -65,6 +65,7 @@ sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
+from ergo_analytics import ErgoReport
 
 import logging
 logger = logging.getLogger()
@@ -84,13 +85,12 @@ index = "iterate-labs-local-poc"
 
 data_loader = LoadElasticSearch()
 raw_data = data_loader.retrieve_data(mac_address=test_address,
-                                     from_date='2019-03-18T00:00:00-05:00',
-                                     till_date='2019-03-21T00:00:00-05:00',
+                                     start_time='2019-03-18T00:00:00-05:00',
+                                     end_time='2019-03-21T00:00:00-05:00',
                                      host=None, index=index,
                                      data_format_code=4)
 
 logger.info("Found {} elements in the ES database.".format(len(raw_data)))
-
 
 transformer = DataFilterPipeline(data_format_code='4')
 structured_data = transformer.run(raw_data=raw_data)
@@ -100,3 +100,5 @@ mets.compute()
 total_score = mets.get_score(name='total')
 
 print("Total score = {}".format(total_score))
+
+report = ErgoReport(ergo_metrics=mets, mac_address=test_address)

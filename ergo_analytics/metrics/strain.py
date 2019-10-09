@@ -6,7 +6,7 @@ Computes the motion score among the Iterate Labs Ergo Metrics.
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["compute_motion_score"]
+__all__ = ["compute_strain_score"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -14,7 +14,8 @@ import numpy as np
 from ergo_analytics.utilities import digitize_values
 
 
-def compute_motion_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe=None):
+def compute_strain_score(delta_pitch=None, delta_yaw=None,
+                         delta_roll=None):
     """
     Pass lists of Yaw, Pitch, Roll, returns yaw, pitch, roll, and
     total motion scores.
@@ -33,18 +34,21 @@ def compute_motion_score(delta_pitch=None, delta_yaw=None, delta_roll=None, safe
     raw_score_yaw = custom_weighted_sum(yaw_bins)
     raw_score_pitch = custom_weighted_sum(pitch_bins)
     raw_score_roll = custom_weighted_sum(roll_bins)
-    
+
+    # summarize strain scores
+    strain_scores = dict(yaw_raw=raw_score_yaw,
+                          pitch_raw=raw_score_pitch,
+                          roll_raw=raw_score_roll)
+
     adjuster = 1200 / len(bins_degrees)
 
-    score_yaw = raw_score_yaw * adjuster
-    score_pitch = raw_score_pitch * adjuster
-    score_roll = raw_score_roll * adjuster
+    strain_scores['yaw'] = strain_scores['yaw_raw'] * adjuster
+    strain_scores['pitch'] = strain_scores['pitch_raw'] * adjuster
+    strain_scores['roll'] = strain_scores['roll_raw'] * adjuster
+    strain_scores['total'] = (strain_scores['yaw'] + strain_scores['pitch']
+                              + strain_scores['roll']) / 2214
 
-    # for the total score:
-    score_total = score_yaw + score_pitch + score_roll
-    score_total = score_total / 2214
-
-    return score_pitch, score_yaw, score_roll, score_total
+    return strain_scores
 
 
 def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
@@ -61,13 +65,16 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     weighted_total = 0
     for bin_ix in range(len(list_of_bins)):
         # written in a general way to support custom weighing functions:
-        counts_in_this_bin = list_of_bins[bin_ix]  # pick this bin out of the list
+        # pick this bin out of the list:
+        counts_in_this_bin = list_of_bins[bin_ix]
 
         if weighing_method == 'linear':
-            weight = bin_ix  # set the weight to the bin index - notice it can be 0
+            weight = bin_ix  # set the weight to the bin index
+            # ^^ notice it can be 0
             sum_contribution = counts_in_this_bin * weight
         else:
-            raise Exception("Weighing function '{}' not implemented!".format(weighing_method))
+            raise Exception(f"Weighing function '{weighing_method}' "
+                            f"not implemented!")
         
         weighted_total += sum_contribution
         

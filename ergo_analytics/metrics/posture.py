@@ -15,7 +15,7 @@ from numpy import absolute
 
 
 def compute_posture_score(delta_pitch=None, delta_yaw=None,
-                          delta_roll=None, safe=None):
+                          delta_roll=None, safe_threshold=None):
     """
     Takes values of yaw, pitch, and roll, and calculates posture score
     as percent of time spent outside of a "safe" posture degree value.
@@ -23,21 +23,25 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
     
     # Whenever any of the delta angles extend beyond the safe region,
     # count that as an unsafe event:
-    num_unsafe = len(np.where((absolute(delta_pitch) > safe) | 
-                              (absolute(delta_yaw) > safe) | 
-                              (absolute(delta_roll) > safe))[0])
+    num_unsafe = len(np.where((absolute(delta_pitch) > safe_threshold) | 
+                              (absolute(delta_yaw) > safe_threshold) | 
+                              (absolute(delta_roll) > safe_threshold))[0])
     
-    num_yaw = len(np.where(absolute(delta_yaw) > safe)[0])
-    num_pitch = len(np.where(absolute(delta_pitch) > safe)[0])
-    num_roll = len(np.where(absolute(delta_roll) > safe)[0])
+    num_yaw = len(np.where(absolute(delta_yaw) > safe_threshold)[0])
+    num_pitch = len(np.where(absolute(delta_pitch) > safe_threshold)[0])
+    num_roll = len(np.where(absolute(delta_roll) > safe_threshold)[0])
 
     num_total = len(delta_yaw)
-    
-    # adjustments:
-    yaw_posture_score = 7 * num_yaw / num_total
-    pitch_posture_score = 7 * num_pitch / num_total
-    roll_posture_score = 7 * num_roll / num_total
-    unsafe_score = 7 * num_unsafe / num_total
 
-    return pitch_posture_score, yaw_posture_score, \
-           roll_posture_score, unsafe_score
+    # summarize posture scores
+    posture_scores = dict(yaw_raw=num_yaw / num_total,
+                          pitch_raw=num_pitch / num_total,
+                          roll_raw=num_roll / num_total,
+                          unsafe_raw=num_unsafe / num_total)
+
+    posture_scores['yaw'] = posture_scores['yaw_raw'] * 7
+    posture_scores['pitch'] = posture_scores['pitch_raw'] * 7
+    posture_scores['roll'] = posture_scores['roll_raw'] * 7
+    posture_scores['unsafe'] = posture_scores['unsafe_raw'] * 7
+
+    return posture_scores
