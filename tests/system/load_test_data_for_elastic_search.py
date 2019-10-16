@@ -69,7 +69,7 @@ def loader():
                 id=n,
                 body={"timestamp": date,
                        "device": base_device,
-                       "data": "{}\r\n".format(','.join(map(str, splitup[1:])))
+                       "value": "{}\r\n".format(','.join(map(str, splitup[1:])))
                    }
                 )
         n += 1

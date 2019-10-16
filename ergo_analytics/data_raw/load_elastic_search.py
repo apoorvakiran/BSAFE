@@ -103,10 +103,8 @@ class LoadElasticSearch(BaseData):
             return None
 
         for hit in search.scan():
-
-            # data = hist['data']
-
-            data = hit['data'].split(',')
+            # data is stored in the value key on elasticsearch
+            data = hit['value'].split(',')
             data = data[:3]
             data = ','.join(data)
 
