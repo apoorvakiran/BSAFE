@@ -52,7 +52,7 @@ settings = {
                     "device": {
                         "type": "text"
                     },
-                    "data": {
+                    "value": {
                         "type": "text"
                     },
                     "timestamp": {
@@ -120,7 +120,7 @@ for i in range(1, 10 + 1):  # put 10 entries for now
              id=i,
              body={"timestamp": this_date,
                    "device": this_device_address,
-                   "data": "{},{}\r\n".format(this_date_string,
+                   "value": "{},{}\r\n".format(this_date_string,
                                               ','.join(map(str, these_values)))
                    }
              )
