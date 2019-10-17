@@ -93,7 +93,7 @@ class LoadElasticSearch(BaseData):
                                                          "lte": end_time}})
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
-            msg = "\nHave you started the Elasticnet server?\n"
+            msg = "\nCommon Cause: Have you started the Elasticnet server?\n"
             logger.exception(msg)
             raise Exception(msg)
 
@@ -114,7 +114,7 @@ class LoadElasticSearch(BaseData):
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
-        device_df.columns = ['data', 'device', 'timestamp']
+        device_df.columns = ['value', 'device', 'timestamp']
         logger.info("{} documents found for device.".format(len(device_df),
                                                             mac_address))
         data_all_devices.append(device_df)
@@ -127,25 +127,50 @@ class LoadElasticSearch(BaseData):
             except Exception:
                 raise Exception("Please provide a valid data format code!")
 
-            names = DATA_FORMAT_CODES[data_format_code]['NAMES']
-
             all_data = []
-            data = pd.concat(data_all_devices, axis=0)['data'].values
+            data = pd.concat(data_all_devices, axis=0)['value'].values
             for datum in data:
-                datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
-                datum = np.asarray(datum.split(','))
 
-                date = datum[0]
-                values = datum[1:].astype(float)
+                data = self._load_datum(datum=datum,
+                                        data_format_code=data_format_code)
 
-                data = pd.DataFrame(data=np.append([date], values)).T
-                data.columns = names
+                if data is None:
+                    continue
 
                 all_data.append(data)
 
             all_data = pd.concat(all_data)
 
+            # cast data types once:
             all_data = self._cast_to_correct_types(all_data=all_data,
                                             data_format_code=data_format_code)
 
             return all_data
+
+    @staticmethod
+    def _load_datum(datum=None, data_format_code=None):
+        """
+        Loads a datum sent from the wearable.
+
+        :param datum: The datum to load from the device.
+        :return: date, numeric values, flag_load_ok
+        """
+        names = DATA_FORMAT_CODES[data_format_code]['NAMES']
+        try:
+            datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
+            datum = np.asarray(datum.split(','))
+
+            date = datum[0]
+            values = datum[1:].astype(float)
+
+            data = pd.DataFrame(data=np.append([date], values)).T
+            data.columns = names
+            if not data.shape[1] == len(names):
+                # did not get the data we expected, do this because
+                # the data can be cut off at times
+                raise Exception
+
+        except Exception:
+            return None
+
+        return data
