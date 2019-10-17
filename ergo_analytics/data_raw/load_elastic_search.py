@@ -126,7 +126,6 @@ class LoadElasticSearch(BaseData):
             all_data = []
             data = pd.concat(data_all_devices, axis=0)['value'].values
             for datum in data:
-
                 datapoint = self._load_datum(datum=datum,
                                         data_format_code=data_format_code)
 
@@ -155,12 +154,9 @@ class LoadElasticSearch(BaseData):
         try:
             datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
             datum = np.asarray(datum.split(','))
-
-            date = datum[0]
-            values = datum[1:].astype(float)
-
-            data = pd.DataFrame(data=np.append([date], values)).T
-            data.columns = names
+            data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1,
+                                                                  len(names)),
+                                columns=names)
             if not data.shape[1] == len(names):
                 # did not get the data we expected, do this because
                 # the data can be cut off at times
