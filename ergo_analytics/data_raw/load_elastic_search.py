@@ -105,7 +105,7 @@ class LoadElasticSearch(BaseData):
         for hit in search.scan():
             # data is stored in the value key on elasticsearch
             data = hit['value'].split(',')
-            data = data[:3]
+            data = data[1:4]
             data = ','.join(data)
 
             data = [(hit['timestamp'] + ',' + data),
@@ -131,13 +131,13 @@ class LoadElasticSearch(BaseData):
             data = pd.concat(data_all_devices, axis=0)['value'].values
             for datum in data:
 
-                data = self._load_datum(datum=datum,
+                datapoint = self._load_datum(datum=datum,
                                         data_format_code=data_format_code)
 
-                if data is None:
+                if datapoint is None:
                     continue
 
-                all_data.append(data)
+                all_data.append(datapoint)
 
             all_data = pd.concat(all_data)
 
