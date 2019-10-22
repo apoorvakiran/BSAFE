@@ -29,10 +29,12 @@ from ergo_analytics import ErgoMetrics
 
 
 def test_simple_system():
-    basepath_raw_data = os.path.join(ROOT_DIR,
-                                     "tests/system/fixtures/demo_data_only_deltas",
-                                     "data_example1.csv")
+
     data_format_code = '4'  # in which format is the data coming to us?
+
+    basepath_raw_data = os.path.join(ROOT_DIR, "Demos",
+                                     f"demo-format-{data_format_code}",
+                                     "data.csv")
 
     assert os.path.isfile(basepath_raw_data)
 
