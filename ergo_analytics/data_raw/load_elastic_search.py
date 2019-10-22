@@ -104,11 +104,7 @@ class LoadElasticSearch(BaseData):
 
         for hit in search.scan():
             # data is stored in the value key on elasticsearch
-            data = hit['value'].split(',')
-            data = data[1:4]
-            data = ','.join(data)
-
-            data = [(hit['timestamp'] + ',' + data),
+            data = [f"{hit['timestamp']},{hit['value']}",
                     hit['device'], hit['timestamp']]
 
             device_data.append(data)
