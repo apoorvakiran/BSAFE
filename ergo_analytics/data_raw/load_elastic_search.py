@@ -109,7 +109,8 @@ class LoadElasticSearch(BaseData):
             # will always be in this format (example):
             # {timestamp: 'data', device: 'mac',
             # values: 'yaw1,pitch1,roll1,yaw2,pitch2,roll2}
-            data = [(hit['timestamp'] + ',' + hit['value']),
+            # BSAFE loads the data as "time + values" in _load_datum(...):
+            data = [f"{hit['timestamp']}, {hit['value']}",
                     hit['device'], hit['timestamp']]
             device_data.append(data)
 
@@ -158,15 +159,10 @@ class LoadElasticSearch(BaseData):
         names = DATA_FORMAT_CODES[data_format_code]['NAMES']
         try:
             datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
-            datum = np.asarray(datum.split(','))
-
+            datum = datum.split(',')
             data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1,
                                                                   len(names)),
                                 columns=names)
-            if not data.shape[1] == len(names):
-                # did not get the data we expected, do this because
-                # the data can be cut off at times
-                raise Exception
 
         except Exception:
             return None
