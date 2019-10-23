@@ -53,7 +53,7 @@ class LoadElasticSearch(BaseData):
         :param mac_address:
         :param start_time:
         :param end_time:
-        :param host: 
+        :param host:
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
         :return:
@@ -104,17 +104,13 @@ class LoadElasticSearch(BaseData):
 
         for hit in search.scan():
 
-            data = hit['data'].split(',')
-            data = data[:3]
-            data = ','.join(data)
-
-            data = [(hit['timestamp'] + ',' + data),
+            data = [(hit['timestamp'] + ',' + hit['data']),
                     hit['device'], hit['timestamp']]
 
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
-        device_df.columns = ['data', 'device', 'timestamp']
+        device_df.columns = ['value', 'device', 'timestamp']
         logger.info("{} documents found for device.".format(len(device_df),
                                                             mac_address))
         data_all_devices.append(device_df)
@@ -128,16 +124,16 @@ class LoadElasticSearch(BaseData):
                 raise Exception("Please provide a valid data format code!")
 
             all_data = []
-            data = pd.concat(data_all_devices, axis=0)['data'].values
+            data = pd.concat(data_all_devices, axis=0)['value'].values
             for datum in data:
 
-                data, flag_load_ok = self._load_datum(datum=datum,
-                                            data_format_code=data_format_code)
+                datapoint = self._load_datum(datum=datum,
+                                             data_format_code=data_format_code)
 
-                if not flag_load_ok:
+                if datapoint is None:
                     continue
 
-                all_data.append(data)
+                all_data.append(datapoint)
 
             all_data = pd.concat(all_data)
 
@@ -155,7 +151,6 @@ class LoadElasticSearch(BaseData):
         :param datum: The datum to load from the device.
         :return: date, numeric values, flag_load_ok
         """
-        flag_load_ok = True
         names = DATA_FORMAT_CODES[data_format_code]['NAMES']
         try:
             datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
@@ -170,7 +165,6 @@ class LoadElasticSearch(BaseData):
                 raise Exception
 
         except Exception:
-            flag_load_ok = False
-            return None, flag_load_ok
+            return None
 
-        return data, flag_load_ok
+        return data

@@ -26,7 +26,7 @@ def loader():
                     "device": {
                         "type": "text"
                     },
-                    "data": {
+                    "value": {
                         "type": "text"
                     },
                     "timestamp": {
@@ -44,7 +44,7 @@ def loader():
     # now create a new index from scratch:
     es.indices.create(index=index, body=settings, ignore=400)
 
-    reader = open('./Demos/demo-streaming/data_only_deltas_small.csv', 'r')
+    reader = open('fixtures/demo_data_only_deltas/data_only_deltas_small.csv', 'r')
 
     n = 0
     for line in reader.readlines():
@@ -69,7 +69,7 @@ def loader():
                 id=n,
                 body={"timestamp": date,
                        "device": base_device,
-                       "data": "{}\r\n".format(','.join(map(str, splitup[1:])))
+                       "value": "{}\r\n".format(','.join(map(str, splitup[1:])))
                    }
                 )
         n += 1

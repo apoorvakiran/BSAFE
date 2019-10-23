@@ -54,7 +54,7 @@ for n, line in enumerate(reader.readlines()[0:60000]):
             id=n,
             body={"timestamp": date,
                    "device": base_device,
-                   "data": "{}\r\n".format(','.join(map(str, splitup[1:])))
+                   "value": "{}\r\n".format(','.join(map(str, splitup[1:])))
                }
             )
     print(f"{n}")

@@ -15,6 +15,8 @@ __version__ = "Alpha"
 
 import logging
 import os
+import datetime
+import requests
 from periodiq import PeriodiqMiddleware, cron
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import LoadElasticSearch
@@ -25,9 +27,31 @@ from .extensions import dramatiq
 
 logger = logging.getLogger()
 
-@dramatiq.actor(periodic=cron('* * * * *'))
-def heartbeat():
-    logger.info("Pulse")
+@dramatiq.actor(periodic=cron('*/15 * * * *'))
+def automated_analysis():
+    logger.info("Running automated analysis")
+    current_time = datetime.datetime.utcnow()
+    end_time = datetime.datetime.utcnow().isoformat()
+    start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
+    headers = {'Authorization': f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"}
+    try:
+        response = requests.get(
+            f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/wearables?automated=true",
+            headers=headers
+        )
+        response.raise_for_status()
+        wearables = response.json()['data']
+        logger.info(f"Running automated analysis for {len(wearables)}")
+        for wearable in wearables:
+            mac_address = wearable['attributes']['mac']
+            logger.info(f"Running analysis for {mac_address}")
+            safety_score_analysis.send(mac_address, start_time, end_time)
+        logger.info(f"Enqueued all analysis")
+    except HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err}", exc_info=True)
+    except Exception as err:
+        logger.error(f"Failure to send request {err}", exc_info=True)
+
 
 @dramatiq.actor
 def safety_score_analysis(mac_address, start_time, end_time):
@@ -41,8 +65,10 @@ def safety_score_analysis(mac_address, start_time, end_time):
                                          end_time=end_time,
                                          host=host, index=index,
                                          data_format_code=4)
-
-    logger.info("Found {} elements in the ES database.".format(len(raw_data)))
+    if raw_data is None:
+        logger.info(f"Found no elements in the ES database for {mac_address}.")
+        return
+    logger.info(f"Found {len(raw_data)} elements in the ES database for {mac_address}.")
 
     transformer = DataFilterPipeline(data_format_code='4')
     structured_data = transformer.run(raw_data=raw_data)
@@ -51,6 +77,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
     if structured_data.number_of_points > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
         metrics = ErgoMetrics(structured_data=structured_data)
+        metrics.compute()
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:

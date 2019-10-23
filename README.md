@@ -41,4 +41,4 @@ If any issues, reach out to jesper.kristensen@iteratelabs.co for help.
 + Fnu Apoorva - CTO
 + Jason Guss - CEO
 
-Iterate Labs Inc. - All Rights Reserved - Copyright 2018-2019
+Iterate Labs Inc. - All Rights Reserved - Copyright 2018-2019 - Patent Pending
