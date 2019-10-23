@@ -46,15 +46,14 @@ class StructuredData(BaseStructuredData):
 
         self._time = pd.to_datetime(data['Date-Time'])
 
-        if self._data_format_code == '4':
-            self._yaw = dict()
-            self._yaw['delta'] = data['DeltaYaw']
-            #
-            self._pitch = dict()
-            self._pitch['delta'] = data['DeltaPitch']
-            #
-            self._roll = dict()
-            self._roll['delta'] = data['DeltaRoll']
+        self._yaw = dict()
+        self._yaw['delta'] = data['DeltaYaw']
+        #
+        self._pitch = dict()
+        self._pitch['delta'] = data['DeltaPitch']
+        #
+        self._roll = dict()
+        self._roll['delta'] = data['DeltaRoll']
 
         self._meta_data = meta_data
 

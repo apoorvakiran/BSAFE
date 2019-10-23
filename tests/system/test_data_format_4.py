@@ -28,7 +28,7 @@ from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
 
 
-def test_simple_system():
+def test_data_format_4():
 
     data_format_code = '4'  # in which format is the data coming to us?
 
@@ -46,7 +46,7 @@ def test_simple_system():
                                         data_format_code=data_format_code)
 
     # now pass the raw data through our data filter pipeline:
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(data_format_code=data_format_code)
     structured_data = pipeline.run(raw_data=raw_data)
 
     metrics = ErgoMetrics(structured_data=structured_data)

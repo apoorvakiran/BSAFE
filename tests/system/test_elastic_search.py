@@ -83,16 +83,18 @@ test_address = 'F6:12:3D:BD:DE:44'
 
 index = "iterate-labs-local-poc"
 
+data_format_code = '5'  # in what format is the data coming in?
+
 data_loader = LoadElasticSearch()
 raw_data = data_loader.retrieve_data(mac_address=test_address,
                                      start_time='2019-03-18T00:00:00-05:00',
                                      end_time='2019-03-21T00:00:00-05:00',
                                      host=None, index=index,
-                                     data_format_code=4)
+                                     data_format_code=data_format_code)
 
 logger.info("Found {} elements in the ES database.".format(len(raw_data)))
 
-transformer = DataFilterPipeline(data_format_code='4')
+transformer = DataFilterPipeline(data_format_code=data_format_code)
 structured_data = transformer.run(raw_data=raw_data)
 
 mets = ErgoMetrics(structured_data=structured_data)

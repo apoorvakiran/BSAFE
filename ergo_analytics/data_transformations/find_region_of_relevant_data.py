@@ -43,7 +43,11 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         If the worker is not using the device and/or not working the standard
         deviation should be smaller than if working.
         """
-        data_to_use = data.loc[from_this_index:till_this_index, self._columns]
+        super().apply(data=data)
+
+        data_to_use = data.copy()
+        data_to_use = data_to_use.loc[from_this_index:till_this_index,
+                      self._columns]
         data_to_use = data_to_use.iloc[from_this_index:till_this_index]
 
         if len(data_to_use) < 100:
@@ -108,4 +112,5 @@ class WindowOfRelevantDataFilter(BaseTransformation):
             raise Exception("This filter removed all data!")
 
         # now we have boxed in the data to a region of interest
+        data_to_use = self._update_data(data_transformed=data)
         return data_to_use

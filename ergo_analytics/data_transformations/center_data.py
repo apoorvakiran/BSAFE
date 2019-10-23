@@ -29,6 +29,7 @@ class DataCentering(BaseTransformation):
         :param data:
         :return:
         """
+        super().apply(data=data)
 
         if self._columns == 'all':
             self._columns = data.columns
@@ -36,4 +37,4 @@ class DataCentering(BaseTransformation):
         data_centered = data[self._columns]
         data_centered -= data_centered.mean(axis=0)
 
-        return data_centered
+        return self._update_data(data_transformed=data_centered)
