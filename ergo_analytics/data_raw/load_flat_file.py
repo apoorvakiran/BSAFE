@@ -171,7 +171,7 @@ class LoadDataFromLocalDisk(BaseData):
         # pick any of the numeric columns
         numeric_variable_name = \
             DATA_FORMAT_CODES[data_format_code]['NUMERICS'][0]
-        
+
         # now, we want to make sure to skip certain rows until we
         # have numerics.
         # We can use "az" as an example column:
