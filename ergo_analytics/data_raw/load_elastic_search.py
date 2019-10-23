@@ -104,7 +104,7 @@ class LoadElasticSearch(BaseData):
 
         for hit in search.scan():
 
-            data = [(hit['timestamp'] + ',' + hit['data']),
+            data = [(hit['timestamp'] + ',' + hit['value']),
                     hit['device'], hit['timestamp']]
 
             device_data.append(data)
