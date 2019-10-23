@@ -104,9 +104,12 @@ class LoadElasticSearch(BaseData):
 
         for hit in search.scan():
             # data is stored in the value key on elasticsearch
+            # elastic search data never has date in "value":
+            # will always be in this format (example):
+            # {timestamp: 'data', device: 'mac',
+            # values: 'yaw1,pitch1,roll1,yaw2,pitch2,roll2}
             data = [f"{hit['timestamp']},{hit['value']}",
                     hit['device'], hit['timestamp']]
-
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
@@ -127,7 +130,7 @@ class LoadElasticSearch(BaseData):
             data = pd.concat(data_all_devices, axis=0)['value'].values
             for datum in data:
                 datapoint = self._load_datum(datum=datum,
-                                        data_format_code=data_format_code)
+                                             data_format_code=data_format_code)
 
                 if datapoint is None:
                     continue

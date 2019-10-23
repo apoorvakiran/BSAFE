@@ -42,9 +42,19 @@ class ConstructDeltaValues(BaseTransformation):
         :param data: data for which delta angles are to be constructed.
         :param data_format_code: which format is the data in?
         """
+        super().apply(data=data)
 
         if data_format_code == '4':
             # already in delta-angle format
-            return data, ('DeltaYaw', 'DeltaPitch', 'DeltaRoll')
+            data_to_return = data
+        elif data_format_code == '5':
+            # need to construct delta's
+            data['DeltaYaw'] = data['Yaw[1](deg)'] - data['Yaw[0](deg)']
+            data['DeltaPitch'] = data['Pitch[1](deg)'] - data['Pitch[0](deg)']
+            data['DeltaRoll'] = data['Roll[1](deg)'] - data['Roll[0](deg)']
         else:
             raise Exception("Implement me!")
+
+        data_to_return = self._update_data(data_transformed=data)
+
+        return data_to_return, ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']

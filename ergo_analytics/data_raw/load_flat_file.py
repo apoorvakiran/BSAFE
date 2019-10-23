@@ -168,14 +168,10 @@ class LoadDataFromLocalDisk(BaseData):
         numeric values and we have all the columns we seek.
         """
 
-        # provide a column we know should be numeric in values:
-        if data_format_code in ['2', '3']:
-            numeric_variable_name = 'az[0](mg)'
-        elif data_format_code == '4':
-            numeric_variable_name = 'DeltaYaw'
-        else:
-            numeric_variable_name = 'az[0]'
-
+        # pick any of the numeric columns
+        numeric_variable_name = \
+            DATA_FORMAT_CODES[data_format_code]['NUMERICS'][0]
+        
         # now, we want to make sure to skip certain rows until we
         # have numerics.
         # We can use "az" as an example column:

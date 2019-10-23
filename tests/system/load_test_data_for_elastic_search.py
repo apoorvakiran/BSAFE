@@ -44,8 +44,7 @@ def loader():
     # now create a new index from scratch:
     es.indices.create(index=index, body=settings, ignore=400)
 
-    # reader = open('fixtures/demo_data_only_deltas/data_only_deltas_small.csv', 'r')
-    reader = open('Demos/demo-format-5/data_format_5_small.csv', 'r')
+    reader = open('Demos/demo-format-5/data_small.csv', 'r')
 
     n = 0
     for line in reader.readlines():
@@ -60,12 +59,11 @@ def loader():
             continue
         date = year + '-' + sortdate[0] + '-' + \
                sortdate[1] + 'T' + datestamp[1] + 'Z'
-        # data = splitup[1]
-        # datapoints = ','.join(splitup[1:])
 
         es = Elasticsearch(hosts=["localhost:9200"],
                    use_ssl=False,
                        verify_certs=False, timeout=60, retry_on_timeout = True)
+
         es.index(index="iterate-labs-local-poc",
                 id=n,
                 body={"timestamp": date,
