@@ -64,13 +64,13 @@ def safety_score_analysis(mac_address, start_time, end_time):
                                          start_time=start_time,
                                          end_time=end_time,
                                          host=host, index=index,
-                                         data_format_code=4)
+                                         data_format_code=5)
     if raw_data is None:
         logger.info(f"Found no elements in the ES database for {mac_address}.")
         return
     logger.info(f"Found {len(raw_data)} elements in the ES database for {mac_address}.")
 
-    transformer = DataFilterPipeline(data_format_code='4')
+    transformer = DataFilterPipeline(data_format_code='5')
     structured_data = transformer.run(raw_data=raw_data)
 
     logger.info(f"Retrieved all data for {mac_address}")

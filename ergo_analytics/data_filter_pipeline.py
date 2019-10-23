@@ -19,6 +19,7 @@ from . import FixDateOscillations
 from . import DataImputationFilter
 from . import DataCentering
 from constants import DATA_FORMAT_CODES
+import numpy as np
 import logging
 
 logger = logging.getLogger()
@@ -63,28 +64,25 @@ class DataFilterPipeline(object):
         #  "these columns for this filter" and so on...
         numeric_columns = DATA_FORMAT_CODES[self._data_format_code]['NUMERICS']
 
+        all_added_columns = []  # keep track of any additional/derivative data
+
         # ===== PIPELINE START
         # correct date oscillations:
         t_date_oscillations = FixDateOscillations(columns='all')
         data_transformed = t_date_oscillations.apply(data=raw_data)
 
         # center the data:
-        if self._data_format_code == '4':
-            t_dc = DataCentering(columns=['DeltaYaw', 'DeltaPitch',
-                                          'DeltaRoll'])
-            data_transformed = t_dc.apply(data=data_transformed)
-        else:
-            raise NotImplementedError("Implement me!")
+        t_dc = DataCentering(columns=numeric_columns)
+        data_transformed = t_dc.apply(data=data_transformed)
 
         # now construct delta values if needed:
         t_delta_filter = ConstructDeltaValues(columns=numeric_columns)
-        data_transformed, delta_columns = t_delta_filter.apply(
-            data=data_transformed,
-            data_format_code=self._data_format_code)
+        data_transformed, delta_columns = t_delta_filter.apply(data=data_transformed, data_format_code=self._data_format_code)
+        all_added_columns.append(delta_columns)
 
-        # now center the delta values:
-        # TODO(Jesper) GENERALLY here we want to center the delta values
-        # upon their construction (for data format 4 we don't need to)
+        # center the delta values
+        t_dc = DataCentering(columns=delta_columns)
+        data_transformed = t_dc.apply(data=data_transformed)
 
         # now find the region of relevant data:
         t_window_filter = WindowOfRelevantDataFilter(columns=delta_columns)
@@ -93,14 +91,13 @@ class DataFilterPipeline(object):
         t_impute = DataImputationFilter(columns='all')
         data_transformed = t_impute.apply(data=data_transformed, method='nan')
 
-        quad = QuadrantFilter(columns=numeric_columns)
+        quad = QuadrantFilter(columns=delta_columns)
         data_transformed = quad.apply(data=data_transformed)
         # ===== PIPELINE END
 
         # now what data remains?
         data_post_pipeline = initial_data.iloc[data_transformed.index, :]
-        data_post_pipeline.loc[:, data_transformed.columns] = \
-            data_transformed
+        data_post_pipeline.loc[:, data_transformed.columns] = data_transformed
 
         # sort, drop duplicates, and reset index:
         logger.debug("Dropping duplicate data "

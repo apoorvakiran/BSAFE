@@ -36,6 +36,7 @@ class QuadrantFilter(BaseTransformation):
         :param units: what are the units of the data? Degrees?
         :return:
         """
+        super().apply(data=data)
 
         if not units or units not in ['deg', 'rad']:
             raise Exception("Units '{}' not understood!\n"
@@ -54,4 +55,6 @@ class QuadrantFilter(BaseTransformation):
         this_data[ind_below] += 360
 
         # finally limit all data to [-90, 90]:
-        return np.clip(this_data, a_min=-90, a_max=90)
+        data_transformed = np.clip(this_data, a_min=-90, a_max=90)
+
+        return self._update_data(data_transformed=data_transformed)

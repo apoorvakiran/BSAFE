@@ -103,10 +103,15 @@ class LoadElasticSearch(BaseData):
             return None
 
         for hit in search.scan():
-            # data is stored in the value key on elasticsearch
-            data = [f"{hit['timestamp']},{hit['value']}",
-                    hit['device'], hit['timestamp']]
 
+            # data is stored in the value key on elasticsearch
+            # elastic search data never has date in "value":
+            # will always be in this format (example):
+            # {timestamp: 'data', device: 'mac',
+            # values: 'yaw1,pitch1,roll1,yaw2,pitch2,roll2}
+            # BSAFE loads the data as "time + values" in _load_datum(...):
+            data = [f"{hit['timestamp']}, {hit['value']}",
+                    hit['device'], hit['timestamp']]
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
@@ -128,7 +133,7 @@ class LoadElasticSearch(BaseData):
             for datum in data:
 
                 datapoint = self._load_datum(datum=datum,
-                                        data_format_code=data_format_code)
+                                             data_format_code=data_format_code)
 
                 if datapoint is None:
                     continue
@@ -154,17 +159,10 @@ class LoadElasticSearch(BaseData):
         names = DATA_FORMAT_CODES[data_format_code]['NAMES']
         try:
             datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
-            datum = np.asarray(datum.split(','))
-
-            date = datum[0]
-            values = datum[1:].astype(float)
-
-            data = pd.DataFrame(data=np.append([date], values)).T
-            data.columns = names
-            if not data.shape[1] == len(names):
-                # did not get the data we expected, do this because
-                # the data can be cut off at times
-                raise Exception
+            datum = datum.split(',')
+            data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1,
+                                                                  len(names)),
+                                columns=names)
 
         except Exception:
             return None

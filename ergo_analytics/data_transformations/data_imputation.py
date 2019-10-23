@@ -28,6 +28,7 @@ class DataImputationFilter(BaseTransformation):
         :param data:
         :return:
         """
+        super().apply(data=data)
 
         # right now the data imputation is easy: Just get rid
         # of the NaN values - but going forward we can have more
@@ -48,4 +49,4 @@ class DataImputationFilter(BaseTransformation):
         else:
             raise NotImplementedError("Implement me!")
 
-        return data
+        return self._update_data(data_transformed=data)
