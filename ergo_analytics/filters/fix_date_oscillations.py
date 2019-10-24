@@ -12,6 +12,7 @@ __version__ = "Alpha"
 
 from pandas import DataFrame
 from . import BaseTransformation
+from constants import DATA_FORMAT_CODES
 from constants import DATE
 
 
@@ -27,11 +28,12 @@ class FixDateOscillations(BaseTransformation):
     just filter out the earlier ones.
     """
 
-    def __init__(self, columns=None):
-        super().__init__(columns=columns)
+    def __init__(self):
+        super().__init__()
 
     def _initialize_params(self):
-        self._params = dict(cut_off_date='2015-01-01')
+        super()._initialize_params()
+        self._params.update(**dict(cut_off_date='2015-01-01'))
 
     def apply(self, data=None):
         """
@@ -43,7 +45,10 @@ class FixDateOscillations(BaseTransformation):
         """
         super().apply(data=data)
 
-        dates_as_int = data['Date-Time'].astype(int)
+        date_column = 'Date-Time'
+
+        # this filter does require the date to be pressent
+        dates_as_int = data[date_column].astype(int)
 
         # data before this is considered wrong:
         cut_off_date = self._params['cut_off_date']

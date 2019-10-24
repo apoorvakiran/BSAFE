@@ -61,7 +61,7 @@ class DataFilterPipeline(object):
         if name in self._pipeline:
             raise Exception(f"Filter by name '{name}' already exists!")
 
-        self._pipeline[name] = deepcopy(filter)
+        self._pipeline[name] = filter
 
     def remove_filter(self, name=None):
         """
@@ -90,7 +90,7 @@ class DataFilterPipeline(object):
 
         self._pipeline[name].update(new_params=new_params)
 
-    def run(self, raw_data=None):
+    def run(self, on_raw_data=None, with_format_code='5'):
         """
         Runs the pipeline on incoming raw data.
         Returns structured data.
@@ -98,16 +98,19 @@ class DataFilterPipeline(object):
         :return:
         """
         # make sure the raw data points have unique indices:
-        raw_data.reset_index(drop=True, inplace=True)
+        on_raw_data.reset_index(drop=True, inplace=True)
 
-        initial_columns = list(raw_data.columns)
+        # make sure to update the data format code:
+        self.update_params(new_params=dict(data_format_code=with_format_code))
 
-        initial_data = raw_data
+        initial_columns = list(on_raw_data.columns)
+
+        initial_data = on_raw_data
 
         all_added_columns = []  # keep track of any additional/derivative data
         all_removed_columns = []
 
-        current_data = raw_data.copy()
+        current_data = on_raw_data.copy()
         for _, filter in self._pipeline.items():
             current_data, changes = filter.apply(data=current_data)
             all_added_columns.append(changes.get('added', []))
@@ -121,7 +124,7 @@ class DataFilterPipeline(object):
         assert len(all_removed_columns) == 0  # NEEDS implementation if >0
 
         assert current_data.shape[1] == len(list(
-            np.unique(list(raw_data.columns) + all_added_columns)))
+            np.unique(list(on_raw_data.columns) + all_added_columns)))
 
         # now what data remains?
         # first get the indices
@@ -138,16 +141,16 @@ class DataFilterPipeline(object):
                      "{} pts.".format(len(data_post_pipeline)))
 
         # TODO(JTK): these should be filters
-        data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
-                                       inplace=True)
+        # data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
+        #                                inplace=True)
         data_post_pipeline.drop_duplicates(subset=['Date-Time'], inplace=True)
         data_post_pipeline.reset_index(drop=True, inplace=True)
 
         logger.debug("After dropping duplicates we have "
                      "{} pts.".format(len(data_post_pipeline)))
 
-        # always create structured data:
-        f_str_data = CreateStructuredData(columns='all')
+        # always create structured data at the end of the pipeline:
+        f_str_data = CreateStructuredData()
         f_str_data.update(new_params=dict(data_format_code='5'))
         structured_data, _ = f_str_data.apply(data=data_post_pipeline)
 

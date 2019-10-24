@@ -8,6 +8,7 @@ Copyright 2018- Iterate Labs, Inc.
 """
 
 from constants import SAMPLING_RATE
+from constants import DATA_FORMAT_CODES
 from . import BaseTransformation
 import logging
 
@@ -28,18 +29,18 @@ class WindowOfRelevantDataFilter(BaseTransformation):
 
     _columns = None  # which columns to apply this filter to?
 
-    def __init__(self, columns=None):
+    def __init__(self):
         """
         Construct this filter/transformation.
         """
-
-        super().__init__(columns=columns)
+        super().__init__()
 
     def _initialize_params(self):
-        self._params = dict(from_this_index=None,
-                            till_this_index=None,
-                            degree_threshold=5,
-                            window_width_seconds=10)
+        super()._initialize_params()
+        self._params.update(**dict(from_this_index=None,
+                                   till_this_index=None,
+                                   degree_threshold=5,
+                                   window_width_seconds=10))
 
     def apply(self, data=None):
         """
@@ -52,10 +53,13 @@ class WindowOfRelevantDataFilter(BaseTransformation):
 
         params = self._params
 
+        operate_on_columns = \
+            DATA_FORMAT_CODES[params['data_format_code']]['NUMERICS']
+
         data_to_use = data.copy()
         data_to_use = data_to_use.loc[
                       params['from_this_index']:params['till_this_index'],
-                      self._columns]
+                      operate_on_columns]
         data_to_use = data_to_use.iloc[
                       params['from_this_index']:params['till_this_index']]
 
