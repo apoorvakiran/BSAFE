@@ -11,15 +11,9 @@ __all__ = ["DataFilterPipeline"]
 __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
-from . import WindowOfRelevantDataFilter
-from . import QuadrantFilter
-from . import ConstructDeltaValues
-from . import CreateStructuredData
-from . import FixDateOscillations
-from . import DataImputationFilter
-from . import DataCentering
-from constants import DATA_FORMAT_CODES
+from copy import deepcopy
 import numpy as np
+from ergo_analytics.filters import CreateStructuredData
 import logging
 
 logger = logging.getLogger()
@@ -33,9 +27,9 @@ class DataFilterPipeline(object):
     The pipeline leverages the filters in "Data_Filters".
     """
 
-    _data_format_code = None
+    _pipeline = None
 
-    def __init__(self, data_format_code='4'):
+    def __init__(self):
         """
         Constructs an object from which metrics can be computed
         based off of a "Structured Data" object.
@@ -44,7 +38,57 @@ class DataFilterPipeline(object):
         :param is_streaming: is the data coming in, in a streaming format?
         """
 
-        self._data_format_code = data_format_code
+        self._pipeline = dict()  # dict is ordered
+
+    def update_params(self, new_params=None):
+        """
+        Updates each filter in the pipeline with the incoming parameters.
+        This is usefu if there are common parameters between all filters.
+        """
+        for filter_name in self._pipeline.keys():
+            self._pipeline[filter_name].update(new_params=new_params)
+
+    def view(self):
+        return self._pipeline
+
+    def add_filter(self, name=None, filter=None):
+        """
+        Adds a filter to the pipeline.
+
+        :param name: the name of this filter
+        :param filter: filter object
+        """
+        if name in self._pipeline:
+            raise Exception(f"Filter by name '{name}' already exists!")
+
+        self._pipeline[name] = deepcopy(filter)
+
+    def remove_filter(self, name=None):
+        """
+        :param name: name (same as used when .add(...) was called)
+        of filter to remove.
+        """
+        if name not in self._pipeline:
+            raise Exception(f"The filter '{name}' was not found in "
+                            f"the pipeline")
+
+        return self._pipeline.pop(name)
+
+    def update_filter(self, name=None, new_params=None):
+        """
+        Update existing filter in the pipeline.
+
+        :param name: Which filter to update?
+        :param new_params: which parameters to pass to the filter?
+        """
+        if name not in self._pipeline:
+            raise Exception(f"The filter '{name}' was not found in "
+                            f"the pipeline")
+
+        if not new_params:
+            return
+
+        self._pipeline[name].update(new_params=new_params)
 
     def run(self, raw_data=None):
         """
@@ -53,57 +97,47 @@ class DataFilterPipeline(object):
 
         :return:
         """
-
         # make sure the raw data points have unique indices:
         raw_data.reset_index(drop=True, inplace=True)
 
+        initial_columns = list(raw_data.columns)
+
         initial_data = raw_data
 
-        # first - which columns to apply the filter to?
-        # TODO(Jesper): We could imagine saying
-        #  "these columns for this filter" and so on...
-        numeric_columns = DATA_FORMAT_CODES[self._data_format_code]['NUMERICS']
-
         all_added_columns = []  # keep track of any additional/derivative data
+        all_removed_columns = []
 
-        # ===== PIPELINE START
-        # correct date oscillations:
-        t_date_oscillations = FixDateOscillations(columns='all')
-        data_transformed = t_date_oscillations.apply(data=raw_data)
+        current_data = raw_data.copy()
+        for _, filter in self._pipeline.items():
+            current_data, changes = filter.apply(data=current_data)
+            all_added_columns.append(changes.get('added', []))
+            all_removed_columns.append(changes.get('removed', []))
 
-        # center the data:
-        t_dc = DataCentering(columns=numeric_columns)
-        data_transformed = t_dc.apply(data=data_transformed)
+        all_added_columns = [item for sublist in all_added_columns for item in
+                             sublist]
+        all_removed_columns = [item for sublist in all_removed_columns for item
+                               in sublist]
 
-        # now construct delta values if needed:
-        t_delta_filter = ConstructDeltaValues(columns=numeric_columns)
-        data_transformed, delta_columns = t_delta_filter.apply(data=data_transformed, data_format_code=self._data_format_code)
-        all_added_columns.append(delta_columns)
+        assert len(all_removed_columns) == 0  # NEEDS implementation if >0
 
-        # center the delta values
-        t_dc = DataCentering(columns=delta_columns)
-        data_transformed = t_dc.apply(data=data_transformed)
-
-        # now find the region of relevant data:
-        t_window_filter = WindowOfRelevantDataFilter(columns=delta_columns)
-        data_transformed = t_window_filter.apply(data=data_transformed)
-
-        t_impute = DataImputationFilter(columns='all')
-        data_transformed = t_impute.apply(data=data_transformed, method='nan')
-
-        quad = QuadrantFilter(columns=delta_columns)
-        data_transformed = quad.apply(data=data_transformed)
-        # ===== PIPELINE END
+        assert current_data.shape[1] == len(list(
+            np.unique(list(raw_data.columns) + all_added_columns)))
 
         # now what data remains?
-        data_post_pipeline = initial_data.iloc[data_transformed.index, :]
-        data_post_pipeline.loc[:, data_transformed.columns] = data_transformed
+        # first get the indices
+        data_post_pipeline = initial_data.iloc[current_data.index, :]
+        # now update the data in the columns
+
+        # update the initial data to the "data post pipeline" values:
+        for col in initial_columns + all_added_columns:
+            data_post_pipeline[col] = current_data[col]
 
         # sort, drop duplicates, and reset index:
         logger.debug("Dropping duplicate data "
                      "points - currently we have "
                      "{} pts.".format(len(data_post_pipeline)))
 
+        # TODO(JTK): these should be filters
         data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
                                        inplace=True)
         data_post_pipeline.drop_duplicates(subset=['Date-Time'], inplace=True)
@@ -112,9 +146,10 @@ class DataFilterPipeline(object):
         logger.debug("After dropping duplicates we have "
                      "{} pts.".format(len(data_post_pipeline)))
 
-        t_str_data = CreateStructuredData(columns='all')
-        structured_data = t_str_data.apply(data=data_post_pipeline,
-                                        data_format_code=self._data_format_code)
+        # always create structured data:
+        f_str_data = CreateStructuredData(columns='all')
+        f_str_data.update(new_params=dict(data_format_code='5'))
+        structured_data, _ = f_str_data.apply(data=data_post_pipeline)
 
         logger.debug("Raw data successfully converted to structured data!")
 

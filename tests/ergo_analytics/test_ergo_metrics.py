@@ -34,4 +34,4 @@ def test_total_score():
     em = ErgoMetrics(structured_data=data)
     em.compute()
 
-    assert pytest.approx(em.get_score(name='total'), 0.0001) == 1.2256
+    assert pytest.approx(em.get_score(name='total'), 0.0001) == 1.08918

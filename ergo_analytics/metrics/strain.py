@@ -12,6 +12,9 @@ __version__ = "Alpha"
 
 import numpy as np
 from ergo_analytics.utilities import digitize_values
+import logging
+
+logger = logging.getLogger()
 
 
 def compute_strain_score(delta_pitch=None, delta_yaw=None,
@@ -21,15 +24,22 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None,
     total motion scores.
     """
 
-    bins_degrees = [15 * i for i in range(10 + 1)]  # [0, 15, 30, 45, 60, 75,
-    # 90, 105, 120, 135, 150]
-    
+    bins_degrees = [15 * i for i in range(12 + 1)]  # [0, 15, 30, 45, 60, 75,
+    # 90, 105, 120, 135, 150, 165, 180]
+
     # now count each (yaw/pitch/roll) degree in the given degree bins
     # for example - if yaw had a value of 4 at one time instance that
     # value would end up in bin 1 and so forth:
-    pitch_bins = digitize_values(values=np.abs(delta_pitch), bins=bins_degrees)
-    yaw_bins = digitize_values(values=np.abs(delta_yaw), bins=bins_degrees)
-    roll_bins = digitize_values(values=np.abs(delta_roll), bins=bins_degrees)
+
+    try:
+        pitch_bins = digitize_values(values=np.abs(delta_pitch), bins=bins_degrees)
+        yaw_bins = digitize_values(values=np.abs(delta_yaw), bins=bins_degrees)
+        roll_bins = digitize_values(values=np.abs(delta_roll), bins=bins_degrees)
+    except IndexError:
+        msg = "The values seem to be outside the range [-180, 180].\n"
+        msg += "Consider applying a centering filter and/or others."
+        logger.exception(msg)
+        raise Exception(msg)
     
     raw_score_yaw = custom_weighted_sum(yaw_bins)
     raw_score_pitch = custom_weighted_sum(pitch_bins)

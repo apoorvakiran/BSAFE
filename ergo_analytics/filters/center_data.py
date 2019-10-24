@@ -22,6 +22,10 @@ class DataCentering(BaseTransformation):
     def __init__(self, columns=None):
         super().__init__(columns=columns)
 
+
+    def _initialize_params(self):
+        self._params = dict()  # no parameters for this filter
+
     def apply(self, data=None):
         """
         Applies this filter to the incoming data.
@@ -37,4 +41,4 @@ class DataCentering(BaseTransformation):
         data_centered = data[self._columns]
         data_centered -= data_centered.mean(axis=0)
 
-        return self._update_data(data_transformed=data_centered)
+        return self._update_data(data_transformed=data_centered), {}

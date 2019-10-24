@@ -63,9 +63,16 @@ sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 # ==
 
 from ergo_analytics import LoadElasticSearch
+from ergo_analytics.filters import FixDateOscillations
+from ergo_analytics.filters import DataCentering
+from ergo_analytics.filters import ConstructDeltaValues
+from ergo_analytics.filters import WindowOfRelevantDataFilter
+from ergo_analytics.filters import DataImputationFilter
+from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
+from constants import DATA_FORMAT_CODES
 
 import logging
 logger = logging.getLogger()
@@ -94,8 +101,30 @@ raw_data = data_loader.retrieve_data(mac_address=test_address,
 
 logger.info("Found {} elements in the ES database.".format(len(raw_data)))
 
-transformer = DataFilterPipeline(data_format_code=data_format_code)
-structured_data = transformer.run(raw_data=raw_data)
+pipeline = DataFilterPipeline()
+# instantiate the filters:
+# first, which columns to operate on for the various filters?
+numeric_columns = DATA_FORMAT_CODES[data_format_code]['NUMERICS']
+delta_columns = ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+#
+f_date_oscillations = FixDateOscillations(columns='all')
+f_centering = DataCentering(columns=numeric_columns)
+f_construct_delta = ConstructDeltaValues(columns=numeric_columns)
+f_window = WindowOfRelevantDataFilter(columns=delta_columns)
+f_impute = DataImputationFilter(columns=numeric_columns)
+f_quadrant = QuadrantFilter(columns=delta_columns)
+
+pipeline.add_filter(name='fix_osc', filter=f_date_oscillations)
+pipeline.add_filter(name='centering1', filter=f_centering)
+pipeline.add_filter(name='delta_values', filter=f_construct_delta)
+pipeline.add_filter(name='centering2', filter=f_centering)
+pipeline.add_filter(name='window', filter=f_window)
+pipeline.add_filter(name='impute', filter=f_impute)
+pipeline.add_filter(name='quadrant_fix', filter=f_quadrant)
+
+pipeline.update_params(new_params=dict(data_format_code=data_format_code))
+# run the pipeline!
+structured_data = pipeline.run(raw_data=raw_data)
 
 mets = ErgoMetrics(structured_data=structured_data)
 mets.compute()

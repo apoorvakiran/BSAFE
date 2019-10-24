@@ -28,7 +28,10 @@ class QuadrantFilter(BaseTransformation):
     def __init__(self, columns=None):
         super().__init__(columns=columns)
 
-    def apply(self, data=None, units='deg'):
+    def _initialize_params(self):
+        self._params = dict(units='deg')
+
+    def apply(self, data=None):
         """
         Applies a quadrant filter to the incoming data.
 
@@ -37,6 +40,8 @@ class QuadrantFilter(BaseTransformation):
         :return:
         """
         super().apply(data=data)
+
+        units = self._params['units']
 
         if not units or units not in ['deg', 'rad']:
             raise Exception("Units '{}' not understood!\n"
@@ -57,4 +62,4 @@ class QuadrantFilter(BaseTransformation):
         # finally limit all data to [-90, 90]:
         data_transformed = np.clip(this_data, a_min=-90, a_max=90)
 
-        return self._update_data(data_transformed=data_transformed)
+        return self._update_data(data_transformed=data_transformed), {}

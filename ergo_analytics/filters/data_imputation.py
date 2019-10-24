@@ -21,7 +21,10 @@ class DataImputationFilter(BaseTransformation):
     def __init__(self, columns=None):
         super().__init__(columns=columns)
 
-    def apply(self, data=None, method='nan'):
+    def _initialize_params(self):
+        self._params = dict(method='nan')
+
+    def apply(self, data=None):
         """
         Imputes the data or rids of it depending on the method used.
 
@@ -36,7 +39,7 @@ class DataImputationFilter(BaseTransformation):
         # For example: Create a multi-variate Gaussian on all data we do have
         # and then sample from it conditioned on the data we _do_ have at other
         # rows to find likely values for the missing data.
-        if method == 'nan':
+        if self._params['method'] == 'nan':
             logger.info("# of data before filtering for NaNs... = "
                         "{}".format(len(data)))
 
@@ -49,4 +52,4 @@ class DataImputationFilter(BaseTransformation):
         else:
             raise NotImplementedError("Implement me!")
 
-        return self._update_data(data_transformed=data)
+        return self._update_data(data_transformed=data), {}

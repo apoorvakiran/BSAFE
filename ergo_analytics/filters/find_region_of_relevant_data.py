@@ -35,8 +35,13 @@ class WindowOfRelevantDataFilter(BaseTransformation):
 
         super().__init__(columns=columns)
 
-    def apply(self, data=None, from_this_index=None, till_this_index=None,
-              degree_threshold=5, window_width_seconds=10):
+    def _initialize_params(self):
+        self._params = dict(from_this_index=None,
+                            till_this_index=None,
+                            degree_threshold=5,
+                            window_width_seconds=10)
+
+    def apply(self, data=None):
         """
         Leverage standard deviation to find where the data starts and ends.
 
@@ -45,10 +50,14 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         """
         super().apply(data=data)
 
+        params = self._params
+
         data_to_use = data.copy()
-        data_to_use = data_to_use.loc[from_this_index:till_this_index,
+        data_to_use = data_to_use.loc[
+                      params['from_this_index']:params['till_this_index'],
                       self._columns]
-        data_to_use = data_to_use.iloc[from_this_index:till_this_index]
+        data_to_use = data_to_use.iloc[
+                      params['from_this_index']:params['till_this_index']]
 
         if len(data_to_use) < 100:
             # due to the statistical nature of this filter, we need
@@ -56,7 +65,7 @@ class WindowOfRelevantDataFilter(BaseTransformation):
             raise Exception("We do not have enough data for this filter!")
 
         # window width in units of "indices" (# rows in data):
-        width_indices = window_width_seconds * SAMPLING_RATE
+        width_indices = params['window_width_seconds'] * SAMPLING_RATE
 
         # (1) first apply to the beginning of the data:
         start_of_window = 0  # seconds
@@ -67,7 +76,7 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         window_std = window.std().max()
 
         window_moved = False
-        while window_std < degree_threshold:
+        while window_std < params['degree_threshold']:
             # still less than our threshold - so the real data has not
             # started yet:
             start_of_window += move_by
@@ -91,7 +100,7 @@ class WindowOfRelevantDataFilter(BaseTransformation):
             window_std = window.std().max()
 
             window_moved = False
-            while window_std < degree_threshold:
+            while window_std < params['degree_threshold']:
                 # still less than our threshold - so the real data has not
                 # started yet:
                 start_of_window -= move_by  # move backwards (started at end)
@@ -113,4 +122,4 @@ class WindowOfRelevantDataFilter(BaseTransformation):
 
         # now we have boxed in the data to a region of interest
         data_to_use = self._update_data(data_transformed=data)
-        return data_to_use
+        return data_to_use, {}
