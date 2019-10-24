@@ -18,11 +18,12 @@ logger = logging.getLogger()
 
 class DataImputationFilter(BaseTransformation):
 
-    def __init__(self, columns=None):
-        super().__init__(columns=columns)
+    def __init__(self):
+        super().__init__()
 
     def _initialize_params(self):
-        self._params = dict(method='nan')
+        super()._initialize_params()
+        self._params.update(**dict(method='nan'))
 
     def apply(self, data=None):
         """
@@ -32,6 +33,8 @@ class DataImputationFilter(BaseTransformation):
         :return:
         """
         super().apply(data=data)
+
+        operate_on_columns = data.columns
 
         # right now the data imputation is easy: Just get rid
         # of the NaN values - but going forward we can have more
@@ -43,10 +46,8 @@ class DataImputationFilter(BaseTransformation):
             logger.info("# of data before filtering for NaNs... = "
                         "{}".format(len(data)))
 
-            if self._columns == 'all':
-                self._columns = data.columns
-
-            data.dropna(how='any', inplace=True, subset=self._columns, axis=0)
+            data.dropna(how='any', inplace=True,
+                        subset=operate_on_columns, axis=0)
             logger.info("# of data after filtering away NaNs... = "
                         "{}".format(len(data)))
         else:

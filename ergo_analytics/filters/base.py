@@ -24,12 +24,7 @@ class BaseTransformation(object):
     _initial_data = None
     _params = None
 
-    def __init__(self, columns=None, params=None):
-
-        if columns is None:
-            raise Exception("Please provide a valid set of columns")
-        if columns and not isinstance(columns, str):
-            self._columns = list(columns)
+    def __init__(self, params=None):
 
         # set default params:
         self._initialize_params()
@@ -42,7 +37,7 @@ class BaseTransformation(object):
         """
         Each filter implements its own set of default parameters.
         """
-        raise NotImplementedError("Implement me!")
+        self._params = dict(data_format_code='5')
 
     def apply(self, data=None):
         self._initial_data = data
@@ -59,7 +54,8 @@ class BaseTransformation(object):
 
     def _update_data(self, data_transformed=None):
         """
-        Makes sure to update the transformed data.
+        Makes sure to update the incoming data to the transformed data
+        but leave incoming columns in place and potentially add new columns.
         """
         data_to_return = self._initial_data
         for col in data_transformed:

@@ -9,6 +9,7 @@ Copyright 2018-
 
 import logging
 import numpy as np
+from constants import DATA_FORMAT_CODES
 from . import BaseTransformation
 from .. import rad_to_deg
 
@@ -25,11 +26,12 @@ class QuadrantFilter(BaseTransformation):
     times due primarily to Gimball lock.
     """
 
-    def __init__(self, columns=None):
-        super().__init__(columns=columns)
+    def __init__(self):
+        super().__init__()
 
     def _initialize_params(self):
-        self._params = dict(units='deg')
+        super()._initialize_params()
+        self._params.update(**dict(units='deg'))
 
     def apply(self, data=None):
         """
@@ -47,7 +49,16 @@ class QuadrantFilter(BaseTransformation):
             raise Exception("Units '{}' not understood!\n"
                             "Valid options: 'deg', 'rad'".format(units))
 
-        this_data = data.loc[:, self._columns]
+        columns_to_use = ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+
+        try:
+            this_data = data.loc[:, columns_to_use]
+        except KeyError:
+            msg = "Please construct delta values before " \
+                  "calling quadrant filter!"
+            logger.exception(msg)
+            raise Exception(msg)
+
         if units == 'rad':
             this_data = rad_to_deg(this_data)
 

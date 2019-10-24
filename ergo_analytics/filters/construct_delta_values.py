@@ -26,14 +26,14 @@ class ConstructDeltaValues(BaseTransformation):
     the device immediately.
     """
 
-    def __init__(self, columns=None):
+    def __init__(self):
         """
         Construct the standard deviation filter.
         """
-        super().__init__(columns=columns)
+        super().__init__()
 
     def _initialize_params(self):
-        self._params = dict(data_format_code='5')  # default
+        super()._initialize_params()
 
     def apply(self, data=None):
         """
