@@ -88,7 +88,7 @@ class LoadElasticSearch(BaseData):
         data_all_devices = []
         try:
             search = Search(using=es, index=index).query("match",
-                            device=mac_address).query("range",
+                            device__keyword=mac_address).query("range",
                                         **{"timestamp":
                                         {"gte": start_time,
                                         "lte": end_time}
