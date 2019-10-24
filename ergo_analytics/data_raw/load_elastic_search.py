@@ -104,9 +104,14 @@ class LoadElasticSearch(BaseData):
 
         for hit in search.scan():
 
-            data = [(hit['timestamp'] + ',' + hit['value']),
+            # data is stored in the value key on elasticsearch
+            # elastic search data never has date in "value":
+            # will always be in this format (example):
+            # {timestamp: 'data', device: 'mac',
+            # values: 'yaw1,pitch1,roll1,yaw2,pitch2,roll2}
+            # BSAFE loads the data as "time + values" in _load_datum(...):
+            data = [f"{hit['timestamp']}, {hit['value']}",
                     hit['device'], hit['timestamp']]
-
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
@@ -159,11 +164,6 @@ class LoadElasticSearch(BaseData):
             data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1,
                                                                   len(names)),
                                 columns=names)
-            if not data.shape[1] == len(names):
-                # did not get the data we expected, do this because
-                # the data can be cut off at times
-                raise Exception
-
         except Exception:
             return None
 
