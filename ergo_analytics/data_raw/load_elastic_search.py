@@ -89,8 +89,10 @@ class LoadElasticSearch(BaseData):
         try:
             search = Search(using=es, index=index).query("match",
                             device=mac_address).query("range",
-                                        **{"timestamp": {"gte": start_time,
-                                                         "lte": end_time}})
+                                        **{"timestamp":
+                                        {"gte": start_time,
+                                        "lte": end_time}
+                                        }).sort('timestamp').params(preserve_order=True)
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
             msg = "\nCommon Cause: Have you started the Elasticnet server?\n"
