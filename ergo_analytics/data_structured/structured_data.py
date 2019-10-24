@@ -42,6 +42,8 @@ class StructuredData(BaseStructuredData):
         """
         super().__init__()
 
+        self._check_data(data=data)
+
         self._data_format_code = data_format_code
 
         self._time = pd.to_datetime(data['Date-Time'])
@@ -58,6 +60,15 @@ class StructuredData(BaseStructuredData):
         self._meta_data = meta_data
 
         self._number_of_points = len(data)
+
+    @staticmethod
+    def _check_data(data=None):
+        """
+        Checks that the incoming data is in the format of the Structured data.
+        """
+        if 'DeltaYaw' not in data or 'DeltaPitch' not in \
+            data or 'DeltaRoll' not in data:
+            raise Exception("The incoming data is not in expected format!")
 
     @property
     def number_of_points(self):

@@ -5,7 +5,6 @@ from periodiq import PeriodiqMiddleware
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_dramatiq import DramatiqIntegration
-
 from .extensions import dramatiq
 from .api import api
 

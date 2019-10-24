@@ -32,7 +32,10 @@ class CreateStructuredData(BaseTransformation):
         """
         super().__init__(columns=columns)
 
-    def apply(self, data=None, data_format_code='4'):
+    def _initialize_params(self):
+        self._params = dict(data_format_code='5')
+
+    def apply(self, data=None):
         """
         Leverage standard deviation to find where the data starts and ends.
 
@@ -43,4 +46,5 @@ class CreateStructuredData(BaseTransformation):
         :param data_format_code: which format is the data in?
         """
 
-        return StructuredData(data=data, data_format_code=data_format_code)
+        return StructuredData(data=data,
+                        data_format_code=self._params['data_format_code']), {}

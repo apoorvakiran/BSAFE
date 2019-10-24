@@ -30,6 +30,9 @@ class FixDateOscillations(BaseTransformation):
     def __init__(self, columns=None):
         super().__init__(columns=columns)
 
+    def _initialize_params(self):
+        self._params = dict(cut_off_date='2015-01-01')
+
     def apply(self, data=None):
         """
         Finds when the time starts producing incrementing meaningful values.
@@ -38,20 +41,25 @@ class FixDateOscillations(BaseTransformation):
         :param last_index:
         :return:
         """
+        super().apply(data=data)
 
         dates_as_int = data['Date-Time'].astype(int)
 
-        cut_off_date = '2015-01-01'  # data before this is considered wrong
+        # data before this is considered wrong:
+        cut_off_date = self._params['cut_off_date']
         cut_off_date_as_int = \
             DataFrame(data=[[cut_off_date]]
                       ).astype(DATE).values[0].astype(int)[0]
 
         if (dates_as_int > cut_off_date_as_int).all():
             # no oscillations occurring, just return
-            return data
+            return data, {}
 
         # since we didn't return we know that some dates are off
         first_normal_data_point = dates_as_int[dates_as_int <
                                         cut_off_date_as_int].index.max() + 1
 
-        return data.iloc[first_normal_data_point:, :]
+        data = data.iloc[first_normal_data_point:, :]
+
+        data_to_use = self._update_data(data_transformed=data)
+        return data_to_use, {}
