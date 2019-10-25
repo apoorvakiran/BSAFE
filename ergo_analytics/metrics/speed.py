@@ -38,7 +38,10 @@ def compute_speed_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     gradient_pitch = gradient(delta_pitch)
     gradient_roll = gradient(delta_roll)
 
-    THRESHOLD_GRAD = 100
+    # rough threshold: worker cannot change relative angle of hand/wrist
+    # by more than 1/100th deg per second - just an assumption and helps
+    # smooth the data:
+    THRESHOLD_GRAD = 100  # discard data beyond this value
     #
     std_yaw = gradient_yaw[absolute(gradient_yaw) < THRESHOLD_GRAD].std()
     std_pitch = gradient_pitch[absolute(gradient_pitch) < THRESHOLD_GRAD].std()

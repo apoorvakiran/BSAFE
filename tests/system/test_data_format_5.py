@@ -32,6 +32,7 @@ from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.filters import WindowOfRelevantDataFilter
 from ergo_analytics.filters import DataImputationFilter
 from ergo_analytics.filters import QuadrantFilter
+from ergo_analytics.filters import ZeroShiftFilter
 from constants import DATA_FORMAT_CODES
 
 
@@ -59,6 +60,7 @@ def test_data_format_5():
     pipeline.add_filter(name='centering1', filter=DataCentering())
     pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
     pipeline.add_filter(name='centering2', filter=DataCentering())
+    pipeline.add_filter(name='zero_shift_filter', filter=ZeroShiftFilter())
     pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
     pipeline.add_filter(name='impute', filter=DataImputationFilter())
     pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
