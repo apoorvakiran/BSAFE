@@ -28,6 +28,7 @@ class DataFilterPipeline(object):
     """
 
     _pipeline = None
+    _results = None
 
     def __init__(self):
         """
@@ -39,6 +40,7 @@ class DataFilterPipeline(object):
         """
 
         self._pipeline = dict()  # dict is ordered
+        self._results = dict()
 
     def update_params(self, new_params=None):
         """
@@ -112,7 +114,11 @@ class DataFilterPipeline(object):
 
         current_data = on_raw_data.copy()
         for _, filter in self._pipeline.items():
+            self._results[filter] = dict()
             current_data, changes = filter.apply(data=current_data)
+            self._results[filter]['data'] = current_data
+            self._results[filter]['changes'] = changes
+
             all_added_columns.append(changes.get('added', []))
             all_removed_columns.append(changes.get('removed', []))
 
@@ -159,4 +165,8 @@ class DataFilterPipeline(object):
         if structured_data.number_of_points <= 1:
             logger.warning("You only have <=1 data point to analyze!")
 
+
         return structured_data
+
+    def get_result(self, name=None):
+        return self._results[name]
