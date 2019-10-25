@@ -24,7 +24,7 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None,
     total motion scores.
     """
 
-    bins_degrees = [15 * i for i in range(12 + 1)]  # [0, 15, 30, 45, 60, 75,
+    bins_degrees = [15 * (i + 1) for i in range(11 + 1)]  # [0, 15, 30, 45, 60, 75,
     # 90, 105, 120, 135, 150, 165, 180]
 
     # now count each (yaw/pitch/roll) degree in the given degree bins
@@ -40,7 +40,7 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None,
         msg += "Consider applying a centering filter and/or others."
         logger.exception(msg)
         raise Exception(msg)
-    
+
     raw_score_yaw = custom_weighted_sum(yaw_bins)
     raw_score_pitch = custom_weighted_sum(pitch_bins)
     raw_score_roll = custom_weighted_sum(roll_bins)
@@ -50,13 +50,17 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None,
                           pitch_raw=raw_score_pitch,
                           roll_raw=raw_score_roll)
 
-    adjuster = 1200 / len(bins_degrees)
+    # adjuster = 1200 / len(bins_degrees)
+
+    # TODO(JTK): need a reasonable adjuster here:
+    # can be determined from fake extreme data:
+    adjuster = 1
 
     strain_scores['yaw'] = strain_scores['yaw_raw'] * adjuster
     strain_scores['pitch'] = strain_scores['pitch_raw'] * adjuster
     strain_scores['roll'] = strain_scores['roll_raw'] * adjuster
     strain_scores['total'] = (strain_scores['yaw'] + strain_scores['pitch']
-                              + strain_scores['roll']) / 2214
+                              + strain_scores['roll']) / 3
 
     return strain_scores
 
@@ -72,16 +76,22 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     where the number in each parenthesis represents the weight applied.
     Here it's linear since it increases linearly with bin number.
     """
+    list_of_bins = np.asarray(list_of_bins)
+    counts_all_bins = sum(list_of_bins)
+
+    # convert to fraction of time spent:
+    list_of_bins = list_of_bins / counts_all_bins
+
     weighted_total = 0
     for bin_ix in range(len(list_of_bins)):
         # written in a general way to support custom weighing functions:
         # pick this bin out of the list:
-        counts_in_this_bin = list_of_bins[bin_ix]
+        fraction_time_spent_in_this_bin = list_of_bins[bin_ix]
 
         if weighing_method == 'linear':
             weight = bin_ix  # set the weight to the bin index
             # ^^ notice it can be 0
-            sum_contribution = counts_in_this_bin * weight
+            sum_contribution = fraction_time_spent_in_this_bin * weight
         else:
             raise Exception(f"Weighing function '{weighing_method}' "
                             f"not implemented!")

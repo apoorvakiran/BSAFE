@@ -110,10 +110,11 @@ class ErgoReport (object):
         return payload_dict
 
     def to_csv(self):
-        return
+        raise NotImplementedError("Implement me!")
 
     def to_string(self):
-        return
+        payload = self._construct_payload()
+        return payload
 
     # def printer(self, outfile):
     #
