@@ -92,7 +92,7 @@ class LoadElasticSearch(BaseData):
                                         **{"timestamp":
                                         {"gte": start_time,
                                         "lte": end_time}
-                                        }).sort('timestamp').params(preserve_order=True)
+                                        }).sort('timestamp')
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:
             msg = "\nCommon Cause: Have you started the Elasticnet server?\n"
@@ -104,7 +104,7 @@ class LoadElasticSearch(BaseData):
             logger.info("No documents found for device {}".format(mac_address))
             return None
 
-        for hit in search.scan():
+        for hit in search.params(preserve_order=True).scan():
 
             # data is stored in the value key on elasticsearch
             # elastic search data never has date in "value":
