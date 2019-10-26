@@ -11,8 +11,11 @@ __all__ = ["DataFilterPipeline"]
 __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
-from copy import deepcopy
+import os
+import json
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 from ergo_analytics.filters import CreateStructuredData
 import logging
 
@@ -92,7 +95,95 @@ class DataFilterPipeline(object):
 
         self._pipeline[name].update(new_params=new_params)
 
-    def run(self, on_raw_data=None, with_format_code='5'):
+    def run(self, on_raw_data=None, with_format_code='5', is_sorted=True,
+            num_rows_per_chunk=3000, debug=False, **kwargs):
+        """
+        Run the pipeline on the incoming raw data.
+        This is done by splitting the data into chunks and iterating over
+        said chunks. The chunk size can be controlled via the incoming
+        parameters.
+
+        :param on_raw_data: Pandas DataFrame with raw data to be processed.
+        :param num_rows_per_chunk: how many rows per chunk of data (if this
+        value exceeds the number of total rows then there will be 1 chunk)
+        """
+
+        if debug:
+            logger.debug("Creating pipeline folder - results will go there...")
+            pipeline_folder = kwargs.get('debug_folder', 'pipeline')
+            if not os.path.isdir(pipeline_folder):
+                os.mkdir(pipeline_folder)
+            orig_dir = os.getcwd()
+            logger.debug(f"Switching to folder '{pipeline_folder}'")
+            os.chdir(pipeline_folder)
+
+            columns_to_plot = list(set(on_raw_data.columns) - {'Date-Time'})
+            plot_incoming_data = on_raw_data.loc[:, columns_to_plot]
+            plot_incoming_data.plot()
+            plt.savefig("incoming_raw_data.png")
+
+        # process "num_rows_per_chunk" rows at-a-time:
+        # btw. the approximate time delta between each row is stored in the
+        # "sampling frequency" variable under "constants"
+        num_chunks = max(len(on_raw_data) // num_rows_per_chunk, 1)
+        logger.debug(f"Split data into {num_chunks} chunk(s).")
+
+        # ability to pass around information between data chunks
+        # was originally introduced due to the zero-line-filter
+        parameters = dict()
+
+        all_structured_data_chunks = []
+
+        # leverage numpy's array_split to split into chunks
+        for j, this_chunk in enumerate(np.array_split(on_raw_data, num_chunks)):
+            # here we process the data in chunks.
+            # We do this for this main reason:
+            # > some filters leverage detailed behavior of the data
+            # (like values of the gradient) to make decisions. The more data
+            # we expose at one time the more brittle the results get.
+            #
+            # Note that the option to pass around "parameters" between chunks
+            # by it being updated by the filters means that in general we
+            # cannot run the chunks in parallel
+            chunk_ix = str(j + 1)
+            logger.debug(f"Processing chunk {chunk_ix}/{num_chunks}.")
+            if debug:
+                # create data chunk directory
+                chunk_dir_name = f"data_chunk {chunk_ix}"
+                if not os.path.isdir(chunk_dir_name):
+                    os.mkdir(chunk_dir_name)
+                curr_dir = os.getcwd()
+                os.chdir(chunk_dir_name)
+
+            this_structured_data_chunk = self._run_chunk(
+                on_raw_data_chunk=this_chunk,
+                with_format_code=with_format_code,
+                is_sorted=is_sorted, parameters=parameters,
+                debug=debug)
+            all_structured_data_chunks.append(this_structured_data_chunk)
+
+            if debug:
+                os.chdir(curr_dir)
+
+        all_structured_data = pd.concat(all_structured_data_chunks)
+        all_structured_data.reset_index(drop=True, inplace=True)
+
+        logger.debug("Raw data successfully converted to structured data!")
+        # always create structured data at the end of the pipeline:
+        all_structured_data = DataFilterPipeline._create_structured_data(
+            transformed_data=all_structured_data,
+            data_format_code=with_format_code)
+        if all_structured_data.number_of_points <= 1:
+            logger.warning("You only have <=1 data point to analyze!")
+
+        if debug:
+            os.chdir(orig_dir)
+            plt.close()
+
+        return all_structured_data
+
+    def _run_chunk(self, on_raw_data_chunk=None, parameters=None,
+                  with_format_code='5', is_sorted=True, debug=False):
         """
         Runs the pipeline on incoming raw data.
         Returns structured data.
@@ -100,27 +191,73 @@ class DataFilterPipeline(object):
         :return:
         """
         # make sure the raw data points have unique indices:
-        on_raw_data.reset_index(drop=True, inplace=True)
+        on_raw_data_chunk.reset_index(drop=True, inplace=True)
 
         # make sure to update the data format code:
         self.update_params(new_params=dict(data_format_code=with_format_code))
 
-        initial_columns = list(on_raw_data.columns)
+        initial_columns = list(on_raw_data_chunk.columns)
 
-        initial_data = on_raw_data
+        initial_data = on_raw_data_chunk
 
         all_added_columns = []  # keep track of any additional/derivative data
         all_removed_columns = []
 
-        current_data = on_raw_data.copy()
-        for _, filter in self._pipeline.items():
+        current_data = on_raw_data_chunk.copy()
+        for filter_ix, (filter_name, filter) in \
+                enumerate(self._pipeline.items()):
+            # now loop over, and apply, each filter to this chunk of data:
+
+            if debug:
+                # create filter directory inside this data chunk
+                filter_dir_name = "filter-" + str(filter_ix + 1) + "-" + \
+                                  filter_name
+                if not os.path.isdir(filter_dir_name):
+                    os.mkdir(filter_dir_name)
+                curr_dir = os.getcwd()
+                os.chdir(filter_dir_name)
+                current_data.to_csv("data_in.csv", index=False)
+
+                columns_to_plot = list(set(current_data.columns) -
+                                       {'Date-Time'})
+                data_in_plot = current_data.loc[:, columns_to_plot]
+                data_in_plot.plot()
+                plt.savefig("data_in.png")
+
+            if filter_name not in parameters:
+                parameters[filter_name] = dict()
+
             self._results[filter] = dict()
-            current_data, changes = filter.apply(data=current_data)
+            current_data, changes = filter.apply(data=current_data,
+                                            parameters=parameters[filter_name])
             self._results[filter]['data'] = current_data
             self._results[filter]['changes'] = changes
 
             all_added_columns.append(changes.get('added', []))
             all_removed_columns.append(changes.get('removed', []))
+
+            parameters[filter_name].update(**filter.get_parameters())
+
+            if debug:
+                current_data.to_csv("data_out.csv", index=False)
+                with open("changes.json", "w") as fd:
+                    json.dump(changes, fd)
+
+                columns_to_plot = list(
+                    set(current_data.columns) - {'Date-Time'})
+                data_in_plot = current_data.loc[:, columns_to_plot]
+                data_in_plot.plot()
+                plt.savefig("data_out.png")
+
+                # now only plot columns that have been affected:
+                columns_to_plot = filter.columns_operated_on
+                if columns_to_plot is not None and \
+                        'Date-Time' not in columns_to_plot:
+                    data_in_plot = current_data.loc[:, columns_to_plot]
+                    data_in_plot.plot()
+                    plt.savefig("data_out_only_affected_columns.png")
+
+                os.chdir(curr_dir)
 
         all_added_columns = [item for sublist in all_added_columns for item in
                              sublist]
@@ -130,7 +267,7 @@ class DataFilterPipeline(object):
         assert len(all_removed_columns) == 0  # NEEDS implementation if >0
 
         assert current_data.shape[1] == len(list(
-            np.unique(list(on_raw_data.columns) + all_added_columns)))
+            np.unique(list(on_raw_data_chunk.columns) + all_added_columns)))
 
         # now what data remains?
         # first get the indices
@@ -146,27 +283,36 @@ class DataFilterPipeline(object):
                      "points - currently we have "
                      "{} pts.".format(len(data_post_pipeline)))
 
-        # TODO(JTK): these should be filters
-        # data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
-        #                                inplace=True)
+        # TODO(JTK): these should be filters too (sorting etc.)
+        if not is_sorted:
+            data_post_pipeline.sort_values(by=['Date-Time'], ascending=True,
+                                           inplace=True)
         data_post_pipeline.drop_duplicates(subset=['Date-Time'], inplace=True)
-        data_post_pipeline.reset_index(drop=True, inplace=True)
 
         logger.debug("After dropping duplicates we have "
                      "{} pts.".format(len(data_post_pipeline)))
 
-        # always create structured data at the end of the pipeline:
+        return current_data
+
+    @staticmethod
+    def _create_structured_data(transformed_data=None,
+                                data_format_code='5'):
+        """
+        Creates the structured data.
+        """
         f_str_data = CreateStructuredData()
-        f_str_data.update(new_params=dict(data_format_code='5'))
-        structured_data, _ = f_str_data.apply(data=data_post_pipeline)
-
-        logger.debug("Raw data successfully converted to structured data!")
-
-        if structured_data.number_of_points <= 1:
-            logger.warning("You only have <=1 data point to analyze!")
-
-
+        f_str_data.update(new_params=dict(data_format_code=data_format_code))
+        structured_data, _ = f_str_data.apply(data=transformed_data)
         return structured_data
 
     def get_result(self, name=None):
+        """
+        Returns the results of a filter.
+        """
         return self._results[name]
+
+    def get_parameters(self, name=None):
+        """
+        Returns the parameters of a filter.
+        """
+        return self._pipeline[name].get_parameters()

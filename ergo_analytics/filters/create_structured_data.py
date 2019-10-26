@@ -35,7 +35,7 @@ class CreateStructuredData(BaseTransformation):
     def _initialize_params(self):
         super()._initialize_params()
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Leverage standard deviation to find where the data starts and ends.
 
@@ -45,6 +45,7 @@ class CreateStructuredData(BaseTransformation):
         :param data: data for which delta angles are to be constructed.
         :param data_format_code: which format is the data in?
         """
+        super().apply(data=data, **kwargs)
 
         return StructuredData(data=data,
                         data_format_code=self._params['data_format_code']), {}
