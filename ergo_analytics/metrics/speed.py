@@ -48,6 +48,7 @@ def compute_speed_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
 
     # TODO(JTK): To get these scores on a scale of 0-1 we need the datasets
     # TODO: collected representing "mild" "mid" and "severe".
+    # TODO: Right now the score is somewhat "floating" around.
 
     # summarize speed scores
     speed_scores = dict(yaw_raw=std_yaw, pitch_raw=std_pitch, roll_raw=std_roll)
