@@ -20,7 +20,8 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
     Takes values of yaw, pitch, and roll, and calculates posture score
     as percent of time spent outside of a "safe" posture degree value.
     """
-    
+    # This score is inherently on a scale of 0-1
+
     # Whenever any of the delta angles extend beyond the safe region,
     # count that as an unsafe event:
     num_unsafe = len(np.where((absolute(delta_pitch) > safe_threshold) | 

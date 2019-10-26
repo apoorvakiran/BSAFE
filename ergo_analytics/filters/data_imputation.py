@@ -25,14 +25,14 @@ class DataImputationFilter(BaseTransformation):
         super()._initialize_params()
         self._params.update(**dict(method='nan'))
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Imputes the data or rids of it depending on the method used.
 
         :param data:
         :return:
         """
-        super().apply(data=data)
+        super().apply(data=data, **kwargs)
 
         operate_on_columns = data.columns
 
@@ -53,4 +53,5 @@ class DataImputationFilter(BaseTransformation):
         else:
             raise NotImplementedError("Implement me!")
 
-        return self._update_data(data_transformed=data), {}
+        return self._update_data(data_transformed=data,
+                                 columns_operated_on=operate_on_columns), {}

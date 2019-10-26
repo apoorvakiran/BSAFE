@@ -21,6 +21,7 @@ class BaseTransformation(object):
     """
 
     _columns = None
+    _columns_operated_on = None
     _initial_data = None
     _params = None
 
@@ -33,14 +34,24 @@ class BaseTransformation(object):
         if params is not None:
             self._params.update(**params)
 
+    @property
+    def columns_operated_on(self):
+        return self._columns_operated_on
+
     def _initialize_params(self):
         """
         Each filter implements its own set of default parameters.
         """
         self._params = dict(data_format_code='5')
 
-    def apply(self, data=None):
+    def apply(self, data=None, parameters=None):
         self._initial_data = data
+
+        if parameters:
+            # have ability to pass in parameters via a cache:
+            for param in parameters:
+                if param in self._params:
+                    self._params[param] = parameters[param]
 
     def update(self, new_params=None):
         """
@@ -52,7 +63,7 @@ class BaseTransformation(object):
 
         self._params.update(**new_params)
 
-    def _update_data(self, data_transformed=None):
+    def _update_data(self, data_transformed=None, columns_operated_on=None):
         """
         Makes sure to update the incoming data to the transformed data
         but leave incoming columns in place and potentially add new columns.
@@ -60,4 +71,12 @@ class BaseTransformation(object):
         data_to_return = self._initial_data
         for col in data_transformed:
             data_to_return[col] = data_transformed[col]
+
+        self._columns_operated_on = columns_operated_on
         return data_to_return
+
+    def get_parameters(self):
+        """
+        Returns the parameters of this filter.
+        """
+        return self._params

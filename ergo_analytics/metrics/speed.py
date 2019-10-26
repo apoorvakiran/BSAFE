@@ -12,7 +12,6 @@ __version__ = "Alpha"
 
 from numpy import gradient
 from numpy import absolute
-from numpy import std
 import logging
 
 logger = logging.getLogger()
@@ -46,6 +45,9 @@ def compute_speed_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     std_yaw = gradient_yaw[absolute(gradient_yaw) < THRESHOLD_GRAD].std()
     std_pitch = gradient_pitch[absolute(gradient_pitch) < THRESHOLD_GRAD].std()
     std_roll = gradient_roll[absolute(gradient_roll) < THRESHOLD_GRAD].std()
+
+    # TODO(JTK): To get these scores on a scale of 0-1 we need the datasets
+    # TODO: collected representing "mild" "mid" and "severe".
 
     # summarize speed scores
     speed_scores = dict(yaw_raw=std_yaw, pitch_raw=std_pitch, roll_raw=std_roll)

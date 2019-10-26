@@ -42,14 +42,14 @@ class WindowOfRelevantDataFilter(BaseTransformation):
                                    degree_threshold=5,
                                    window_width_seconds=10))
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Leverage standard deviation to find where the data starts and ends.
 
         If the worker is not using the device and/or not working the standard
         deviation should be smaller than if working.
         """
-        super().apply(data=data)
+        super().apply(data=data, **kwargs)
 
         params = self._params
 
@@ -66,7 +66,9 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         if len(data_to_use) < 100:
             # due to the statistical nature of this filter, we need
             # data!
-            raise Exception("We do not have enough data for this filter!")
+            msg = "We do not have enough data for this filter!"
+            logger.warning(msg)
+            return data, {}
 
         # window width in units of "indices" (# rows in data):
         width_indices = params['window_width_seconds'] * SAMPLING_RATE
@@ -125,5 +127,6 @@ class WindowOfRelevantDataFilter(BaseTransformation):
             raise Exception("This filter removed all data!")
 
         # now we have boxed in the data to a region of interest
-        data_to_use = self._update_data(data_transformed=data)
+        data_to_use = self._update_data(data_transformed=data,
+                                        columns_operated_on=operate_on_columns)
         return data_to_use, {}
