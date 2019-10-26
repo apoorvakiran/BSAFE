@@ -69,6 +69,7 @@ from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.filters import WindowOfRelevantDataFilter
 from ergo_analytics.filters import DataImputationFilter
 from ergo_analytics.filters import QuadrantFilter
+from ergo_analytics.filters import ZeroShiftFilter
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
@@ -108,12 +109,15 @@ pipeline.add_filter(name='fix_osc', filter=FixDateOscillations())
 pipeline.add_filter(name='centering1', filter=DataCentering())
 pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
 pipeline.add_filter(name='centering2', filter=DataCentering())
+pipeline.add_filter(name='zero_shift_filter', filter=ZeroShiftFilter())
 pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
 pipeline.add_filter(name='impute', filter=DataImputationFilter())
 pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
 # run the pipeline!
 structured_data = pipeline.run(on_raw_data=raw_data,
-                               with_format_code=data_format_code)
+                               with_format_code=data_format_code,
+                               num_rows_per_chunk=20,
+                               debug=True)
 
 mets = ErgoMetrics(structured_data=structured_data)
 mets.compute()
@@ -122,3 +126,5 @@ total_score = mets.get_score(name='total')
 print("Total score = {}".format(total_score))
 
 report = ErgoReport(ergo_metrics=mets, mac_address=test_address)
+
+print(report)

@@ -26,20 +26,20 @@ class DataCentering(BaseTransformation):
     def _initialize_params(self):
         super()._initialize_params()  # no additional parameters for this filter
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Applies this filter to the incoming data.
 
         :param data:
         :return:
         """
-        super().apply(data=data)
+        super().apply(data=data, **kwargs)
 
         operate_on_columns = \
             DATA_FORMAT_CODES[self._params['data_format_code']]['NUMERICS']
 
         data_centered = data.loc[:, operate_on_columns]
-
         data_centered -= data_centered.mean(axis=0)
 
-        return self._update_data(data_transformed=data_centered), {}
+        return self._update_data(data_transformed=data_centered,
+                                 columns_operated_on=operate_on_columns), {}

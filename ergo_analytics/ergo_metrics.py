@@ -58,7 +58,7 @@ class ErgoMetrics(object):
 
     def compute(self):
         """
-        Compute the ergo metric scores - the ergoScores if you will.
+        Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
         """
         # compute the scores
         logger.debug("Computing ErgoMetric scores...")

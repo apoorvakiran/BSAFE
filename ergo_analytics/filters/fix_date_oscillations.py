@@ -35,7 +35,7 @@ class FixDateOscillations(BaseTransformation):
         super()._initialize_params()
         self._params.update(**dict(cut_off_date='2015-01-01'))
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Finds when the time starts producing incrementing meaningful values.
 
@@ -43,7 +43,7 @@ class FixDateOscillations(BaseTransformation):
         :param last_index:
         :return:
         """
-        super().apply(data=data)
+        super().apply(data=data, **kwargs)
 
         date_column = 'Date-Time'
 
@@ -66,5 +66,6 @@ class FixDateOscillations(BaseTransformation):
 
         data = data.iloc[first_normal_data_point:, :]
 
-        data_to_use = self._update_data(data_transformed=data)
+        data_to_use = self._update_data(data_transformed=data,
+                                        columns_operated_on=date_column)
         return data_to_use, {}

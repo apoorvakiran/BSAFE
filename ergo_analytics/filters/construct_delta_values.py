@@ -35,7 +35,7 @@ class ConstructDeltaValues(BaseTransformation):
     def _initialize_params(self):
         super()._initialize_params()
 
-    def apply(self, data=None):
+    def apply(self, data=None, **kwargs):
         """
         Leverage standard deviation to find where the data starts and ends.
 
@@ -45,12 +45,12 @@ class ConstructDeltaValues(BaseTransformation):
         :param data: data for which delta angles are to be constructed.
         :param data_format_code: which format is the data in?
         """
-        super().apply(data=data)
+        super().apply(data=data, **kwargs)
 
         params = self._params
         if params['data_format_code'] == '4':
             # already in delta-angle format
-            data_to_return = data
+            pass
         elif params['data_format_code'] == '5':
             # need to construct delta's
             data['DeltaYaw'] = data['Yaw[1](deg)'] - data['Yaw[0](deg)']
@@ -59,7 +59,10 @@ class ConstructDeltaValues(BaseTransformation):
         else:
             raise Exception("Implement me!")
 
-        data_to_return = self._update_data(data_transformed=data)
+        data_to_return = self._update_data(data_transformed=data,
+                                           columns_operated_on=['DeltaYaw',
+                                                                'DeltaPitch',
+                                                                'DeltaRoll'])
 
         return data_to_return, \
                {'added': ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']}
