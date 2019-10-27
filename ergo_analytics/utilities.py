@@ -38,10 +38,11 @@ def digitize_values(values=None, bins=None):
     :param bins:
     :return:
     """
-    values_dig = digitize(abs(values), bins)
+    values_dig = digitize(abs(values), bins, right=True)  # include end points
     tmp = [0] * len(bins)
 
     for val in values_dig:
+        # 15, 30, 45, ...
         tmp[val] += 1
 
     return tmp
