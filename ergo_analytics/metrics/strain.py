@@ -17,7 +17,8 @@ import logging
 logger = logging.getLogger()
 
 
-def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
+def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None,
+                         normalize_to_scale=(0, 7), weighing_method='linear'):
     """
     Given the yaw pitch and roll in their delta format, compute the associated
     strain score.
@@ -26,8 +27,15 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
         The incoming data is in degrees.
     """
 
-    bins_degrees = [15 * (i + 1) for i in range(11 + 1)]
+    m = 11  # how many bins?
+    bins_degrees = [15 * (i + 1) for i in range(m + 1)]
     # bins are: [0, 15, 30, 45, ...]
+
+    # but we also need to weigh by how much time is spent at this value
+    # that contributed to the bin. For example:
+    # [0,0,0,0,0,0,0,0,....,0,0,0,0,178] should be a low score even though
+    # 178 is hit, it's for such a short time compared to the total time which
+    # is spent at 0 deg!
 
     # now count each (yaw/pitch/roll) degree in the given degree bins
     # for example - if yaw had a value of 4 at one time instance that
@@ -35,13 +43,16 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
     # don't care about the direction so we take the absolute values and
     # then we bin them.
 
+    delta_yaw_abs = np.abs(delta_yaw)
+    delta_pitch_abs = np.abs(delta_pitch)
+    delta_roll_abs = np.abs(delta_roll)
+
     try:
-        pitch_bins = digitize_values(values=np.abs(delta_pitch),
-                                     bins=bins_degrees)
-        yaw_bins = digitize_values(values=np.abs(delta_yaw), bins=bins_degrees)
-        roll_bins = digitize_values(values=np.abs(delta_roll),
-                                    bins=bins_degrees)
+        pitch_bins = digitize_values(values=delta_pitch_abs, bins=bins_degrees)
+        yaw_bins = digitize_values(values=delta_yaw_abs, bins=bins_degrees)
+        roll_bins = digitize_values(values=delta_roll_abs, bins=bins_degrees)
     except IndexError:
+        # we could also do a np.clip(...) based on the known bins above
         msg = "The values seem to be outside the range [-180, 180].\n"
         msg += "Consider applying a centering filter and/or others."
         logger.exception(msg)
@@ -49,21 +60,39 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None):
 
     # the following sum is a way to take the bins and condense into a single
     # metric representing the scores:
-    raw_score_yaw = _custom_weighted_sum(yaw_bins)
-    raw_score_pitch = _custom_weighted_sum(pitch_bins)
-    raw_score_roll = _custom_weighted_sum(roll_bins)
+    raw_score_yaw = _custom_weighted_sum(list_of_bins=yaw_bins,
+                                         weighing_method=weighing_method)
+    raw_score_pitch = _custom_weighted_sum(list_of_bins=pitch_bins,
+                                           weighing_method=weighing_method)
+    raw_score_roll = _custom_weighted_sum(list_of_bins=roll_bins,
+                                          weighing_method=weighing_method)
+
+    # scores coming out are always [0, m] where "m" is number of bins used
+
+    # now normalize to incoming scale (say the incoming is (2, 10)
+    # for an example):
+    raw_score_yaw /= m  # bring to (0, 1)
+    raw_score_yaw *= (normalize_to_scale[1] - normalize_to_scale[0])  # (0, 8)
+    raw_score_yaw += normalize_to_scale[0]  # (2, 10)
+    #
+    raw_score_pitch /= m  # bring to (0, 1)
+    raw_score_pitch *= (normalize_to_scale[1] - normalize_to_scale[0])  # (0, 8)
+    raw_score_pitch += normalize_to_scale[0]  # (2, 10)
+    #
+    raw_score_roll /= m  # bring to (0, 1)
+    raw_score_roll *= (normalize_to_scale[1] - normalize_to_scale[0])  # (0, 8)
+    raw_score_roll += normalize_to_scale[0]  # (2, 10)
 
     # summarize strain scores
     strain_scores = dict(yaw_raw=raw_score_yaw, pitch_raw=raw_score_pitch,
                          roll_raw=raw_score_roll)
 
-    # TODO(JTK): need a reasonable adjuster here:
-    # this is one of the reasons we need the representative datasets
-    adjuster = 1
+    strain_scores['yaw'] = strain_scores['yaw_raw']
+    strain_scores['pitch'] = strain_scores['pitch_raw']
+    strain_scores['roll'] = strain_scores['roll_raw']
 
-    strain_scores['yaw'] = strain_scores['yaw_raw'] * adjuster
-    strain_scores['pitch'] = strain_scores['pitch_raw'] * adjuster
-    strain_scores['roll'] = strain_scores['roll_raw'] * adjuster
+    # how to construct the total score?
+    # we can take an average:
     strain_scores['total'] = (strain_scores['yaw'] + strain_scores['pitch']
                               + strain_scores['roll']) / 3
 
@@ -81,47 +110,47 @@ def _custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     where the number in each parenthesis represents the weight applied.
     Here it's linear since it increases linearly with bin number.
     """
-
-    list_of_bins = np.asarray(list_of_bins)
-
-    num_bins = len(list_of_bins)
+    list_of_bins = np.asarray(list_of_bins)  # say m = len(list_of_bins)
     counts_all_bins = sum(list_of_bins)
-
     # convert to fraction of time spent in each bin:
-    weights = list_of_bins / counts_all_bins
+    weights_fraction_time = list_of_bins / counts_all_bins
     # these are the weights "40% in bin 2" means:
     # "weigh bin 2 by 40%" ==> "bin 2's value" * 40%
     # so note that the counts in the bins are not the "bin2 value"
     # they are the weights. But we are free to modify the bin values
     # with whatever we want and that is where "weighing_method" comes in.
 
-    assert 0.99 < sum(weights) < 1.01
-
-    weighted_total = 0
-    total_bin_values = 0
-    for bin_ix in range(len(weights)):
+    weighted_score = 0
+    total_weight = 0
+    for bin_ix in range(len(weights_fraction_time)):  # [0, 1, 2, ..., m]
         # written in a general way to support custom weighing functions:
         # pick this bin out of the list:
-        weight_this_bin = weights[bin_ix]
 
+        weight_fraction_this_bin = weights_fraction_time[bin_ix]
+
+        # now we apply a weight-modifier on top of the pure "fraction weight":
         if weighing_method == 'constant':
             # only apply weights to bins not the first one:
-            bin_value = 1.
+            weight_custom = 1.
         elif weighing_method == 'linear':
-            bin_value = bin_ix  # set the bin_value to the bin index
-            # (linear ramp) - notice it can be 0
+            weight_custom = (bin_ix + 1)
         elif weighing_method == 'quadratic':
-            bin_value = bin_ix ** 2
+            weight_custom = (bin_ix + 1) ** 2
         else:
             raise Exception(f"Weighing function '{weighing_method}' "
                             f"not implemented!")
 
-        sum_contribution = bin_value * weight_this_bin
+        combined_weight = weight_fraction_this_bin * weight_custom
+        this_score = bin_ix  # better name for increased understanding below
+        sum_contribution = this_score * combined_weight
 
-        total_bin_values += bin_value
-        weighted_total += sum_contribution
+        total_weight += combined_weight
+        weighted_score += sum_contribution
 
-    # divide by largest possible bin value
-    weighted_total /= bin_value
+    effective_score = weighted_score
+    if total_weight > 0:
+        effective_score /= total_weight
 
-    return weighted_total
+    # the score is now in a range [0, m]
+
+    return effective_score
