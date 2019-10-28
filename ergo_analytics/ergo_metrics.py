@@ -14,7 +14,7 @@ import numpy as np
 import logging
 from .metrics import compute_posture_score
 from .metrics import compute_strain_score
-from .metrics import compute_speed_score
+from .metrics import compute_angular_speed_score
 
 logger = logging.getLogger()
 
@@ -56,7 +56,7 @@ class ErgoMetrics(object):
     def data(self):
         return self._data
 
-    def compute(self):
+    def compute(self, **kwargs):
         """
         Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
         """
@@ -65,15 +65,16 @@ class ErgoMetrics(object):
 
         strain_scores_tmp = compute_strain_score(delta_pitch=self._delta_pitch,
                                                  delta_yaw=self._delta_yaw,
-                                                 delta_roll=self._delta_roll)
+                                                 delta_roll=self._delta_roll,
+                                                 **kwargs)
 
-        speed_scores_tmp = compute_speed_score(delta_pitch=self._delta_pitch,
-                                               delta_yaw=self._delta_yaw,
-                                               delta_roll=self._delta_roll)
+        speed_scores_tmp = compute_angular_speed_score(
+            delta_pitch=self._delta_pitch, delta_yaw=self._delta_yaw,
+            delta_roll=self._delta_roll, method='binning', **kwargs)
 
         posture_scores_tmp = compute_posture_score(
             delta_pitch=self._delta_pitch, delta_yaw=self._delta_yaw,
-            delta_roll=self._delta_roll, safe_threshold=30)
+            delta_roll=self._delta_roll, safe_threshold=30, **kwargs)
 
         # finalize speed scores:
         speed_scores = speed_scores_tmp
