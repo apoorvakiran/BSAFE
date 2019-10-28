@@ -13,6 +13,7 @@ Copyright 2018 Iterate Labs, Inc.
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+from .common import *
 from .posture import *
 from .strain import *
-from .speed import *
+from .angular_speed import *
