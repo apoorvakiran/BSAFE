@@ -100,7 +100,7 @@ class ErgoMetrics(object):
         Computes the total score from the incoming scores.
         """
         # combine the speed score with the total scores from strain and posture:
-        return max((scores['speed']['total'] + scores['strain']['total'] +
+        return min((scores['speed']['total'] + scores['strain']['total'] +
                 scores['posture']['unsafe']) / 2, 7)
 
     @staticmethod
