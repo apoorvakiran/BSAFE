@@ -23,7 +23,7 @@ class ErgoMetrics(object):
     """
     Computes Ergonomic Metrics (ErgoMetrics) for the incoming data
     which is assumed to be in "structured" form as opposed to "raw" data.
-    
+
     The Ergo Metrics is what is responsible for creating the ergonomics
     scores and provide an evaluation for management and people in
     charge of the safety.
@@ -100,8 +100,8 @@ class ErgoMetrics(object):
         Computes the total score from the incoming scores.
         """
         # combine the speed score with the total scores from strain and posture:
-        return (scores['speed']['total'] + scores['strain']['total'] +
-                scores['posture']['unsafe']) / 2
+        return max((scores['speed']['total'] + scores['strain']['total'] +
+                scores['posture']['unsafe']) / 2, 7)
 
     @staticmethod
     def _normalize_speed(speed_scores=None):
@@ -110,7 +110,7 @@ class ErgoMetrics(object):
         """
         for key in ['yaw', 'pitch', 'roll']:
             speed_scores[key + '_normalized'] = \
-                np.asarray(speed_scores[key]) / 21
+                np.asarray(speed_scores[key])
 
     @staticmethod
     def _compute_total_speed_score(speed_scores=None):
