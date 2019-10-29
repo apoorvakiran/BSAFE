@@ -34,12 +34,12 @@ from ergo_analytics.ergo_metrics import ErgoMetrics
 #     em = ErgoMetrics(structured_data=data)
 #     em.compute()
 
-#     assert pytest.approx(em.get_score(name='total'), 0.0001) == 0.0641025
-
-#     data = MagicMock()
-#     data.get_data = MagicMock(return_value=[20, 40, 60, 80, 80, 80] * 2)
-
-#     em = ErgoMetrics(structured_data=data)
-#     em.compute()
-
-#     assert pytest.approx(em.get_score(name='total'), 0.0001) == 4.3615136
+    # assert pytest.approx(em.get_score(name='total'), 0.0001) == 0.0641025
+    #
+    # data = MagicMock()
+    # data.get_data = MagicMock(return_value=[20, 40, 60, 80, 80, 80] * 2)
+    #
+    # em = ErgoMetrics(structured_data=data)
+    # em.compute()
+    #
+    # assert pytest.approx(em.get_score(name='total'), 0.0001) == 4.3615136
