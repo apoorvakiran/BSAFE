@@ -100,8 +100,8 @@ class ErgoMetrics(object):
         Computes the total score from the incoming scores.
         """
         # combine the speed score with the total scores from strain and posture:
-        return (scores['speed']['total'] + scores['strain']['total'] +
-                scores['posture']['unsafe']) / 2
+        return max((scores['speed']['total'] + scores['strain']['total'] +
+                scores['posture']['unsafe']) / 2, 7)
 
     @staticmethod
     def _normalize_speed(speed_scores=None):
