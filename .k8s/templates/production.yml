@@ -8,7 +8,14 @@ metadata:
 data:
   ENVIRONMENT: production
   SENTRY_DSN: ${SENTRY_DSN}
-  BROKER_URL: safe-core-prod.vkpnka.clustercfg.use1.cache.amazonaws.com:6379
+  BROKER_URL: ${PROD_BROKER_URL}
+  ELASTIC_SEARCH_INDEX: ${PROD_ELASTIC_SEARCH_INDEX}
+  AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+  AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+  ELASTIC_SEARCH_HOST: ${PROD_ELASTIC_SEARCH_HOST}
+  AWS_REGION: ${AWS_REGION}
+  INFINITY_GAUNTLET_URL: ${PROD_INFINITY_GAUNTLET_URL}
+  INFINITY_GAUNTLET_AUTH: ${PROD_INFINITY_GAUNTLET_AUTH}
 
 ---
 
@@ -80,4 +87,11 @@ spec:
         envFrom:
           - configMapRef:
               name: safe-core-config
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2000Mi
+          requests:
+            cpu: 1000m
+            memory: 2000Mi
 
