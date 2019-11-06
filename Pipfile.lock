@@ -24,18 +24,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:11af0d6432053938a01de2a53c7b2edd732e13edba563ed0184b369cfa26dc1c",
-                "sha256:ee216d2323b24d2bba29b7d84fef278ce9568c3481d5b31e780de0dddeb44747"
+                "sha256:33ffedfd26e06dec914e836582bae5e680d046155add460760abf6c1a9145130",
+                "sha256:82f3565d406d1274efe10539e968df15aed50f6322666a4f3fd04e28bd0a662d"
             ],
             "index": "pypi",
-            "version": "==1.10.10"
+            "version": "==1.10.11"
         },
         "botocore": {
             "hashes": [
-                "sha256:b5f2af77f5bdc563ed164b85f5a0e2df0bb1a3d95c8063701cbd03e6c0a73d47",
-                "sha256:dbd699d6b7fe1637256f16c008425f5b84784f40e66179afa455a29bacbf781c"
+                "sha256:6a52a54e321848d46c99ef96a13ff47ff7f9c71158e5ecfd582a1c8de2240de1",
+                "sha256:b974e54a16cb730437110718bca055e84022a6c5e6e791e0e6c1d06cdba71d06"
             ],
-            "version": "==1.13.10"
+            "version": "==1.13.11"
         },
         "certifi": {
             "hashes": [
@@ -481,18 +481,18 @@
         },
         "boto3": {
             "hashes": [
-                "sha256:11af0d6432053938a01de2a53c7b2edd732e13edba563ed0184b369cfa26dc1c",
-                "sha256:ee216d2323b24d2bba29b7d84fef278ce9568c3481d5b31e780de0dddeb44747"
+                "sha256:33ffedfd26e06dec914e836582bae5e680d046155add460760abf6c1a9145130",
+                "sha256:82f3565d406d1274efe10539e968df15aed50f6322666a4f3fd04e28bd0a662d"
             ],
             "index": "pypi",
-            "version": "==1.10.10"
+            "version": "==1.10.11"
         },
         "botocore": {
             "hashes": [
-                "sha256:b5f2af77f5bdc563ed164b85f5a0e2df0bb1a3d95c8063701cbd03e6c0a73d47",
-                "sha256:dbd699d6b7fe1637256f16c008425f5b84784f40e66179afa455a29bacbf781c"
+                "sha256:6a52a54e321848d46c99ef96a13ff47ff7f9c71158e5ecfd582a1c8de2240de1",
+                "sha256:b974e54a16cb730437110718bca055e84022a6c5e6e791e0e6c1d06cdba71d06"
             ],
-            "version": "==1.13.10"
+            "version": "==1.13.11"
         },
         "docutils": {
             "hashes": [
