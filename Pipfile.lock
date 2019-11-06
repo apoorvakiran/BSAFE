@@ -115,11 +115,11 @@
         },
         "flask-dramatiq": {
             "hashes": [
-                "sha256:23614b3eb32913a924654656689c3d95ea913a7c6b723796a4a5739e77fa4666",
-                "sha256:5e7cdb3ef198dcc49b1ffca3ca07090b49df9002a6916ecaa999a27978b5abe4"
+                "sha256:63709e73d7c8d2e5d9bc554d1e859d91c5c5c9a4ebc9461752655bf1e0b87420",
+                "sha256:7d4a9289721577f726183f7c44c6713a16bbdff54b946f27abc2ffcc65768adf"
             ],
             "index": "pypi",
-            "version": "==0.5.0"
+            "version": "==0.6.0"
         },
         "gunicorn": {
             "hashes": [
@@ -334,10 +334,10 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:0961bf3429691b9cd7e3695a37ee8bc18e95c56ac1271dc2bbc41697062d1b6d",
-                "sha256:8997c62f779045b07273e124bbe1d03e2eebb9a38a7ef0798fea4bae72b4b6a3"
+                "sha256:4acadc9a2b96c19fe00932a38ca63e601180c39a189a696abce1eaab641447e1",
+                "sha256:61b5ed888beab19ddccab3478910e2076a6b5a0295dffc43021890e136edf764"
             ],
-            "version": "==2.4.3"
+            "version": "==2.4.4"
         },
         "python-dateutil": {
             "hashes": [
@@ -547,10 +547,10 @@
         },
         "pyparsing": {
             "hashes": [
-                "sha256:0961bf3429691b9cd7e3695a37ee8bc18e95c56ac1271dc2bbc41697062d1b6d",
-                "sha256:8997c62f779045b07273e124bbe1d03e2eebb9a38a7ef0798fea4bae72b4b6a3"
+                "sha256:4acadc9a2b96c19fe00932a38ca63e601180c39a189a696abce1eaab641447e1",
+                "sha256:61b5ed888beab19ddccab3478910e2076a6b5a0295dffc43021890e136edf764"
             ],
-            "version": "==2.4.3"
+            "version": "==2.4.4"
         },
         "pytest": {
             "hashes": [
