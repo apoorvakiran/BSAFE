@@ -32,10 +32,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:b5f2af77f5bdc563ed164b85f5a0e2df0bb1a3d95c8063701cbd03e6c0a73d47",
-                "sha256:dbd699d6b7fe1637256f16c008425f5b84784f40e66179afa455a29bacbf781c"
+                "sha256:0095818b1f1e2698c3fe0ccc6bd4ed8c735fce37d9a99d7f304047bfd8272ec8",
+                "sha256:9303675e019b4a7389bfbec264068435d2111739b46baa7ebd08391e64dddfb4"
             ],
-            "version": "==1.13.10"
+            "version": "==1.13.12"
         },
         "certifi": {
             "hashes": [
@@ -312,11 +312,11 @@
         },
         "periodiq": {
             "hashes": [
-                "sha256:5f38da7deced0e62920956e8217cfe0534a3c9dd24975013c7c706483a40ca83",
-                "sha256:d9f61cdee1805a7f2d8ffd80d2950acd74514d749585ea66704ce0889ea6726b"
+                "sha256:be4fd23f19fe070d64270f779ca0a2749c536cd819eacc1804fbb32aaefb6270",
+                "sha256:c04b457bb4bfcfa1ecb13e1e277e4febd499c391263fb0ea58f8cb4dc9b14843"
             ],
             "index": "pypi",
-            "version": "==0.11.0"
+            "version": "==0.12.0"
         },
         "pika": {
             "hashes": [
@@ -489,10 +489,10 @@
         },
         "botocore": {
             "hashes": [
-                "sha256:b5f2af77f5bdc563ed164b85f5a0e2df0bb1a3d95c8063701cbd03e6c0a73d47",
-                "sha256:dbd699d6b7fe1637256f16c008425f5b84784f40e66179afa455a29bacbf781c"
+                "sha256:0095818b1f1e2698c3fe0ccc6bd4ed8c735fce37d9a99d7f304047bfd8272ec8",
+                "sha256:9303675e019b4a7389bfbec264068435d2111739b46baa7ebd08391e64dddfb4"
             ],
-            "version": "==1.13.10"
+            "version": "==1.13.12"
         },
         "docutils": {
             "hashes": [
