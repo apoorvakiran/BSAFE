@@ -12,7 +12,6 @@ jobs:
           command: |  # use pipenv to install dependencies
             sudo pip install pipenv
             pipenv install --dev
-            pipenv shell
       - run:
           name: Run Tests
           # command: pipenv run python -m pytest --ignore tests/system tests
