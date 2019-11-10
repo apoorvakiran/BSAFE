@@ -19,9 +19,23 @@ __copyright__ = "Iterate Labs, Co., 2018-"
 __author__ = "Iterate Labs, Co."
 __version__ = "Alpha"
 
+import pandas as pd
+
 
 # ==== DATA LOADING ====
-DATE = 'datetime64[ns]'  # format for dates in incoming data
+def convert_date(date_from_device=None):
+      """
+      Converts the string dates coming from the device.
+      """
+      try:
+            date_to_return = pd.to_datetime(date_from_device)
+      except ValueError:
+            date_to_return = date_from_device.lstrip('RTC:')
+            date_to_return = pd.to_datetime(date_to_return)
+      
+      return date_to_return
+
+DATE = lambda x: convert_date(x)  # function to convert incoming device dates
 
 # *NOTE* If adding or removing any "column_names_format_j" you need to update
 # the dict-variable "DATA_FORMAT_CODES" further down as well

@@ -42,7 +42,7 @@ def test_data_format_4():
 
     basepath_raw_data = os.path.join(ROOT_DIR, "Demos",
                                      f"demo-format-{data_format_code}",
-                                     "data.csv")
+                                     "data_small.csv")
 
     assert os.path.isfile(basepath_raw_data)
 
@@ -67,7 +67,7 @@ def test_data_format_4():
     # run the pipeline!
     structured_data = pipeline.run(on_raw_data=raw_data,
                                    with_format_code=data_format_code,
-                                   num_rows_per_chunk=10)
+                                   num_rows_per_chunk=100)
 
     metrics = ErgoMetrics(structured_data=structured_data)
     metrics.compute()

@@ -6,7 +6,7 @@ Computes the motion score among the Iterate Labs Ergo Metrics.
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["compute_strain_score", "_custom_weighted_sum"]
+__all__ = ["compute_strain_score"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 

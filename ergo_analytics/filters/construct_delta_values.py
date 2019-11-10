@@ -48,14 +48,14 @@ class ConstructDeltaValues(BaseTransformation):
         super().apply(data=data, **kwargs)
 
         params = self._params
-        if params['data_format_code'] == '4':
-            # already in delta-angle format
-            pass
-        elif params['data_format_code'] == '5':
+        if params['data_format_code'] in {'1', '5'}:
             # need to construct delta's
             data['DeltaYaw'] = data['Yaw[1](deg)'] - data['Yaw[0](deg)']
             data['DeltaPitch'] = data['Pitch[1](deg)'] - data['Pitch[0](deg)']
             data['DeltaRoll'] = data['Roll[1](deg)'] - data['Roll[0](deg)']
+        elif params['data_format_code'] == '4':
+            # already in delta-angle format
+            pass
         else:
             raise Exception("Implement me!")
 

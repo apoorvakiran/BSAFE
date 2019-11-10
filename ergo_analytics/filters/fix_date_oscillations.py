@@ -52,9 +52,8 @@ class FixDateOscillations(BaseTransformation):
 
         # data before this is considered wrong:
         cut_off_date = self._params['cut_off_date']
-        cut_off_date_as_int = \
-            DataFrame(data=[[cut_off_date]]
-                      ).astype(DATE).values[0].astype(int)[0]
+
+        cut_off_date_as_int = DataFrame(data=[[cut_off_date]]).apply(DATE).values[0].astype(int)[0]
 
         if (dates_as_int > cut_off_date_as_int).all():
             # no oscillations occurring, just return
