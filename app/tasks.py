@@ -60,7 +60,7 @@ def automated_analysis():
         logger.error(f"Failure to send request {err}", exc_info=True)
 
 
-@dramatiq.actor
+@dramatiq.actor(max_retries=3)
 def safety_score_analysis(mac_address, start_time, end_time):
     logger.info(f"Getting safety score for {mac_address}")
     index = os.getenv('ELASTIC_SEARCH_INDEX', 'iterate-labs-local-poc')

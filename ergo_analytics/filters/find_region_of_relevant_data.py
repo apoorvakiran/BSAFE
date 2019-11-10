@@ -96,6 +96,8 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         if window_moved:
             data_to_use = data_to_use.iloc[end_of_window:, :]
 
+        logger.debug(f"Found end of window at {end_of_window}")
+
         # (2) next apply to the end of the data:
         if len(data_to_use) > width_indices:
             end_of_window = len(data_to_use) - 1
@@ -123,10 +125,21 @@ class WindowOfRelevantDataFilter(BaseTransformation):
             if window_moved:
                 data_to_use = data_to_use.iloc[:start_of_window, :]
 
+        logger.debug(f"Found start of window at {start_of_window}")
         if len(data_to_use) == 0:
-            raise Exception("This filter removed all data!")
+            msg = "This filter removed all data!"
+            msg += f"\nDegree threshold = {params['degree_threshold']}."
+            msg += f"\nStart of window = {start_of_window}."
+            msg += f"\nThe end of window = {end_of_window}."
+            logger.debug(msg)
+
+            # this means that the data is flat, so just return, don't modify
+            # the data:
+            data_to_use = self._update_data(data_transformed=data,
+                                        columns_operated_on=operate_on_columns)
+            return data_to_use, {}
 
         # now we have boxed in the data to a region of interest
-        data_to_use = self._update_data(data_transformed=data,
+        data_to_use = self._update_data(data_transformed=data_to_use,
                                         columns_operated_on=operate_on_columns)
         return data_to_use, {}
