@@ -38,3 +38,5 @@ def configure_logging(app):
         logging.FileHandler(f"{app.config['LOG_FOLDER']}/log.log"),
         logging.StreamHandler()
     ])
+
+bsafe = create_app()

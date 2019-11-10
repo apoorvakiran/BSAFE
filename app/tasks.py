@@ -17,6 +17,7 @@ import logging
 import os
 import datetime
 import requests
+from urllib.error import HTTPError
 from periodiq import PeriodiqMiddleware, cron
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
