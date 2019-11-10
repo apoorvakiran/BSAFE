@@ -14,7 +14,8 @@ jobs:
             pipenv install --dev
       - run:
           name: Run Tests
-          command: pipenv run python -m pytest --ignore tests/system tests
+          # command: pipenv run python -m pytest --ignore tests/system tests
+          command: ./run_tests.sh
       - persist_to_workspace:
           root: ~/BSAFE
           paths:
