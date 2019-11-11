@@ -24,18 +24,20 @@ import pandas as pd
 
 # ==== DATA LOADING ====
 def convert_date(date_from_device=None):
-      """
-      Converts the string dates coming from the device.
-      """
-      try:
-            date_to_return = pd.to_datetime(date_from_device)
-      except ValueError:
-            date_to_return = date_from_device.lstrip('RTC:')
-            date_to_return = pd.to_datetime(date_to_return)
-      
-      return date_to_return
+    """
+    Converts the string dates coming from the device.
+    """
+    try:
+        date_to_return = pd.to_datetime(date_from_device)
+    except ValueError:
+        # some data includes the "RTC:" prepended:
+        date_to_return = date_from_device.lstrip('RTC:')
+        date_to_return = pd.to_datetime(date_to_return)
 
-DATE = lambda x: convert_date(x)  # function to convert incoming device dates
+    return date_to_return
+
+
+DATE = convert_date
 
 # *NOTE* If adding or removing any "column_names_format_j" you need to update
 # the dict-variable "DATA_FORMAT_CODES" further down as well

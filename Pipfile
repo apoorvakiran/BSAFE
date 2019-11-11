@@ -30,6 +30,9 @@ elasticsearch-dsl = "*"
 sentry-sdk = {extras = ["flask"],version = "==0.13.2"}
 requests-aws4auth = "*"
 sentry-dramatiq = "*"
+argparse = "*"
+uuid = "*"
+ipinfo = "*"
 
 [requires]
 python_version = "3.7"

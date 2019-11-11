@@ -42,13 +42,53 @@ Questions? Contact Jesper Kristensen or James Russo.
 Copyright IterateLabs.co 2018-
 """
 
-__all__ = ["upload_data_to_aws_s3", "download_from_aws_s3"]
+__all__ = ["create_s3_bucket", "get_existing_bucket_names",
+           "upload_data_to_aws_s3", "download_from_aws_s3"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import logging
 import boto3
 import botocore
 from boto3.exceptions import S3UploadFailedError
+
+logger = logging.getLogger()
+
+def _get_s3_client():
+    """
+    Common code for retrieving the S3 client associated
+    with your AWS account.
+    """
+    client = boto3.client('s3')
+    return client
+
+
+def create_s3_bucket(bucketname=None):
+    """
+    Creates a new S3 bucket.
+    """
+    s3 = _get_s3_client()
+    s3.create_bucket(Bucket=bucketname)
+    logger.debug(f"Bucket '{bucketname}' created successfully!")
+
+
+def get_existing_bucket_names():
+    """
+    Retrieve a list of existing bucket names
+    from the AWS account.
+    """
+    # Retrieve the list of existing buckets
+    s3 = _get_s3_client()
+    response = s3.list_buckets()
+
+    # Output the bucket names
+    bucket_names = response['Buckets']
+    logger.debug('Existing buckets on S3:')
+    print(bucket_names)
+
+    import pdb
+    pdb.set_trace()
+    return response['Buckets']
 
 
 def upload_data_to_aws_s3(bucketname=None, filename=None):
@@ -61,15 +101,19 @@ def upload_data_to_aws_s3(bucketname=None, filename=None):
     :return:
     """
     # Create an S3 client
-    s3 = boto3.client('s3')
+    s3 = _get_s3_client()
 
     try:
+        import pdb
+        pdb.set_trace()
         s3.upload_file(filename, bucketname, filename)
     except S3UploadFailedError as e:
         # something did not work!
-        print("There was an error uploading the file to the S3 bucket!")
-        print("The error is: {}".format(e))
-        print("Did you update your local ~/.aws/credentials file?")
+        msg = "There was an error uploading the file to the S3 bucket!\n" \
+              "The error is: {}\nDo you have the latest up-to-date\n" \
+              "local ~/.aws/credentials file?".format(e)
+        logger.exception(msg)
+        raise Exception(msg)
 
 
 def download_from_aws_s3(bucketname=None, filename=None,
@@ -78,7 +122,7 @@ def download_from_aws_s3(bucketname=None, filename=None,
     if not local_filename:
         local_filename = filename
 
-    s3 = boto3.resource('s3')
+    s3 = _get_s3_client()
 
     try:
         s3.Bucket(bucketname).download_file(filename, local_filename)

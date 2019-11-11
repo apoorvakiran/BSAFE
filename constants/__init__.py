@@ -10,3 +10,4 @@ __author__ = "Iterate Labs, Co."
 __version__ = "Alpha"
 
 from .default_settings import *
+from .data_collection import *
