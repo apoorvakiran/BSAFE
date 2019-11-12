@@ -15,6 +15,14 @@ Copyright Iterate Labs, Inc.
 # the buckets created, and so on.
 
 import os
+import sys
+# == we start by finding the project root:
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
+    ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
+sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
+# ==
+
 from getpass import getuser
 import datetime
 import logging
@@ -22,6 +30,7 @@ import argparse
 import ipinfo
 from constants import valid_teams
 import boto3
+from database import BackendDataBase
 
 logger = logging.getLogger()
 
@@ -62,9 +71,17 @@ def main():
         parser.print_help()
         return
 
+    # make sure the backend database is created on AWS
+    # (only has to be done once):
+    db = BackendDataBase()
+    db.create()
+
     if args.create_new_project:
         # Create a new project folder in our S3 Data Store:
         print("You selected to create a new project.")
+
+        # let's first make sure the database is created in case this is the
+        # first time we call this ever:
 
         team = input("Please enter your team name: ")
         project = input("Please enter your project name: ")
@@ -180,6 +197,19 @@ def create_project_in_database(team=None, project=None):
 
     handler = ipinfo.getHandler(ip_info_token)
     geo_tag = handler.getDetails().all
+
+    # TODO:
+    # CONVERT TO DYNAMO DB OVER SIMPLE DB:
+    # https://gist.github.com/ikai/c79be091f98da1b709ee
+    # http://boto.cloudhackers.com/en/latest/rds_tut.html
+    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/dynamodb.html
+    # https://aws.amazon.com/dynamodb/
+    # here is the Data-Store on Dynamo DB:
+    # https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Data-Store;tab=items
+
+    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
+    # TODO: Security.
+    # TODO: Does it show up on AWS?
 
     # store a record in the DB about the creation of this project:
     response = sdb.put_attributes(
