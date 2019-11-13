@@ -56,12 +56,12 @@ def main():
                         help='Upload a single file to the selected Data Store.')
     # User can upload data to a bucket
     parser.add_argument('--list-available-projects', action='store_true',
-                        help='List all available projects in the Data Store.')
-    parser.add_argument('--team', nargs=1,
-                        help='See available projects for this team name only.')
-    parser.add_argument('--project', nargs=1,
-                        help='See available projects for this '
-                             'project name only.')
+                        help='List all available projects in the Data Store. '
+                             'This can help retrieve project IDs and '
+                             'project names.')
+    parser.add_argument('--project-id', nargs=1,
+                        help='Upload data to the Data Store for'
+                             'this project ID.')
 
     # start by parsing what the user wants to do:
     try:
@@ -74,7 +74,7 @@ def main():
     # make sure the backend database is created on AWS
     # (only has to be done once):
     db = BackendDataBase()
-    db.create()
+    db.create_if_not_exist()
 
     if args.create_new_project:
         # Create a new project folder in our S3 Data Store:
@@ -103,25 +103,55 @@ def main():
             msg = "Please provide valid team and/or project!"
             raise Exception(msg)
 
-        response = create_project_in_database(team=team, project=project)
+        response = create_project_in_database(db=db, team=team,
+                                              project_name=project)
 
         if response is None:
             return
 
     elif args.list_available_projects:
-        # List available buckets to upload files to. These are buckets
-        # from Iterate Lab's Data Store:
+        """
+        List available buckets to upload files to. These are buckets
+        from Iterate Lab's Data Store:
+        """
 
+        all_projects = db.list_all_projects()
+
+        print("=== Listing all available projects: ===")
+        print(f"Total projects in our Data Store: {len(all_projects)}.")
+        print()
+        for pix, pr in enumerate(all_projects):
+            msg = f'   Project ({pix + 1}): ID: \'{pr["Project_ID"]}\' ' \
+                  f'-- Name: \'{pr["Project_Name"]}\'.'
+            logger.debug(msg)
+            print(msg)
+
+        print()
+
+    elif args.upload:
+        """
+        Upload data to the Data Store. Note that Project ID needs to be
+        given as well in this case.
+        """
+        # now get the project id to which we are uploading the data:
+        if args.project_id is None:
+            msg = "Please provide the Project ID for which you are uploading " \
+                  "the data!\nSee help on how to get a list of " \
+                  "all available IDs or on how to create a new project."
+            logger.exception(msg)
+            raise Exception(msg)
+
+        # so here is the process: The data gets assigned a unique data ID
+        # then it gets uploaded to S3.
+        # We then also store in the Meta-Data table information about the
+        # data ID and associted project ID including the link to S3 etc.
+        # This was the database contains all information on what has ever
+        # been uploaded by us and the data happily lives in S3:
+
+        
 
         import pdb
         pdb.set_trace()
-
-    elif args.upload:
-        # Upload a file to an existing bucket in the Data Store:
-
-        # when using upload, user needs to provide a bucket as well
-        # to upload to:
-        raise NotImplementedError("Implement me!")
 
     else:
         parser.print_help()
@@ -139,46 +169,28 @@ def check_response(response=None):
         raise Exception(msg)
 
 
-def get_project_id(team=None, project=None, sdb_client=None):
+def get_project_id(team=None, project=None):
     """
     Construct the project ID and returns it.
     """
     proposed_project_id = team + '-' + project  # unique to this project
 
-    # does the project ID already exist in the DB?
-    query = f'SELECT * FROM {DATA_STORE_DOMAIN_NAME} WHERE ' \
-            f'ProjectID = "{proposed_project_id}"'
-    response = sdb_client.select(SelectExpression=query)
-    check_response(response)
-
-    if 'Items' in response:
-        # we found something - so this name will not work:
-        msg = "This project already exists!"
-        logger.info(msg)
-        print(msg)
-        return
-
     return proposed_project_id
 
 
-def create_project_in_database(team=None, project=None):
+def create_project_in_database(db=None, team=None, project_name=None):
     """
     Creates a new project in the data store!
 
     Returns the bucket_name of the successfully created bucket and
     the randomly generated ID associated with it.
     """
-    sdb = boto3.client('sdb')  # get the simple database client
 
-    # make sure to create the DB:
+    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
+    # TODO: Security.
+    # TODO: Does it show up on AWS?
 
-    response = sdb.create_domain(DomainName=DATA_STORE_DOMAIN_NAME)
-    check_response(response)
-
-    project_id = get_project_id(team=team, project=project, sdb_client=sdb)
-
-    if project_id is None:
-        return ""
+    project_id = get_project_id(team=team, project=project_name)
 
     env = os.environ
     if "IP_INFO_TOKEN" not in env:
@@ -198,98 +210,19 @@ def create_project_in_database(team=None, project=None):
     handler = ipinfo.getHandler(ip_info_token)
     geo_tag = handler.getDetails().all
 
-    # TODO:
-    # CONVERT TO DYNAMO DB OVER SIMPLE DB:
-    # https://gist.github.com/ikai/c79be091f98da1b709ee
-    # http://boto.cloudhackers.com/en/latest/rds_tut.html
-    # https://boto3.amazonaws.com/v1/documentation/api/latest/guide/dynamodb.html
-    # https://aws.amazon.com/dynamodb/
-    # here is the Data-Store on Dynamo DB:
-    # https://console.aws.amazon.com/dynamodb/home?region=us-east-1#tables:selected=Data-Store;tab=items
-
-    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
-    # TODO: Security.
-    # TODO: Does it show up on AWS?
-
-    # store a record in the DB about the creation of this project:
-    response = sdb.put_attributes(
-        DomainName=DATA_STORE_DOMAIN_NAME,
-        ItemName=project_id,  # <-- unique identifier of this project
-        # Store meta-data:
-        Attributes=[
-            {
-                'Name': 'Type',
-                'Value': "Project",
-                'Replace': True
-            },
-            {
-                'Name': 'ProjectID',
-                'Value': project_id,
-                'Replace': True
-            },
-            {
-                'Name': 'Team_name',
-                'Value': team,
-                'Replace': True
-            },
-            {
-                'Name': 'Project_name',
-                'Value': project,
-                'Replace': True
-            },
-            {
-                'Name': 'IP',
-                'Value': geo_tag['ip'],
-                'Replace': True
-            },
-            {
-                'Name': 'hostname',
-                'Value': geo_tag['hostname'],
-                'Replace': True
-            },
-            {
-                'Name': 'country',
-                'Value': geo_tag['country'],
-                'Replace': True
-            },
-            {
-                'Name': 'location',
-                'Value': geo_tag['loc'],
-                'Replace': True
-            },
-            {
-                'Name': 'timezone',
-                'Value': geo_tag['timezone'],
-                'Replace': True
-            },
-            {
-                'Name': 'time_created_utc',
-                'Value': str(datetime.datetime.utcnow()),
-                'Replace': True
-            },
-            {
-                'Name': 'AWS_ACCESS_KEY',
-                'Value': aws_access_key,
-                'Replace': True
-            },
-            {
-                'Name': 'IP_INFO_TOKEN',
-                'Value': ip_info_token,
-                'Replace': True
-            },
-            {
-                'Name': 'created_by_system_user_name',
-                'Value': getuser(),
-                'Replace': True
-            },
-            {
-                'Name': 'created_by_user',
-                'Value': user_name,
-                'Replace': True
-            },
-        ],
-    )
-    check_response(response)
+    db.insert_project_if_not_exist(project_id=project_id,
+                                   team_name=team, project_name=project_name,
+                                   aws_access_key=aws_access_key,
+                                   ip_info_token=ip_info_token,
+                                   created_by_user=user_name,
+                                   time_created_utc=str(datetime.datetime.utcnow()),
+                                   ip=geo_tag['ip'],
+                                   hostname=geo_tag['hostname'],
+                                   country=geo_tag['country'],
+                                   location=geo_tag['loc'],
+                                   timezone=geo_tag['timezone'],
+                                   created_by_system_user_name=getuser()
+                                   )
 
     msg = f"Project ID '{project_id}' created in the Data Store!\n" \
           f"Now you can upload data to this project."
