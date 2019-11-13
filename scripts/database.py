@@ -47,32 +47,19 @@ class BackendDataBase(object):
         self._projects_table_name = 'Projects'  # keep projects here
         self._meta_data_table_name = 'Meta-Data'
 
-    def batch_write(self, table_name, items):
-        """
-        Batch-write items to given table name, i.e., write a lot of items
-        to the table at once.
-
-        :param items: list of items, each a dict, to insert.
-        """
-        dynamodb = self.conn
-        table = dynamodb.Table(table_name)
-        with table.batch_writer() as batch:
-            for item in items:
-                batch.put_item(Item=item)
-        return True
-
-    def insert_item(self, table_name, item):
-        """
-        Insert an item to table.
-        """
-
-        dynamodb = self.conn
-        table = dynamodb.Table(table_name)
-        response = table.put_item(Item=item)
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            return True
-        else:
-            return False
+    # def batch_write(self, table_name, items):
+    #     """
+    #     Batch-write items to given table name, i.e., write a lot of items
+    #     to the table at once.
+    #
+    #     :param items: list of items, each a dict, to insert.
+    #     """
+    #     dynamodb = self.conn
+    #     table = dynamodb.Table(table_name)
+    #     with table.batch_writer() as batch:
+    #         for item in items:
+    #             batch.put_item(Item=item)
+    #     return True
 
     def _insert_metadata(self):
         pass
@@ -127,56 +114,30 @@ class BackendDataBase(object):
                 },
         """
 
-    def _insert_project(self):
-        pass
-        # {
-        #     'AttributeName': 'Team_Name',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Project_Name',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'IP',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Hostname',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Country',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Location',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Timezone',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Time_created_UTC',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'AWS_ACCESS_KEY',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'IP_INFO_TOKEN',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Created_by_system_user_name',
-        #     'AttributeType': 'S'
-        # },
-        # {
-        #     'AttributeName': 'Created_by_user',
-        #     'AttributeType': 'S'
-        # },
+    def insert_project_if_not_exist(self, **kwargs):
+        """
+        Insert a new project to the database.
+        """
+        project = {'Project_ID': kwargs['project_id'],
+                   'Team_Name': kwargs['team_name'],
+                   'Project_Name': kwargs['project_name'],
+                   'IP': kwargs['ip'],
+                   'Hostname': kwargs['hostname'],
+                   'Country': kwargs['country'],
+                   'Location': kwargs['location'],
+                   'Timezone': kwargs['timezone'],
+                   'AWS_ACCESS_KEY': kwargs['aws_access_key'],
+                   'IP_INFO_TOKEN': kwargs['ip_info_token'],
+                   'Created_by_system_user_name':
+                       kwargs['created_by_system_user_name'],
+                   'Created_by_user': kwargs[
+                       'created_by_user'],
+                   }
+
+        dynamodb = self.conn
+        table = dynamodb.Table('Projects')
+        response = table.put_item(Item=project)
+        return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
     def get_item(self, table_name, query_item):
         """
@@ -187,7 +148,7 @@ class BackendDataBase(object):
         response = table.get_item(
             Key=query_item
         )
-        if not 'Item' in response:
+        if 'Item' not in response:
             print(f"Element '{query_item}' not found!")
 
         item = response['Item']
@@ -281,13 +242,9 @@ class BackendDataBase(object):
         else:
             return total_items
 
-    def scan_item(
-        self, table_name, attr1, attr2,
-        total_items=None, start_key=None,
-        table=None
-    ):
+    def list_all_projects(self):
         """
-        Scan for an item with two attributes
+        Scan for an item from an attribute
         NOTE: SCAN OPERATION SCANS THE WHOLE TABLE AND TAKES CONSIDERABLE
         AMOUNT OF TIME, CONSUMES HIGH READ THROUGHPUT.
         AVOID USING THIS AS MUCH AS YOU CAN.
@@ -299,39 +256,12 @@ class BackendDataBase(object):
         @attr2: Dict containing key and val of second attribute
         e.g. {'name': 'date', 'value': '2017-02-12'}
         """
-        if not table:
-            dynamodb = self.conn
-            table = dynamodb.Table(table_name)
+        dynamodb = self.conn
+        table = dynamodb.Table('Projects')
 
-        a1 = attr1['name']
-        a1v = attr1['value']
-        a2 = attr2['name']
-        a2v = attr2['value']
-        if not start_key:
-            response = table.scan(
-                FilterExpression=Attr(a1).eq(a1v) &
-                Attr(a2).eq(a2v)
-            )
-        else:
-            response = table.scan(
-                FilterExpression=Attr(a1).eq(a1v) &
-                Attr(a2).eq(a2v),
-                ExclusiveStartKey=start_key
-            )
-        if not total_items:
-            total_items = response['Items']
-        else:
-            total_items.extend(response['Items'])
-        if response.get('LastEvaluatedKey'):
-            start_key = response['LastEvaluatedKey']
-            return_items = self.query_item(
-                table_name=table_name, attr1=attr1,
-                attr2=attr2, total_items=total_items,
-                start_key=start_key, table=table
-            )
-            return return_items
-        else:
-            return total_items
+        response = table.scan()
+
+        return [] if not 'Items' in response else response['Items']
 
     def delete_item(self, table_name, item_key):
         """
@@ -358,6 +288,9 @@ class BackendDataBase(object):
         dynamodb = self.conn
 
         try:
+            # since this is NOSQL we don't really have a schema strictly
+            # defined, we just need a key below and then we can populate on
+            # the fly as we want
             table = dynamodb.create_table(
                 TableName=table_name,
                 KeySchema=[
@@ -398,6 +331,9 @@ class BackendDataBase(object):
 
         dynamodb = self.conn
         try:
+            # since this is NOSQL we don't really have a schema strictly
+            # defined, we just need a key below and then we can populate on
+            # the fly as we want
             table = dynamodb.create_table(
                 TableName=table_name,
                 KeySchema=[
@@ -430,7 +366,7 @@ class BackendDataBase(object):
             logger.exception(msg)
             raise Exception(msg)
 
-    def create(self):
+    def create_if_not_exist(self):
         """
         Create the BackendDatabase which consists of a table holding
         project information and a table holding meta-data about data
@@ -443,6 +379,8 @@ class BackendDataBase(object):
         # store meta-data for data uploaded to S3 as well:
         self._create_project_table(table_name=self._projects_table_name)
         self._create_meta_data_table(table_name=self._meta_data_table_name)
+
+        logger.debug("Project and Meta-data tables successfully created!")
 
     # def delete_all_items(self, table_name, hash_name):
     #     """
