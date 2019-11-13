@@ -61,8 +61,38 @@ class BackendDataBase(object):
     #             batch.put_item(Item=item)
     #     return True
 
-    def _insert_metadata(self):
-        pass
+    def register_data_in_database(self, **kwargs):
+        """
+        Insert meta-data for a new datum in the database.
+        The actual data is stored in s3.
+        """
+
+        # TODO: Finish this part.
+
+        import pdb
+        pdb.set_trace()
+
+        # meta_data = {'Project_ID': kwargs['project_id'],
+        #            'Team_Name': kwargs['team_name'],
+        #            'Project_Name': kwargs['project_name'],
+        #            'IP': kwargs['ip'],
+        #            'Hostname': kwargs['hostname'],
+        #            'Country': kwargs['country'],
+        #            'Location': kwargs['location'],
+        #            'Timezone': kwargs['timezone'],
+        #            'AWS_ACCESS_KEY': kwargs['aws_access_key'],
+        #            'IP_INFO_TOKEN': kwargs['ip_info_token'],
+        #            'Created_by_system_user_name':
+        #                kwargs['created_by_system_user_name'],
+        #            'Created_by_user': kwargs[
+        #                'created_by_user'],
+        #            }
+
+        # dynamodb = self.conn
+        # table = dynamodb.Table('Projects')
+        # response = table.put_item(Item=project)
+        # return response['ResponseMetadata']['HTTPStatusCode'] == 200
+
         """
                 {
                     'AttributeName': 'Project_ID',
@@ -139,7 +169,26 @@ class BackendDataBase(object):
         response = table.put_item(Item=project)
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
-    def get_item(self, table_name, query_item):
+    def get_project_details(self, project_id=None):
+        """
+        Get the details of the project with the incoming ID.
+        Returns a JSON with all information.
+        """
+        dynamodb = self.conn
+        table = dynamodb.Table('Projects')
+
+        response = table.query(
+            KeyConditionExpression=Key('Project_ID').eq(project_id)
+        )
+
+        if 'Items' not in response:
+            return
+
+        assert len(response['Items']) == 1
+
+        return response['Items'][0]
+
+    def get_item(self, table_name=None, query_item=None):
         """
         Get an item given its key.
         """
@@ -179,82 +228,22 @@ class BackendDataBase(object):
         else:
             return False
 
-    def query_item(
-        self, table_name, sort_key, partition_key,
-        index_name=None, total_items=None, start_key=None,
-        table=None
-    ):
+    def check_that_project_exists(self, project_id=None):
         """
-        Query for an item with or without using global secondary index
-        PARAMS:
-        @table_name: name of the table
-        @sort_key: Dict containing key and val of sort key
-        e.g. {'name': 'uuid', 'value': '077f4450-96ee-4ba8-8faa-831f6350a860'}
-        @partition_key: Dict containing key and val of partition key
-        e.g. {'name': 'date', 'value': '2017-02-12'}
-        @index_name (optional): Name of the Global Secondary Index
+        Query for an item with or without using global secondary index.
         """
-        if not table:
-            dynamodb = self.conn
-            table = dynamodb.Table(table_name)
-        sk = sort_key['name']
-        skv = sort_key['value']
-        pk = partition_key['name']
-        pkv = partition_key['value']
-        if not start_key:
-            if index_name:
-                response = table.query(
-                    IndexName=index_name,
-                    KeyConditionExpression=Key(sk).eq(skv) &
-                    Key(pk).eq(pkv)
-                )
-            else:
-                response = table.query(
-                    KeyConditionExpression=Key(sk).eq(skv) &
-                    Key(pk).eq(pkv)
-                )
-        else:
-            if index_name:
-                response = table.query(
-                    IndexName=index_name,
-                    KeyConditionExpression=Key(sk).eq(skv) &
-                    Key(pk).eq(pkv),
-                    ExclusiveStartKey=start_key
-                )
-            else:
-                response = table.query(
-                    KeyConditionExpression=Key(sk).eq(skv) &
-                    Key(pk).eq(pkv),
-                    ExclusiveStartKey=start_key
-                )
-        if not total_items:
-            total_items = response['Items']
-        else:
-            total_items.extend(response['Items'])
-        if response.get('LastEvaluatedKey'):
-            start_key = response['LastEvaluatedKey']
-            return_items = self.query_item(
-                table_name=table_name, sort_key=sort_key,
-                partition_key=partition_key, total_items=total_items,
-                start_key=start_key, table=table
-            )
-            return return_items
-        else:
-            return total_items
+        dynamodb = self.conn
+        table = dynamodb.Table('Projects')
+
+        response = table.query(
+            KeyConditionExpression=Key('Project_ID').eq(project_id)
+        )
+
+        return 'Items' in response
 
     def list_all_projects(self):
         """
-        Scan for an item from an attribute
-        NOTE: SCAN OPERATION SCANS THE WHOLE TABLE AND TAKES CONSIDERABLE
-        AMOUNT OF TIME, CONSUMES HIGH READ THROUGHPUT.
-        AVOID USING THIS AS MUCH AS YOU CAN.
-        TRY CREATING INDEX AND USE QUERY IF POSSIBLE
-        PARAMS:
-        @table_name: name of the table
-        @attr1: Dict containing key and val of first attribute
-        e.g. {'name': 'uuid', 'value': '077f4450-96ee-4ba8-8faa-831f6350a860'}
-        @attr2: Dict containing key and val of second attribute
-        e.g. {'name': 'date', 'value': '2017-02-12'}
+        Lists all available projects in the Data Store.
         """
         dynamodb = self.conn
         table = dynamodb.Table('Projects')
@@ -262,24 +251,6 @@ class BackendDataBase(object):
         response = table.scan()
 
         return [] if not 'Items' in response else response['Items']
-
-    def delete_item(self, table_name, item_key):
-        """
-        delete an item
-        PARAMS
-        @table_name: name of the table
-        @item_key: dict containing key and val of sort key
-        e.g. {'name': 'uuid', 'value': 'some-uuid-val'}
-        """
-        dynamodb = self.conn
-        table = dynamodb.Table(table_name)
-        response = table.delete_item(
-            Key={item_key['name']: item_key['value']}
-        )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            return True
-        else:
-            return False
 
     def _create_project_table(self, table_name=None):
         """
@@ -381,6 +352,21 @@ class BackendDataBase(object):
         self._create_meta_data_table(table_name=self._meta_data_table_name)
 
         logger.debug("Project and Meta-data tables successfully created!")
+
+    # def delete_item(self, table_name, item_key):
+    #     """
+    #
+    #     """
+    #     raise NotImplementedError("Implement me!")
+    #     dynamodb = self.conn
+    #     table = dynamodb.Table(table_name)
+    #     response = table.delete_item(
+    #         Key={item_key['name']: item_key['value']}
+    #     )
+    #     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+    #         return True
+    #     else:
+    #         return False
 
     # def delete_all_items(self, table_name, hash_name):
     #     """

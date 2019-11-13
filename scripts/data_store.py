@@ -27,15 +27,17 @@ from getpass import getuser
 import datetime
 import logging
 import argparse
+import uuid
 import ipinfo
 from constants import valid_teams
-import boto3
+import botocore
 from database import BackendDataBase
+from ergo_analytics import upload_data_to_aws_s3
+
 
 logger = logging.getLogger()
 
-DATA_STORE_S3_BUCKET = "data-store"
-DATA_STORE_DOMAIN_NAME = "DATASTORE"  # for SDB
+DATA_STORE_S3_BUCKET = "data-store-iterate-labs"
 
 
 def main():
@@ -128,16 +130,25 @@ def main():
 
         print()
 
-    elif args.upload:
+    elif len(args.upload) == 1:
         """
         Upload data to the Data Store. Note that Project ID needs to be
         given as well in this case.
         """
+        msg = "Upload data to existing project!"
+        logger.debug(msg)
+
         # now get the project id to which we are uploading the data:
         if args.project_id is None:
             msg = "Please provide the Project ID for which you are uploading " \
                   "the data!\nSee help on how to get a list of " \
                   "all available IDs or on how to create a new project."
+            logger.exception(msg)
+            raise Exception(msg)
+
+        project_id = args.project_id[0]
+        if not project_exists(db=db, project_id=project_id):
+            msg = f"Project with ID '{project_id}' does not exist!"
             logger.exception(msg)
             raise Exception(msg)
 
@@ -148,7 +159,22 @@ def main():
         # This was the database contains all information on what has ever
         # been uploaded by us and the data happily lives in S3:
 
-        
+        data_file_to_upload = args.upload[0]
+
+        if not os.path.isfile(data_file_to_upload):
+            msg = f"Data file '{data_file_to_upload}' not found!"
+            logger.exception(msg)
+            raise Exception(msg)
+
+        s3_url, s3_name, uid = upload_data(db=db,
+                                           file_to_upload=data_file_to_upload,
+                                           project_id=project_id)
+
+
+        # now we put this information - with more - in the database:
+        response = register_data_in_database(db=db, s3_url=s3_url,
+                                             s3_name=s3_name, uid=uid,
+                                             project_id=project_id)
 
         import pdb
         pdb.set_trace()
@@ -156,6 +182,13 @@ def main():
     else:
         parser.print_help()
         return
+
+
+def project_exists(db=None, project_id=None):
+    """
+    Does the incoming project ID exist in the Data Store?
+    """
+    return db.check_that_project_exists(project_id=project_id)
 
 
 def check_response(response=None):
@@ -167,6 +200,26 @@ def check_response(response=None):
         msg = "Error in connecting to the SDB!"
         logger.exception(msg)
         raise Exception(msg)
+
+
+def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
+                              project_id=None):
+    """
+    Registers meta-data related to a datum in the Data Store backend database.
+    The datum is stored on S3.
+    """
+
+    project_details = db.get_project_details(project_id=project_id)
+
+    response = db.register_data_in_database(s3_url=s3_url, s3_name=s3_name,
+                                            uid=uid, project_id=project_id,
+                                project_name=project_details['Project_Name'],
+                                team_name=project_details['Team_Name']
+                                            )
+
+
+    import pdb
+    pdb.set_trace()
 
 
 def get_project_id(team=None, project=None):
@@ -230,35 +283,58 @@ def create_project_in_database(db=None, team=None, project_name=None):
     logger.debug(msg)
 
 
-# def upload():
-#     import pdb
-#     pdb.set_trace()
-#
-#     max_tries = 10
-#     n = 0
-#     while True:
-#         # keep re-creating unique ID's until good:
-#         uid = generate_unique_id()  # try another random ID until we succeed
-#         file_name = f"{team}/{project}/proj-data-{uid}"
-#         try:
-#             logger.debug(f"Trying project folder name = {file_name}")
-#             upload_data_to_aws_s3(bucketname=DATA_STORE_S3_BUCKET,
-#                                   filename=file_name)
-#             break
-#         except botocore.exceptions.ClientError:
-#             msg = f"Please enter a valid project folder name and not " \
-#                   f"'{file_name}'!\nCheck the team and project names!"
-#             logger.exception(msg)
-#             raise Exception(msg)
-#         except:
-#             n += 1
-#             if n > max_tries:
-#                 msg = "Was unable to create a new project folder under " \
-#                       "'data-store' on S3!"
-#                 logger.exception(msg)
-#                 raise Exception(msg)
-#
-#     return file_name, uid
+def generate_unique_id():
+    """
+    Generates a unique ID - used to generate valid S3 file names.
+    """
+    return str(uuid.uuid4())
+
+
+def upload_data(db=None, file_to_upload=None, project_id=None):
+    """
+    Uploads the "file_to_upload" to the project associated with
+    the ID "project_id".
+    """
+
+    # first, get project name and team name from the project id:
+    project_details = db.get_project_details(project_id=project_id)
+
+    project_name = project_details['Project_Name']
+    team_name = project_details['Team_Name']
+
+    max_tries = 10
+    n = 0
+    while True:
+        # keep re-creating unique ID's until good:
+        uid = generate_unique_id()  # try another random ID until we succeed
+        s3_name = f"{team_name}/{project_name}/data-{uid}"
+        try:
+            logger.debug(f"Trying s3 file name = {s3_name}")
+
+            upload_data_to_aws_s3(bucketname=DATA_STORE_S3_BUCKET,
+                                  name_on_s3=s3_name,
+                                  local_filename=file_to_upload)
+            break  # we got a valid name
+        except botocore.exceptions.ClientError:
+            msg = f"Please enter a valid s3 bucket name " \
+                  f"'{s3_name}'!\nCheck the team and project names!"
+            logger.exception(msg)
+            raise Exception(msg)
+        except Exception:
+            n += 1
+            if n > max_tries:
+                msg = "Was unable to create a new project folder under " \
+                      "'data-store-iterate-labs' on the company's S3!"
+                logger.exception(msg)
+                raise Exception(msg)
+
+    s3_url = f"https://{DATA_STORE_S3_BUCKET}.s3.amazonaws.com/{s3_name}"
+
+    return s3_url, s3_name, uid
+
 
 if __name__ == "__main__":
+    """
+    Run this as a script
+    """
     main()
