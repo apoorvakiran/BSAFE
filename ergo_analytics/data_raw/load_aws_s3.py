@@ -91,7 +91,8 @@ def get_existing_bucket_names():
     return response['Buckets']
 
 
-def upload_data_to_aws_s3(bucketname=None, filename=None):
+def upload_data_to_aws_s3(bucketname=None, name_on_s3=None,
+                          local_filename=None):
     """
     Uploads the given file using a managed uploader, which will split up large
     files automatically and upload parts in parallel.
@@ -104,9 +105,7 @@ def upload_data_to_aws_s3(bucketname=None, filename=None):
     s3 = _get_s3_client()
 
     try:
-        import pdb
-        pdb.set_trace()
-        s3.upload_file(filename, bucketname, filename)
+        s3.upload_file(local_filename, bucketname, name_on_s3)
     except S3UploadFailedError as e:
         # something did not work!
         msg = "There was an error uploading the file to the S3 bucket!\n" \
