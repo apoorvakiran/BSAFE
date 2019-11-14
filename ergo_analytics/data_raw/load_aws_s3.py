@@ -115,16 +115,18 @@ def upload_data_to_aws_s3(bucketname=None, name_on_s3=None,
         raise Exception(msg)
 
 
-def download_from_aws_s3(bucketname=None, filename=None,
-                         local_filename=None):
+def download_from_aws_s3(bucketname=None, s3_name=None, local_filename=None):
+    """
+    Downloads a file from AWS S3 to local disk.
+    """
 
     if not local_filename:
-        local_filename = filename
+        local_filename = s3_name
 
     s3 = _get_s3_client()
 
     try:
-        s3.Bucket(bucketname).download_file(filename, local_filename)
+        s3.download_file(bucketname, s3_name, local_filename)
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == "404":
             print("The object does not exist in the AWS S3 bucket.")
