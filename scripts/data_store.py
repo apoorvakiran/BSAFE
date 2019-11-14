@@ -1,6 +1,6 @@
 #!/Users/johnjohnson/.local/share/virtualenvs/BSAFE-PHXVcO8i/bin/python
 """
-This script is used to interact with Iterate Lab's Data Store.
+This script is used to interact with Iterate Lab Inc.'s Data Store.
 The Data Store is an S3 bucket with all the data collected by Iterate Labs
 and their wearables.
 
@@ -56,31 +56,33 @@ def main():
                         help='Creates a new project in the Data '
                              'Store if it does not exist.')
     # User can upload data to a bucket
-    parser.add_argument('--upload', nargs=1,
+    parser.add_argument('--upload', nargs=1, metavar='<data file>',
                         help='Upload a single file to the selected Data Store.')
     # User can upload data to a bucket
-    parser.add_argument('--list-available-projects', action='store_true',
+    parser.add_argument('--list-available-projects',
+                        action='store_true',
                         help='List all available projects in the Data Store. '
                              'This can help retrieve project IDs and '
                              'project names.')
-    parser.add_argument('--project-id', nargs=1,
+    parser.add_argument('--project-id', nargs=1, metavar='<project ID>',
                         help='Upload data to the Data Store for'
                              'this project ID.')
-    parser.add_argument('--project-details', nargs=1,
+    parser.add_argument('--project-details', nargs=1, metavar='<project ID>',
                         help='Returns details for a project given its ID.')
-    parser.add_argument('--list-all-files', nargs=1,
+    parser.add_argument('--list-all-files', nargs=1, metavar='<project ID>',
                         help='Lists all files uploaded for a given'
                              'project given its ID.')
-    parser.add_argument('--download-all-files', nargs=1,
+    parser.add_argument('--download-all-files', nargs=1, metavar='<project ID>',
                         help='Downloads all files uploaded for a given'
                              'project given its ID.')
     parser.add_argument('--download-to-folder', nargs=1,
+                        metavar='<folder path>',
                         help='Downloads all files to a given folder.')
-    parser.add_argument('--tags', nargs="+",
+    parser.add_argument('--tags', nargs="+", metavar='<tag>',
                         help='Associate a set of tags with a data file '
                              'being uploaded. The tag goes in the '
-                             'meta-data database. For example (2 tags added):'
-                             '--tags "this data is great" "more info"')
+                             'meta-data database. For example (2 tags added): '
+                             '--tags "this is tag1" "this is tag 2"')
 
     # start by parsing what the user wants to do:
     try:
@@ -109,9 +111,9 @@ def main():
             team.replace(" ", "-").replace("_", "-").rstrip().lstrip().lower()
 
         if team not in valid_teams:
-            msg = "This is not a valid team name!\n"\
-                  "Please have your team registered in the database.\n"\
-                  "Call this script again with --help to see email contact.\n"
+            msg = "This is not a valid team name!"\
+                  "Please have your team registered in the database."\
+                  "Call this script again with --help to see email contact."
             logger.exception(msg)
             raise Exception(msg)
 
@@ -154,7 +156,7 @@ def main():
         # now get the project id to which we are uploading the data:
         if args.project_id is None:
             msg = "Please provide the Project ID for which you are uploading " \
-                  "the data!\nSee help on how to get a list of " \
+                  "the data! See help on how to get a list of " \
                   "all available IDs or on how to create a new project."
             logger.exception(msg)
             raise Exception(msg)
@@ -310,19 +312,23 @@ def check_response(response=None):
 
 def hash_a_file(file=None):
     """
-    Takes in a file and hashes it.
+    Takes in a file and hashes it. This is useful to quickly check if
+    two files are identical.
     """
-    # BUF_SIZE is totally arbitrary, change for your app!
-    BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
+
+    BUF_SIZE = 2 * 65536  # lets read stuff in 128kb chunks!
 
     sha1 = hashlib.sha1()
 
     with open(file, 'rb') as f:
         while True:
+
             data = f.read(BUF_SIZE)
+
             if not data:
+                # no more data
                 break
-            # md5.update(data)
+
             sha1.update(data)
 
     return sha1.hexdigest()
@@ -360,7 +366,8 @@ def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
 
 def get_project_id(team=None, project=None):
     """
-    Construct the project ID and returns it.
+    Construct the project ID and returns it - this is the key to be used in
+    the data store.
     """
     proposed_project_id = team + '-' + project  # unique to this project
 
@@ -369,9 +376,9 @@ def get_project_id(team=None, project=None):
 
 def get_common_tags():
     """
-    Put together some common tags (like user, IP, etc.).
+    Put together some common tags (like user, IP, etc.) across all database
+    tables.
     """
-
     env = os.environ
     if "IP_INFO_TOKEN" not in env:
         msg = "Please define the environment variable 'IP_INFO_TOKEN'"
@@ -407,16 +414,12 @@ def get_common_tags():
 
 def create_project_in_database(db=None, team=None, project_name=None):
     """
-    Creates a new project in the data store!
+    Creates a new project in the data store. This project is associated
+    with a set of data.
 
     Returns the bucket_name of the successfully created bucket and
     the randomly generated ID associated with it.
     """
-
-    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
-    # TODO: Security.
-    # TODO: Does it show up on AWS?
-
     project_id = get_project_id(team=team, project=project_name)
 
     db.insert_project_if_not_exist(project_id=project_id,
@@ -424,7 +427,7 @@ def create_project_in_database(db=None, team=None, project_name=None):
                                    **get_common_tags()
                                    )
 
-    msg = f"Project ID '{project_id}' created in the Data Store!\n" \
+    msg = f"Project ID '{project_id}' created in the Data Store!" \
           f"Now you can upload data to this project."
     print(msg)
     logger.debug(msg)
@@ -464,7 +467,7 @@ def upload_data(db=None, file_to_upload=None, project_id=None):
             break  # we got a valid name
         except botocore.exceptions.ClientError:
             msg = f"Please enter a valid s3 bucket name " \
-                  f"'{s3_name}'!\nCheck the team and project names!"
+                  f"'{s3_name}'! Check the team and project names!"
             logger.exception(msg)
             raise Exception(msg)
         except Exception:
