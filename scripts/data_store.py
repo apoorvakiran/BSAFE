@@ -23,6 +23,7 @@ while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
 sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 # ==
 
+import hashlib
 from getpass import getuser
 import datetime
 import logging
@@ -33,6 +34,7 @@ from constants import valid_teams
 import botocore
 from database import BackendDataBase
 from ergo_analytics import upload_data_to_aws_s3
+from ergo_analytics import download_from_aws_s3
 
 
 logger = logging.getLogger()
@@ -64,6 +66,21 @@ def main():
     parser.add_argument('--project-id', nargs=1,
                         help='Upload data to the Data Store for'
                              'this project ID.')
+    parser.add_argument('--project-details', nargs=1,
+                        help='Returns details for a project given its ID.')
+    parser.add_argument('--list-all-files', nargs=1,
+                        help='Lists all files uploaded for a given'
+                             'project given its ID.')
+    parser.add_argument('--download-all-files', nargs=1,
+                        help='Downloads all files uploaded for a given'
+                             'project given its ID.')
+    parser.add_argument('--download-to-folder', nargs=1,
+                        help='Downloads all files to a given folder.')
+    parser.add_argument('--tags', nargs="+",
+                        help='Associate a set of tags with a data file '
+                             'being uploaded. The tag goes in the '
+                             'meta-data database. For example (2 tags added):'
+                             '--tags "this data is great" "more info"')
 
     # start by parsing what the user wants to do:
     try:
@@ -105,11 +122,7 @@ def main():
             msg = "Please provide valid team and/or project!"
             raise Exception(msg)
 
-        response = create_project_in_database(db=db, team=team,
-                                              project_name=project)
-
-        if response is None:
-            return
+        create_project_in_database(db=db, team=team, project_name=project)
 
     elif args.list_available_projects:
         """
@@ -130,7 +143,7 @@ def main():
 
         print()
 
-    elif len(args.upload) == 1:
+    elif args.upload is not None and len(args.upload) == 1:
         """
         Upload data to the Data Store. Note that Project ID needs to be
         given as well in this case.
@@ -170,18 +183,111 @@ def main():
                                            file_to_upload=data_file_to_upload,
                                            project_id=project_id)
 
+        additional_tags = [] if not (args.tags is not None and
+                                     len(args.tags) > 0) else args.tags
 
-        # now we put this information - with more - in the database:
-        response = register_data_in_database(db=db, s3_url=s3_url,
-                                             s3_name=s3_name, uid=uid,
-                                             project_id=project_id)
+        # now we put this information - with more - in the database
+        # (the meta-data that is):
+        register_data_in_database(db=db, s3_url=s3_url,
+                                  additional_tags=additional_tags,
+                                  s3_name=s3_name, uid=uid,
+                                  project_id=project_id,
+                                  file_to_upload=data_file_to_upload)
 
-        import pdb
-        pdb.set_trace()
+    elif args.project_details is not None and len(args.project_details) == 1:
+
+        project_id = args.project_details[0]
+
+        if not project_exists(db=db, project_id=project_id):
+            msg = f"Project with ID '{project_id}' does not exist!"
+            logger.exception(msg)
+            raise Exception(msg)
+
+        project_details = db.get_project_details(project_id=project_id)
+
+        print(f"Print project details for ID: '{project_id}'.")
+        for k, v in project_details.items():
+            print(f"  - '{k}' = '{v}'")
+        print()
+
+    elif args.list_all_files:
+
+        project_id = args.list_all_files[0]
+
+        if not project_exists(db=db, project_id=project_id):
+            msg = f"Project with ID '{project_id}' does not exist!"
+            logger.exception(msg)
+            raise Exception(msg)
+
+        files = db.list_all_files_for_project(project_id=project_id)
+
+        msg = f"Found {len(files)} files associated with " \
+              f"project ID = {project_id}"
+        logger.info(msg)
+
+        print(f"Listing all files for project ID: {project_id}...")
+        for fix, file in enumerate(files):
+            print(f" ({fix + 1}) - ID: '{file['Data_ID']}' at "
+                  f"S3 path '{file['s3_name']}'")
+
+        msg = "Successfully listed all files."
+        logger.info(msg)
+
+    elif args.download_all_files:
+
+        project_id = args.download_all_files[0]
+
+        if not project_exists(db=db, project_id=project_id):
+            msg = f"Project with ID '{project_id}' does not exist!"
+            logger.exception(msg)
+            raise Exception(msg)
+
+        files = db.list_all_files_for_project(project_id=project_id)
+
+        msg = f"Found {len(files)} files associated with " \
+              f"project ID = {project_id}"
+        logger.info(msg)
+
+        if len(files) == 0:
+            msg = "No files found for this project!"
+            logger.info(msg)
+            return
+
+        if args.download_to_folder is not None and \
+            len(args.download_to_folder) == 1:
+            folder = args.download_to_folder[0]
+        else:
+            folder = "data_from_datastore"
+
+        if os.path.isdir(folder):
+                msg = f"The folder '{folder}' already exists!"
+                logger.exception(msg)
+                raise Exception(msg)
+
+        os.mkdir(folder)
+
+        print(f"Downloading all files for "
+              f"project ID: {project_id} to folder: {folder}...")
+        for fix, file in enumerate(files):
+
+            local_name = os.path.join(folder, file['s3_name'].split('/')[-1])
+
+            download_from_aws_s3(bucketname='data-store-iterate-labs',
+                                 s3_name=file['s3_name'],
+                                 local_filename=local_name)
+
+            print(f" ({fix + 1}) - Download complete: "
+                  f"ID: '{file['Data_ID']}' from S3 path '{file['s3_name']}'")
+
+        msg = f"Successfully downloaded all files to '{folder}'."
+        logger.info(msg)
 
     else:
         parser.print_help()
         return
+
+    msg = "data store call is complete!"
+    logger.debug(msg)
 
 
 def project_exists(db=None, project_id=None):
@@ -202,24 +308,54 @@ def check_response(response=None):
         raise Exception(msg)
 
 
+def hash_a_file(file=None):
+    """
+    Takes in a file and hashes it.
+    """
+    # BUF_SIZE is totally arbitrary, change for your app!
+    BUF_SIZE = 65536  # lets read stuff in 64kb chunks!
+
+    sha1 = hashlib.sha1()
+
+    with open(file, 'rb') as f:
+        while True:
+            data = f.read(BUF_SIZE)
+            if not data:
+                break
+            # md5.update(data)
+            sha1.update(data)
+
+    return sha1.hexdigest()
+
+
 def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
-                              project_id=None):
+                              project_id=None, file_to_upload=None,
+                              additional_tags=None):
     """
     Registers meta-data related to a datum in the Data Store backend database.
     The datum is stored on S3.
     """
-
     project_details = db.get_project_details(project_id=project_id)
 
-    response = db.register_data_in_database(s3_url=s3_url, s3_name=s3_name,
-                                            uid=uid, project_id=project_id,
+    data_id = s3_name
+
+    # create a hash of the file content:
+    file_hash = hash_a_file(file=file_to_upload)
+
+    response = db.register_data_in_database(
+        additional_tags=additional_tags,
+        data_id=data_id, file_hash=file_hash,
+        s3_url=s3_url, s3_name=s3_name,
+                                uid=uid, project_id=project_id,
                                 project_name=project_details['Project_Name'],
-                                team_name=project_details['Team_Name']
-                                            )
+                                team_name=project_details['Team_Name'],
+                                **get_common_tags()
+                                )
 
-
-    import pdb
-    pdb.set_trace()
+    if not response:
+        msg = "There was an error registering the data in the database!"
+        logger.exception(msg)
+        raise Exception(msg)
 
 
 def get_project_id(team=None, project=None):
@@ -231,19 +367,10 @@ def get_project_id(team=None, project=None):
     return proposed_project_id
 
 
-def create_project_in_database(db=None, team=None, project_name=None):
+def get_common_tags():
     """
-    Creates a new project in the data store!
-
-    Returns the bucket_name of the successfully created bucket and
-    the randomly generated ID associated with it.
+    Put together some common tags (like user, IP, etc.).
     """
-
-    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
-    # TODO: Security.
-    # TODO: Does it show up on AWS?
-
-    project_id = get_project_id(team=team, project=project_name)
 
     env = os.environ
     if "IP_INFO_TOKEN" not in env:
@@ -263,18 +390,38 @@ def create_project_in_database(db=None, team=None, project_name=None):
     handler = ipinfo.getHandler(ip_info_token)
     geo_tag = handler.getDetails().all
 
+    common = dict(ip_info_token=ip_info_token,
+                  created_by_user=user_name,
+                  time_created_utc=str(datetime.datetime.utcnow()),
+                  ip=geo_tag['ip'],
+                  hostname=geo_tag['hostname'],
+                  country=geo_tag['country'],
+                  location=geo_tag['loc'],
+                  timezone=geo_tag['timezone'],
+                  created_by_system_user_name=getuser(),
+                  aws_access_key=aws_access_key
+                  )
+
+    return common
+
+
+def create_project_in_database(db=None, team=None, project_name=None):
+    """
+    Creates a new project in the data store!
+
+    Returns the bucket_name of the successfully created bucket and
+    the randomly generated ID associated with it.
+    """
+
+    # TODO: MAKE SURE YOU CAN DO EVERYTHING YOU CAN NOW OF COURSE.
+    # TODO: Security.
+    # TODO: Does it show up on AWS?
+
+    project_id = get_project_id(team=team, project=project_name)
+
     db.insert_project_if_not_exist(project_id=project_id,
                                    team_name=team, project_name=project_name,
-                                   aws_access_key=aws_access_key,
-                                   ip_info_token=ip_info_token,
-                                   created_by_user=user_name,
-                                   time_created_utc=str(datetime.datetime.utcnow()),
-                                   ip=geo_tag['ip'],
-                                   hostname=geo_tag['hostname'],
-                                   country=geo_tag['country'],
-                                   location=geo_tag['loc'],
-                                   timezone=geo_tag['timezone'],
-                                   created_by_system_user_name=getuser()
+                                   **get_common_tags()
                                    )
 
     msg = f"Project ID '{project_id}' created in the Data Store!\n" \

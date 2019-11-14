@@ -67,82 +67,32 @@ class BackendDataBase(object):
         The actual data is stored in s3.
         """
 
-        # TODO: Finish this part.
+        meta_data = {'Data_ID': kwargs['data_id'],
+                     'file_hash': kwargs['file_hash'],
+                     'additional_tags': kwargs['additional_tags'],
+                     'Project_ID': kwargs['project_id'],
+                     'Team_Name': kwargs['team_name'],
+                     'Project_Name': kwargs['project_name'],
+                     's3_name': kwargs['s3_name'],
+                     's3_url': kwargs['s3_url'],
+                     'uid': kwargs['uid'],
+                     'IP': kwargs['ip'],
+                     'Hostname': kwargs['hostname'],
+                     'Country': kwargs['country'],
+                     'Location': kwargs['location'],
+                     'Timezone': kwargs['timezone'],
+                     'AWS_ACCESS_KEY': kwargs['aws_access_key'],
+                     'IP_INFO_TOKEN': kwargs['ip_info_token'],
+                     'Created_by_system_user_name':
+                         kwargs['created_by_system_user_name'],
+                     'Created_by_user': kwargs['created_by_user'],
+                   }
 
-        import pdb
-        pdb.set_trace()
+        dynamodb = self.conn
+        table = dynamodb.Table('Meta-Data')
+        response = table.put_item(Item=meta_data)
 
-        # meta_data = {'Project_ID': kwargs['project_id'],
-        #            'Team_Name': kwargs['team_name'],
-        #            'Project_Name': kwargs['project_name'],
-        #            'IP': kwargs['ip'],
-        #            'Hostname': kwargs['hostname'],
-        #            'Country': kwargs['country'],
-        #            'Location': kwargs['location'],
-        #            'Timezone': kwargs['timezone'],
-        #            'AWS_ACCESS_KEY': kwargs['aws_access_key'],
-        #            'IP_INFO_TOKEN': kwargs['ip_info_token'],
-        #            'Created_by_system_user_name':
-        #                kwargs['created_by_system_user_name'],
-        #            'Created_by_user': kwargs[
-        #                'created_by_user'],
-        #            }
-
-        # dynamodb = self.conn
-        # table = dynamodb.Table('Projects')
-        # response = table.put_item(Item=project)
-        # return response['ResponseMetadata']['HTTPStatusCode'] == 200
-
-        """
-                {
-                    'AttributeName': 'Project_ID',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Project_Name',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'IP',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Hostname',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Country',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Location',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Timezone',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Time_created_UTC',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'AWS_ACCESS_KEY',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'IP_INFO_TOKEN',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Created_by_system_user_name',
-                    'AttributeType': 'S'
-                },
-                {
-                    'AttributeName': 'Created_by_user',
-                    'AttributeType': 'S'
-                },
-        """
+        return response['ResponseMetadata']['HTTPStatusCode'] == 200
 
     def insert_project_if_not_exist(self, **kwargs):
         """
@@ -203,30 +153,30 @@ class BackendDataBase(object):
         item = response['Item']
         return item
 
-    def update_item(self, table_name, key_dict, update_dict):
-        """
-        Update an item.
-        PARAMS
-        @table_name: name of the table
-        @key_dict: dict containing the key name and val eg. {"uuid": item_uuid}
-        @update_dict: dict containing the key name and val of
-        attributes to be updated
-        eg. {"attribute": "processing_status", "value": "completed"}
-        """
-        dynamodb = self.conn
-        table = dynamodb.Table(table_name)
-        update_expr = 'SET {} = :val1'.format(update_dict['attribute'])
-        response = table.update_item(
-            Key=key_dict,
-            UpdateExpression=update_expr,
-            ExpressionAttributeValues={
-                ':val1': update_dict['value']
-            }
-        )
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            return True
-        else:
-            return False
+    # def update_item(self, table_name, key_dict, update_dict):
+    #     """
+    #     Update an item.
+    #     PARAMS
+    #     @table_name: name of the table
+    #     @key_dict: dict containing the key name and val eg. {"uuid": item_uuid}
+    #     @update_dict: dict containing the key name and val of
+    #     attributes to be updated
+    #     eg. {"attribute": "processing_status", "value": "completed"}
+    #     """
+    #     dynamodb = self.conn
+    #     table = dynamodb.Table(table_name)
+    #     update_expr = 'SET {} = :val1'.format(update_dict['attribute'])
+    #     response = table.update_item(
+    #         Key=key_dict,
+    #         UpdateExpression=update_expr,
+    #         ExpressionAttributeValues={
+    #             ':val1': update_dict['value']
+    #         }
+    #     )
+    #     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+    #         return True
+    #     else:
+    #         return False
 
     def check_that_project_exists(self, project_id=None):
         """
@@ -241,6 +191,20 @@ class BackendDataBase(object):
 
         return 'Items' in response
 
+    def list_all_files_for_project(self, project_id=None):
+        """
+        Lists all files associated with a given project.
+        """
+        dynamodb = self.conn
+        table = dynamodb.Table('Meta-Data')
+        response = table.scan()
+
+        if 'Items' not in response:
+            return []
+
+        return [el for el in response['Items'] if
+                el['Project_ID'] == project_id]
+
     def list_all_projects(self):
         """
         Lists all available projects in the Data Store.
@@ -250,7 +214,7 @@ class BackendDataBase(object):
 
         response = table.scan()
 
-        return [] if not 'Items' in response else response['Items']
+        return [] if 'Items' not in response else response['Items']
 
     def _create_project_table(self, table_name=None):
         """
