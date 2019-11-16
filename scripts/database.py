@@ -76,6 +76,7 @@ class BackendDataBase(object):
                      's3_name': kwargs['s3_name'],
                      's3_url': kwargs['s3_url'],
                      'uid': kwargs['uid'],
+                     'data_type': kwargs['data_type'],
                      'IP': kwargs['ip'],
                      'Hostname': kwargs['hostname'],
                      'Country': kwargs['country'],
