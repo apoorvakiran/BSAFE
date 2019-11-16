@@ -67,6 +67,11 @@ def main():
     parser.add_argument('--project-id', nargs=1, metavar='<project ID>',
                         help='Upload data to the Data Store for'
                              'this project ID.')
+    parser.add_argument('--data-type', nargs=1, metavar='<dev/test/prod>',
+                        help='What type of data is this? Is it development'
+                             'of the code, one-off testing or collected in'
+                             'production? Plays the role of a tag but is more'
+                             'formal', default='unlabeled')
     parser.add_argument('--project-details', nargs=1, metavar='<project ID>',
                         help='Returns details for a project given its ID.')
     parser.add_argument('--list-all-files', nargs=1, metavar='<project ID>',
@@ -188,12 +193,19 @@ def main():
         additional_tags = [] if not (args.tags is not None and
                                      len(args.tags) > 0) else args.tags
 
+        # get the kind of data as well (the type if you will). Suggestions:
+        # Was it collected during code development (dev), during testing
+        # (test), or during production (prod) -- or any other tag you
+        # want to use:
+        data_type = args.data_type[0]
+
         # now we put this information - with more - in the database
         # (the meta-data that is):
         register_data_in_database(db=db, s3_url=s3_url,
                                   additional_tags=additional_tags,
                                   s3_name=s3_name, uid=uid,
                                   project_id=project_id,
+                                  data_type=data_type,
                                   file_to_upload=data_file_to_upload)
 
     elif args.project_details is not None and len(args.project_details) == 1:
@@ -336,7 +348,7 @@ def hash_a_file(file=None):
 
 def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
                               project_id=None, file_to_upload=None,
-                              additional_tags=None):
+                              additional_tags=None, data_type=None):
     """
     Registers meta-data related to a datum in the Data Store backend database.
     The datum is stored on S3.
@@ -355,6 +367,7 @@ def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
                                 uid=uid, project_id=project_id,
                                 project_name=project_details['Project_Name'],
                                 team_name=project_details['Team_Name'],
+                                data_type=data_type,
                                 **get_common_tags()
                                 )
 
