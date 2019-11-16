@@ -34,12 +34,11 @@ This will help ensure that the code is running as expected after your
 clone the repo. There are other tests you can run as well.
 If any issues, reach out to jesper.kristensen@iteratelabs.co for help.
 
-## Authors
+## Author (team)
 
-+ Jesper Kristensen - Data Science Consultant
-+ Jacob Tyrell - Data Scientist
-+ James Russo - SWE
-+ Fnu Apoorva - CTO
-+ Jason Guss - CEO
++ Jesper Kristensen (Data Scientist)
++ James Russo (Software Engineer)
++ Fnu Apoorva (Chief Technology Officer)
++ Jason Guss (Chief Executive Officer)
 
 Iterate Labs Inc. - All Rights Reserved - Copyright 2018-2019 - Patent Pending
