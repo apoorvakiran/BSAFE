@@ -1,8 +1,15 @@
-# Copyright Iterate Labs, Inc.
+# ********************************
+# * Copyright Iterate Labs, Inc. *
+# ********************************
+# Run tests and linters over code
 
-# Run pylama as a linter / code checker:
-pylama --sort E,W,D ergo_analytics/
-
-# Now run tests of the BSAFE code base in parallel over 4 workers:
+# Run tests of the BSAFE code base in parallel over 4 workers:
+echo "Run pytest to unit, integration, and system tests..."
 pipenv run python -m pytest -v -n 4 --ignore tests/system tests tests/
+echo "[completed]"
+
+# Run pylama as a linter / code checker - make sure our code looks good:
+echo "Make sure code quality is OK."
+pipenv run python -m pytest --pylama -n 4 ergo_analytics/
+echo "[completed]"
 
