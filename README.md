@@ -26,16 +26,8 @@ In order to run the flask application you need to do two things
 In order to run the Flask Application, you can use foreman and the command `foreman s` which will run the web server and dramtiq task queue.
 
 ## Test
-First, to ensure everything is working you will find a simple back-to-back test under "Demos".
-This means a test which loads the data, sets up some key objects, and runs some
-metrics as well. If that simple test runs then you should be all set.
-
-The specific test file is called "simple_test.py". You run it with:
-    >> python simple_test.py
-
-This will help ensure that the code is running as expected after your
-clone the repo. There are other tests you can run as well.
-If any issues, reach out to jesper.kristensen@iteratelabs.co for help.
+We use pytest to run our tests. Before pushing to the repo please run the tests with ./run_tests.sh.
+This will go through a set of tests in the "tests/" folder in the repo.
 
 ## Author (team)
 
