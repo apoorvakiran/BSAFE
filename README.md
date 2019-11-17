@@ -9,7 +9,10 @@ an easy interface, and straightforward ways to further develop and expand the co
 <img src="data_analytics.jpg" width="450" height="240" />
 
 ## Setup
-This project uses [pipenv](https://github.com/pypa/pipenv) to manage our dependencies and create a virtual environment. In order to use this project properly please install `pipenv` using the following instructions https://github.com/pypa/pipenv#installation.
+Please run "load_env.sh" to get set up with the appropriate BSAFE environment.
+
+Common issues:
+I don't have pipenv: This project uses [pipenv](https://github.com/pypa/pipenv) to manage our dependencies and create a virtual environment. In order to use this project properly please install `pipenv` using the following instructions https://github.com/pypa/pipenv#installation.
 
 You can use the commands `pipenv install --dev` to install all of your development dependencies into a virtual environment and then `pipenv shell` to enter an interactive virtual environment.
 
