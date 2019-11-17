@@ -12,6 +12,7 @@ jobs:
           command: |  # use pipenv to install dependencies
             sudo pip install pipenv
             sudo pip install pylama
+            sudo pip install pylint
             pipenv install --dev
       - run:
           name: Run Tests
