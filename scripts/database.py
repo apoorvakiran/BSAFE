@@ -16,8 +16,6 @@ __version__ = "Alpha"
 import logging
 import boto3
 from boto3.dynamodb.conditions import Key
-from boto3.dynamodb.conditions import Attr
-import botocore
 
 logger = logging.getLogger()
 
