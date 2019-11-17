@@ -49,7 +49,8 @@ class BaseData(object):
         # now convert data based on the types we know:
         data_column_names = DATA_FORMAT_CODES[data_format_code]['NAMES']
         data_column_types = DATA_FORMAT_CODES[data_format_code]['TYPES']
-        all_data = all_data.apply(dict(zip(data_column_names, data_column_types)))
+        all_data = \
+                all_data.apply(dict(zip(data_column_names, data_column_types)))
 
         # make sure index is ints (can convert to "float64" if there are
         # some NaNs here and there):

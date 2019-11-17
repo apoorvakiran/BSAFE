@@ -9,6 +9,7 @@ boto3 = "*"
 v = {editable = true,version = "*"}
 pytest-xdist = "*"
 pylama = "*"
+pylint = "*"
 
 [packages]
 numpy = "*"
