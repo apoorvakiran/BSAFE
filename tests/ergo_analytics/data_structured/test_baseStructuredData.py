@@ -31,4 +31,4 @@ def test_simple():
     bsd = BaseStructuredData(name='some_name')
 
     assert bsd.name == 'some_name'
-    assert bsd._name == 'some_name'
+

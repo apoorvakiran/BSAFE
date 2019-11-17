@@ -90,8 +90,8 @@ class LoadElasticSearch(BaseData):
             search = Search(using=es, index=index).query("match",
                             device__keyword=mac_address).query("range",
                                         **{"timestamp":
-                                        {"gte": start_time,
-                                        "lte": end_time}
+                                            {"gte": start_time,
+                                             "lte": end_time}
                                         }).sort('timestamp')
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError:

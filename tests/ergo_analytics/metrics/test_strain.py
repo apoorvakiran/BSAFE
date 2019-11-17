@@ -10,8 +10,8 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
-import pytest
 from unittest.mock import MagicMock
+import pytest
 from ergo_analytics import ErgoMetrics
 from ergo_analytics.metrics import custom_weighted_sum
 

@@ -50,7 +50,8 @@ class ArduinoData(BaseData):
                 print(f"Trying port {usb_port}...")
                 board = ArduinoMega(usb_port)  # usb port
             except Exception as msg:
-                print(" -- Error with this port")
+                print(" -- Error with this port:")
+                print(msg)
                 continue
 
         if board is None:
