@@ -3,6 +3,7 @@
 # Contact: jesper.kristensen@iteratelabs.co
 # -------------------------------------------
 
+echo
 echo "********************************************************"
 echo "*       Welcome to BSAFE by Iterate Labs, Inc.         *"
 echo "********************************************************"
@@ -18,9 +19,8 @@ echo ""
 # Set up the virtual environment from the pipfile:
 # (see the Pipfile and Pipfile.lock):
 echo "Setting up the Python environment for BSAFE"
-pipenv shell
-echo "Setting up Python..."
 pipenv update
+pipenv install --dev
 echo "[OK] Python has been set up."
 
 echo "Setting up the Data Store script..."
@@ -31,8 +31,11 @@ then
 fi
 echo -e "#"'!'"`which python`\n$(cat scripts/data_store.py)" > scripts/data_store.py
 pipenv run python scripts/data_store.py > /dev/null
-echo "[OK] Data Store script set up"
+echo
+echo "[OK] Data Store set up"
 
+echo
+echo "Run python commands with \"pipenv run -m python <script to run.py>\""
 echo "[ALL OK] >> BSAFE is ready for use <<"
 echo
 

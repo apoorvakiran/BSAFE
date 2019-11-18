@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 This is a simple system (end-to-end) going from raw data all the way
-through reporting.
-
-This code also serves as a "get started" for newcomers to BSAFE.
+through reporting. This code also serves as a "get started"
+for newcomers to BSAFE.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs Inc. 2018-
@@ -63,7 +62,11 @@ pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
 
 # run the pipeline!
 structured_data = pipeline.run(on_raw_data=raw_data,
-                               with_format_code=data_format_code)
+                               with_format_code=data_format_code,
+                               is_sorted=True, use_subsampling=True,
+                               number_of_subsamples=2,
+                               subsample_size_index=100,
+                               randomize_subsampling=False)
 
 
 def filter_zero_line_shifts(yaw=None):
