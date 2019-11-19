@@ -32,7 +32,9 @@ import pytest
 import pandas as pd
 from unittest.mock import MagicMock
 from ergo_analytics.filters import ConstructDeltaValues
+from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import DataFilterPipeline
+from ergo_analytics import ErgoMetrics
 
 
 def test_filter_pipeline():

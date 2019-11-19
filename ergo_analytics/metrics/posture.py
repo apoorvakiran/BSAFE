@@ -10,10 +10,13 @@ __all__ = ["compute_posture_score"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import logging
 import numpy as np
 from numpy import absolute
 from ergo_analytics.metrics import compute_binned_score
 from ergo_analytics.metrics import normalize_to_scale
+
+logger = logging.getLogger()
 
 
 def compute_posture_score(delta_pitch=None, delta_yaw=None,
@@ -29,6 +32,12 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
 
     # Whenever any of the delta angles extend beyond the safe region,
     # count that as an unsafe event:
+
+    if delta_pitch is None or delta_yaw is None or delta_roll is None:
+        msg = "one or more of the incoming delta-angles is None!" \
+              "Returning just None for the score."
+        logger.debug(msg)
+        return None
 
     delta_yaw = absolute(delta_yaw)
     delta_pitch = absolute(delta_pitch)

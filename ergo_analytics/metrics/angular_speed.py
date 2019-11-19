@@ -36,6 +36,12 @@ def compute_angular_speed_score(delta_pitch=None, delta_yaw=None,
     This measures the width of the distribution of instantenous velocities.
     """
 
+    if delta_pitch is None or delta_yaw is None or delta_roll is None:
+        msg = "one or more of the incoming delta-angles is None!" \
+              "Returning just None for the score."
+        logger.debug(msg)
+        return None
+
     if len(delta_yaw) < 10:
         # do not compute gradients (not enough data) - so put nothing:
         std_yaw = 0
