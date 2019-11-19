@@ -85,6 +85,7 @@ class BackendDataBase(object):
                      'Created_by_system_user_name':
                          kwargs['created_by_system_user_name'],
                      'Created_by_user': kwargs['created_by_user'],
+                     'time_created': kwargs['time_created_utc']
                    }
 
         dynamodb = self.conn
@@ -111,6 +112,7 @@ class BackendDataBase(object):
                        kwargs['created_by_system_user_name'],
                    'Created_by_user': kwargs[
                        'created_by_user'],
+                   'time_created': kwargs['time_created_utc']
                    }
 
         dynamodb = self.conn

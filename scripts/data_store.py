@@ -56,8 +56,10 @@ def main():
                         help='Creates a new project in the Data '
                              'Store if it does not exist.')
     # User can upload data to a bucket
-    parser.add_argument('--upload', nargs=1, metavar='<data file>',
-                        help='Upload a single file to the selected Data Store.')
+    parser.add_argument('--upload', nargs=2, metavar=('<data file>',
+                                                      '<project ID>'),
+                        help='Upload a single file to the project ID in'
+                             'the Data Store')
     # User can upload data to a bucket
     parser.add_argument('--list-available-projects',
                         action='store_true',
@@ -114,9 +116,10 @@ def main():
             team.replace(" ", "-").replace("_", "-").rstrip().lstrip().lower()
 
         if team not in valid_teams:
-            msg = "This is not a valid team name!"\
-                  "Please have your team registered in the database."\
-                  "Call this script again with --help to see email contact."
+            msg = "This is not a valid team name!\n"\
+                  "Please have your team registered in the database.\n"\
+                  "Call this script again with --help to see email\n" \
+                  "contact for valid options."
             logger.exception(msg)
             raise Exception(msg)
 
@@ -148,7 +151,7 @@ def main():
 
         print()
 
-    elif args.upload is not None and len(args.upload) == 1:
+    elif args.upload is not None and len(args.upload) == 2:
         """
         Upload data to the Data Store. Note that Project ID needs to be
         given as well in this case.
@@ -156,15 +159,7 @@ def main():
         msg = "Upload data to existing project!"
         logger.debug(msg)
 
-        # now get the project id to which we are uploading the data:
-        if args.project_id is None:
-            msg = "Please provide the Project ID for which you are uploading " \
-                  "the data! See help on how to get a list of " \
-                  "all available IDs or on how to create a new project."
-            logger.exception(msg)
-            raise Exception(msg)
-
-        project_id = args.project_id[0]
+        project_id = args.upload[1]
         if not project_exists(db=db, project_id=project_id):
             msg = f"Project with ID '{project_id}' does not exist!"
             logger.exception(msg)
@@ -206,6 +201,11 @@ def main():
                                   data_type=data_type,
                                   file_to_upload=data_file_to_upload)
 
+        msg = f"\nFile '{data_file_to_upload}' successfully uploaded to " \
+              f"project '{project_id}'.\n"
+        logger.info(msg)
+        print(msg)
+
     elif args.project_details is not None and len(args.project_details) == 1:
 
         project_id = args.project_details[0]
@@ -217,7 +217,9 @@ def main():
 
         project_details = db.get_project_details(project_id=project_id)
 
-        print(f"Print project details for ID: '{project_id}'.")
+        msg = f"Print project details for ID: '{project_id}'."
+        logger.info(msg)
+        print(msg)
         for k, v in project_details.items():
             print(f"  - '{k}' = '{v}'")
         print()
@@ -258,10 +260,12 @@ def main():
 
         msg = f"Found {len(files)} files associated with " \
               f"project ID = {project_id}"
+        print(msg)
         logger.info(msg)
 
         if len(files) == 0:
             msg = "No files found for this project!"
+            print(msg)
             logger.info(msg)
             return
 
@@ -270,12 +274,15 @@ def main():
         if os.path.isdir(local_folder):
                 msg = f"The local folder '{local_folder}' already exists!"
                 logger.exception(msg)
+                print(msg)
                 raise Exception(msg)
 
         os.mkdir(local_folder)
 
-        print(f"Downloading all files for "
-              f"project ID: {project_id} to local folder: {local_folder}...")
+        msg = f"Downloading all files for " \
+              f"project ID: {project_id} to local folder: {local_folder}..."
+        logger.info(msg)
+        print(msg)
         for fix, file in enumerate(files):
 
             local_name = os.path.join(local_folder, file['s3_name'].split('/')[-1])
@@ -288,13 +295,15 @@ def main():
                   f"ID: '{file['Data_ID']}' from S3 path '{file['s3_name']}'")
 
         msg = f"Successfully downloaded all files to '{local_folder}'."
+        print(msg)
         logger.info(msg)
 
     else:
         parser.print_help()
         return
 
-    msg = "data store call is complete!"
+    msg = "Done."
+    print(msg)
     logger.debug(msg)
 
 
@@ -434,8 +443,8 @@ def create_project_in_database(db=None, team=None, project_name=None):
                                    **get_common_tags()
                                    )
 
-    msg = f"Project ID '{project_id}' created in the Data Store!" \
-          f"Now you can upload data to this project."
+    msg = f"\nProject ID '{project_id}' created in the Data Store!\n" \
+          f"Now you can upload data to this project.\n"
     print(msg)
     logger.debug(msg)
 
@@ -474,13 +483,13 @@ def upload_data(db=None, file_to_upload=None, project_id=None):
             break  # we got a valid name
         except botocore.exceptions.ClientError:
             msg = f"Please enter a valid s3 bucket name " \
-                  f"'{s3_name}'! Check the team and project names!"
+                  f"'{s3_name}'!\nCheck the team and project names!"
             logger.exception(msg)
             raise Exception(msg)
         except Exception:
             n += 1
             if n > max_tries:
-                msg = "Was unable to create a new project folder under " \
+                msg = "Was unable to create a new project folder under\n" \
                       "'data-store-iterate-labs' on the company's S3!"
                 logger.exception(msg)
                 raise Exception(msg)
