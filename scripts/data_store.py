@@ -77,12 +77,10 @@ def main():
     parser.add_argument('--list-all-files', nargs=1, metavar='<project ID>',
                         help='Lists all files uploaded for a given'
                              'project given its ID.')
-    parser.add_argument('--download-all-files', nargs=1, metavar='<project ID>',
+    parser.add_argument('--download-all-files', nargs=2,
+                        metavar=('<project ID>', '<download to local folder>'),
                         help='Downloads all files uploaded for a given'
-                             'project given its ID.')
-    parser.add_argument('--download-to-folder', nargs=1,
-                        metavar='<folder path>',
-                        help='Downloads all files to a given folder.')
+                             'project given its ID to a local folder.')
     parser.add_argument('--tags', nargs="+", metavar='<tag>',
                         help='Associate a set of tags with a data file '
                              'being uploaded. The tag goes in the '
@@ -267,24 +265,20 @@ def main():
             logger.info(msg)
             return
 
-        if args.download_to_folder is not None and \
-            len(args.download_to_folder) == 1:
-            folder = args.download_to_folder[0]
-        else:
-            folder = "data_from_datastore"
+        local_folder = args.download_all_files[1]
 
-        if os.path.isdir(folder):
-                msg = f"The folder '{folder}' already exists!"
+        if os.path.isdir(local_folder):
+                msg = f"The local folder '{local_folder}' already exists!"
                 logger.exception(msg)
                 raise Exception(msg)
 
-        os.mkdir(folder)
+        os.mkdir(local_folder)
 
         print(f"Downloading all files for "
-              f"project ID: {project_id} to folder: {folder}...")
+              f"project ID: {project_id} to local folder: {local_folder}...")
         for fix, file in enumerate(files):
 
-            local_name = os.path.join(folder, file['s3_name'].split('/')[-1])
+            local_name = os.path.join(local_folder, file['s3_name'].split('/')[-1])
 
             download_from_aws_s3(bucketname='data-store-iterate-labs',
                                  s3_name=file['s3_name'],
@@ -293,7 +287,7 @@ def main():
             print(f" ({fix + 1}) - Download complete: "
                   f"ID: '{file['Data_ID']}' from S3 path '{file['s3_name']}'")
 
-        msg = f"Successfully downloaded all files to '{folder}'."
+        msg = f"Successfully downloaded all files to '{local_folder}'."
         logger.info(msg)
 
     else:
