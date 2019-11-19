@@ -300,3 +300,77 @@ def test_subsample_randomize():
         this_index = list(data_chunk.index)[0]
         assert this_index not in indices_seen
         indices_seen.add(this_index)
+
+        count_num_times += 1
+
+    assert count_num_times == 100
+
+
+def test_subsample_randomize_large_size():
+    """
+    Select larger subsample size.
+    """
+
+    indices_seen = set()
+    count_num_times = 0
+    for data_chunk, _ in subsample_data(data=test_data,
+                                        use_subsampling=True,
+                                        subsample_size_index=100,
+                                        randomize=True,
+                                        number_of_subsamples=100):
+        assert len(data_chunk) == 100
+        this_index = list(data_chunk.index)[0]
+        # the first index should still be unique
+        assert this_index not in indices_seen
+        indices_seen.add(this_index)
+
+        count_num_times += 1
+
+    assert count_num_times == 100
+
+
+def test_subsample_randomize_even_larger_size():
+    """
+    Select even larger subsample size.
+    """
+
+    indices_seen = set()
+    count_num_times = 0
+    for data_chunk, _ in subsample_data(data=test_data,
+                                        use_subsampling=True,
+                                        subsample_size_index=1000,
+                                        randomize=True,
+                                        number_of_subsamples=100):
+        assert len(data_chunk) == 1000
+        this_index = list(data_chunk.index)[0]
+        # the first index should still be unique
+        assert this_index not in indices_seen
+        indices_seen.add(this_index)
+
+        count_num_times += 1
+
+    assert count_num_times == 100
+
+
+def test_subsample_randomize_largest_size():
+    """
+    Select larger-than-data subsample size.
+    """
+
+    indices_seen = set()
+    count_num_times = 0
+    for data_chunk, _ in subsample_data(data=test_data,
+                                        use_subsampling=True,
+                                        subsample_size_index=8000,
+                                        randomize=True,
+                                        number_of_subsamples=100):
+        assert len(data_chunk) == len(test_data)
+        this_index = list(data_chunk.index)[0]
+        # the first index is not unique in this case since we keep
+        # picking the same data over and over:
+        indices_seen.add(this_index)
+
+        count_num_times += 1
+
+    assert len(indices_seen) == 1
+    assert count_num_times == 100

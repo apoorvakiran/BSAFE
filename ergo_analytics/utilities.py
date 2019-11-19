@@ -52,7 +52,6 @@ def subsample_data(data=None, number_of_subsamples=100,
         yield data, chunk_info
         return
 
-
     if not randomize:
 
         # generate all chunks:
@@ -83,11 +82,21 @@ def subsample_data(data=None, number_of_subsamples=100,
         # draw a random number in the range [0, len(data) - sample_size]:
 
         valid_start_indices = arange(len(data))
-        valid_start_indices = valid_start_indices[:where(valid_start_indices ==
-                                    len(data) - subsample_size_index)[0][0]]
+        cut_ix = where(valid_start_indices ==
+                       len(data) - subsample_size_index)[0]
+        if len(cut_ix) > 0:
+            cut_ix = cut_ix[0]
+            valid_start_indices = valid_start_indices[:cut_ix]
+            replace = False
+        else:
+            # in this case the subsample size is larger than the entire
+            # population of data
+            valid_start_indices = [0]
+            replace = True  # there will have to be overlap
 
         random_start_indices = choice(valid_start_indices,
-                                      size=number_of_subsamples, replace=False)
+                                      size=number_of_subsamples,
+                                      replace=replace)
 
         for ix in random_start_indices:
             yield data.iloc[ix:ix + subsample_size_index], dict()
