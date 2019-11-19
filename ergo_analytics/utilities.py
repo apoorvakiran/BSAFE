@@ -69,11 +69,18 @@ def subsample_data(data=None, number_of_subsamples=100,
         # but just operate on indices:
         chunk_indices = arange(num_chunks)
 
+        latest_ix = None
         for ixs in array_split(chunk_indices, number_of_subsamples):
             if len(ixs) == 0:
-                return
+                # if we request a larger susample size than we have data
+                # we jut return the same data over and over
+                # number_of_subsamples times - so force this to be zero
+                # instead of empty:
+                ixs = latest_ix if latest_ix is not None else [0]
+
             ix = int(median(ixs))
             yield all_chunks[ix], dict()
+            latest_ix = [ix]
 
     else:
         # we do randomize the chunks returned:
