@@ -68,7 +68,9 @@ class StructuredData(BaseStructuredData):
         """
         if 'DeltaYaw' not in data or 'DeltaPitch' not in \
             data or 'DeltaRoll' not in data:
-            raise Exception("The incoming data is not in expected format!")
+            msg = "The incoming data is not in expected format!\n" \
+                  "Please make sure to create all delta angles!"
+            raise Exception(msg)
 
     @property
     def number_of_points(self):

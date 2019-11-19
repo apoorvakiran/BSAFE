@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from ergo_analytics.filters import CreateStructuredData
+from ergo_analytics.utilities import subsample_data
 import logging
 
 logger = logging.getLogger()
@@ -132,17 +133,13 @@ class DataFilterPipeline(object):
         logger.debug(f"Number of subsamples = {number_of_subsamples}")
         logger.debug(f"Subsample size = {subsample_size_index}")
 
-
-        # TODO(Subsample data and create convergence plots if needed)
-
-        from ergo_analytics.utilities import subsample_data
+        with_format_code = str(with_format_code).strip()
 
         # ability to pass around information between data chunks
         # was originally introduced due to the zero-line-filter
         parameters = dict()
 
-        all_structured_data_chunks = []
-
+        list_of_transformed_data_chunks = []
         for j, (this_chunk, sample_info) in enumerate(subsample_data(
                 data=on_raw_data, number_of_subsamples=number_of_subsamples,
                 subsample_size_index=subsample_size_index,
@@ -173,21 +170,26 @@ class DataFilterPipeline(object):
                 with_format_code=with_format_code,
                 is_sorted=is_sorted, parameters=parameters,
                 debug=debug)
-            all_structured_data_chunks.append(this_structured_data_chunk)
+            list_of_transformed_data_chunks.append(this_structured_data_chunk)
 
             if debug:
                 os.chdir(curr_dir)
 
-        all_structured_data = pd.concat(all_structured_data_chunks)
-        all_structured_data.reset_index(drop=True, inplace=True)
+        # Note:
+        # each chunk of data now has to be treated as an isolated segment
+        # of data from the wearable for which a score needs to be computed.
+        # Specifically, we should not concat all the chunks together since
+        # there could generally be overlapping pieces (especially if using
+        # the "random" subsampling method):
+        # all_structured_data = pd.concat(all_structured_data_chunks)
+        # all_structured_data.reset_index(drop=True, inplace=True)
+        # also: if subsampling is False we just have a 1-element list now.
 
         logger.debug("Raw data successfully converted to structured data!")
         # always create structured data at the end of the pipeline:
         all_structured_data = DataFilterPipeline._create_structured_data(
-            transformed_data=all_structured_data,
+            list_of_transformed_data_chunks=list_of_transformed_data_chunks,
             data_format_code=with_format_code)
-        if all_structured_data.number_of_points <= 1:
-            logger.warning("You only have <=1 data point to analyze!")
 
         if debug:
             os.chdir(orig_dir)
@@ -308,15 +310,25 @@ class DataFilterPipeline(object):
         return current_data
 
     @staticmethod
-    def _create_structured_data(transformed_data=None,
+    def _create_structured_data(list_of_transformed_data_chunks=None,
                                 data_format_code='5'):
         """
-        Creates the structured data.
+        Taking in a list of transformed data chunks (i.e., each element in
+        the list is a transformed data element - it has gone through
+        the ETL pipeline) this method returns a list of same length where
+        the ith element is now the structured data version of the transformed
+        raw data.
         """
-        f_str_data = CreateStructuredData()
-        f_str_data.update(new_params=dict(data_format_code=data_format_code))
-        structured_data, _ = f_str_data.apply(data=transformed_data)
-        return structured_data
+
+        all_chunks_of_structured_data = []
+        for data_chunk_transformed in list_of_transformed_data_chunks:
+            f_str_data = CreateStructuredData()
+            f_str_data.update(new_params=dict(
+                data_format_code=data_format_code))
+            structured_data, _ = f_str_data.apply(data=data_chunk_transformed)
+            all_chunks_of_structured_data.append(structured_data)
+
+        return all_chunks_of_structured_data
 
     def get_result(self, name=None):
         """

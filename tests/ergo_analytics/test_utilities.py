@@ -45,6 +45,7 @@ def test_cut_off_data_in_subsample():
     """
 
     count_num_times = 0
+    collect_start_indices = set()
     for data_chunk, _ in subsample_data(data=test_data,
                                         use_subsampling=True,
                                         subsample_size_index=5000,
@@ -57,7 +58,14 @@ def test_cut_off_data_in_subsample():
         # to care it seems".
         count_num_times += 1
 
-    assert count_num_times == 1
+        this_ix = data_chunk.index[0]
+        if len(collect_start_indices) > 0:
+            # since we ask for a subsample larger than the data we just
+            # return all data both times:
+            assert this_ix in collect_start_indices
+        collect_start_indices.add(this_ix)
+
+    assert count_num_times == 2
 
 
 def test_use_subsampling():
@@ -177,11 +185,11 @@ def test_more_subsamples_than_we_have(number_of_subsamples):
                                         use_subsampling=True,
                                         subsample_size_index=8000,
                                         randomize=False,
-                                        number_of_subsamples=2):
+                                    number_of_subsamples=number_of_subsamples):
         count_num_times += 1
         assert len(data_chunk) == len(test_data)
 
-    assert count_num_times == 1
+    assert count_num_times == number_of_subsamples
 
 
 def test_cut_off_data_in_subsample_2():
@@ -232,6 +240,33 @@ def test_cut_off_data_in_subsample_2():
         count_num_times += 1
 
     assert count_num_times == 3
+
+
+def test_subsample_unique_starts():
+    """
+    Pick a large number of single-element items.
+    """
+    indices_we_have_seen = set()
+
+    test_data_here = test_data.iloc[:100]
+
+    count_num_times = 0
+    for data_chunk, _ in subsample_data(data=test_data_here,
+                                        use_subsampling=True,
+                                        subsample_size_index=10,
+                                        randomize=False,
+                                        number_of_subsamples=5):
+
+        assert len(data_chunk) == 10
+
+        this_index = list(data_chunk.index)[0]
+        assert this_index not in indices_we_have_seen
+
+        indices_we_have_seen.add(list(data_chunk.index)[0])
+
+        count_num_times += 1
+
+    assert count_num_times == 5
 
 
 def test_subsample_size_1_many_subsamples():
