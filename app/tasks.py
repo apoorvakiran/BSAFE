@@ -92,13 +92,14 @@ def safety_score_analysis(mac_address, start_time, end_time):
     pipeline.add_filter(name='impute', filter=DataImputationFilter())
     pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
     # run the pipeline!
-    structured_data = pipeline.run(on_raw_data=raw_data,
-                                   with_format_code=data_format_code)
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data,
+                                            with_format_code=data_format_code)
 
     logger.info(f"Retrieved all data for {mac_address}")
-    if structured_data.number_of_points > 0:
+    if len(list_of_structured_data_chunks) > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
-        metrics = ErgoMetrics(structured_data=structured_data)
+        metrics = ErgoMetrics(
+            list_of_structured_data_chunks=list_of_structured_data_chunks)
         metrics.compute()
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its

@@ -27,6 +27,12 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None,
         The incoming data is in degrees.
     """
 
+    if delta_pitch is None or delta_yaw is None or delta_roll is None:
+        msg = "one or more of the incoming delta-angles is None!" \
+              "Returning just None for the score."
+        logger.debug(msg)
+        return None
+
     m = 11  # how many bins?
     bins_degrees = [15 * (i + 1) for i in range(m + 1)]
     # bins are: [0, 15, 30, 45, ...]
