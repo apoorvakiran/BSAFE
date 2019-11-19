@@ -2,8 +2,8 @@
 """
 Computes metrics for analyzing a collection of structured data.
 
-@ author Jesper Kristensen with Iterate Labs, Inc.
-Copyright 2018
+@ author Jesper Kristensen
+Copyright Iterate Labs, Inc. 2018
 """
 
 __all__ = ["ErgoMetrics"]
@@ -15,6 +15,7 @@ import logging
 from .metrics import compute_posture_score
 from .metrics import compute_strain_score
 from .metrics import compute_angular_speed_score
+from .data_structured import StructuredData
 
 logger = logging.getLogger()
 
@@ -53,6 +54,42 @@ class ErgoMetrics(object):
 
         # notice that the delta yaw/pitch/roll variables are
         # defined as properties
+
+    @property
+    def earliest_time(self):
+
+        earliest_time = None
+        for data_chunk in self._data_chunks:
+            if not isinstance(data_chunk, StructuredData):
+                continue
+
+            this_min_time = data_chunk.time.min()
+
+            if earliest_time is None:
+                earliest_time = this_min_time
+                continue
+
+            earliest_time = min(earliest_time, this_min_time)
+
+        return earliest_time
+
+    @property
+    def latest_time(self):
+
+        latest_time = None
+        for data_chunk in self._data_chunks:
+            if not isinstance(data_chunk, StructuredData):
+                continue
+
+            this_max_time = data_chunk.time.max()
+
+            if latest_time is None:
+                latest_time = this_max_time
+                continue
+
+            latest_time = max(latest_time, this_max_time)
+
+        return latest_time
 
     def _delta_yaw(self, chunk_index=0):
         try:

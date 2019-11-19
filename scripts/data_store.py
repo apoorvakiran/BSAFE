@@ -1,4 +1,4 @@
-#!/Users/johnjohnson/.local/share/virtualenvs/BSAFE-PHXVcO8i/bin/python
+#!/anaconda3/bin//python
 """
 This script is used to interact with Iterate Lab Inc.'s Data Store.
 The Data Store is an S3 bucket with all the data collected by Iterate Labs
