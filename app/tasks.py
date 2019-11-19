@@ -17,6 +17,7 @@ import logging
 import os
 import datetime
 import requests
+from numpy import ceil
 from urllib.error import HTTPError
 from periodiq import PeriodiqMiddleware, cron
 from ergo_analytics import LoadElasticSearch
@@ -69,17 +70,30 @@ def safety_score_analysis(mac_address, start_time, end_time):
 
     data_format_code = '5'  # what format is the data in?
 
+    # subsampling of the data:
+    how_to_combine_data_chunks = 'average'
+    number_of_subsamples = 10
+    randomize_subsampling = True
+    use_subsampling = True
+
+
     data_loader = LoadElasticSearch()
     raw_data = data_loader.retrieve_data(mac_address=mac_address,
                                          start_time=start_time,
                                          end_time=end_time,
                                          host=host, index=index,
                                          data_format_code=data_format_code)
+
     if raw_data is None:
         logger.info(f"Found no elements in the ES database for {mac_address}.")
         return
     logger.info(f"Found {len(raw_data)} elements in "
                 f"the ES database for {mac_address}.")
+
+    num_data = len(raw_data)
+    # take 10% as subsampling but not below 1 minute:
+    subsample_size_index = ceil(max(num_data * 0.1, 600))
+    logger.debug(f"Using {subsample_size_index} indices per subsample!")
 
     # now pass the raw data through our data filter pipeline:
     pipeline = DataFilterPipeline()
@@ -92,8 +106,13 @@ def safety_score_analysis(mac_address, start_time, end_time):
     pipeline.add_filter(name='impute', filter=DataImputationFilter())
     pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
     # run the pipeline!
+
     list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data,
-                                            with_format_code=data_format_code)
+                                            with_format_code=data_format_code,
+                                            use_subsampling=use_subsampling,
+                                    randomize_subsampling=randomize_subsampling,
+                                    subsample_size_index=subsample_size_index,
+                                    number_of_subsamples=number_of_subsamples)
 
     logger.info(f"Retrieved all data for {mac_address}")
     if len(list_of_structured_data_chunks) > 0:
@@ -104,12 +123,15 @@ def safety_score_analysis(mac_address, start_time, end_time):
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:
-        report = ErgoReport(ergo_metrics=metrics, mac_address=mac_address)
+
+        report = ErgoReport(ergo_metrics=metrics)
         # now we can report to any format we want - here HTTP:
         auth = f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"
         report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
                                 f"safety_scores",
-                       authorization=auth)
+                       authorization=auth,
+                       combine_across_data_chunks=how_to_combine_data_chunks,
+                       mac_address=mac_address)
 
         logger.info(f"{report.response.status_code} "
                     f"{report.response.text}")
