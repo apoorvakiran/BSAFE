@@ -149,3 +149,77 @@ def test_running_pipeline_3():
 
     assert len(list_of_structured_data_chunks) == 4
     assert len(list_of_structured_data_chunks[0].get_data()) == len(test_data)
+
+
+def test_running_pipeline_consecutive():
+    """
+    Test running the data pipeline (the ETL).
+    """
+
+    data_format_code = '5'
+    test_data_path = os.path.join(ROOT_DIR, "Demos",
+                             f"demo-format-{data_format_code}",
+                             "data_small.csv")
+    test_data = pd.read_csv(test_data_path)
+
+    #
+    pipeline = DataFilterPipeline()
+    pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
+                                    with_format_code=data_format_code,
+                                    is_sorted=True,
+                                    use_subsampling=True,
+                                    consecutive_subsamples=True,
+                                    subsample_size_index=100,
+                                    randomize_subsampling=False)
+
+    assert len(list_of_structured_data_chunks) == 1
+    assert len(list_of_structured_data_chunks[0].get_data()) == 100
+
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
+                                                  with_format_code=data_format_code,
+                                                  is_sorted=True,
+                                                  use_subsampling=True,
+                                                  consecutive_subsamples=True,
+                                                  subsample_size_index=10,
+                                                  randomize_subsampling=False)
+
+    assert len(list_of_structured_data_chunks) == 10
+
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
+                                                  with_format_code=data_format_code,
+                                                  is_sorted=True,
+                                                  use_subsampling=True,
+                                                  consecutive_subsamples=True,
+                                                  subsample_size_index=8,
+                                                  randomize_subsampling=False)
+
+    # the way np's "array_split" works it'll create size 9 for everything
+    # but the last of size 8:
+    assert len(list_of_structured_data_chunks[0].get_data()) == 9
+    assert len(list_of_structured_data_chunks[-1].get_data()) == 8
+    assert len(list_of_structured_data_chunks) == 12  # 100/8 = 12.5
+
+
+def test_consecutive_and_random_both_times():
+
+    data_format_code = '5'
+    test_data_path = os.path.join(ROOT_DIR, "Demos",
+                                  f"demo-format-{data_format_code}",
+                                  "data_small.csv")
+    test_data = pd.read_csv(test_data_path)
+
+    #
+    pipeline = DataFilterPipeline()
+    pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+
+    with pytest.raises(Exception):
+        # we can't have consecutive and random:
+        _ = pipeline.run(on_raw_data=test_data,
+                          with_format_code=data_format_code,
+                          is_sorted=True,
+                          use_subsampling=True,
+                          consecutive_subsamples=True,
+                          subsample_size_index=8,
+                          randomize_subsampling=True)
