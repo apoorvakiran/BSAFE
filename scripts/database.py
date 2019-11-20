@@ -143,7 +143,7 @@ class BackendDataBase(object):
             )
 
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
-    
+
     def insert_project_if_not_exist(self, **kwargs):
         """
         Insert a new project to the database.
