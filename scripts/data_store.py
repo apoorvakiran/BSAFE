@@ -56,8 +56,9 @@ def main():
                         help='Creates a new project in the Data '
                              'Store if it does not exist.')
     # User can upload data to a bucket
-    parser.add_argument('--upload', nargs=2, metavar=('<data file>',
-                                                      '<project ID>'),
+    parser.add_argument('--upload', nargs=3, metavar=('<data file>',
+                                                      '<project ID>',
+                                                      '<nickname>'),
                         help='Upload a single file to the project ID in'
                              'the Data Store')
     # User can upload data to a bucket
@@ -116,9 +117,9 @@ def main():
             team.replace(" ", "-").replace("_", "-").rstrip().lstrip().lower()
 
         if team not in valid_teams:
-            msg = "This is not a valid team name!\n"\
-                  "Please have your team registered in the database.\n"\
-                  "Call this script again with --help to see email\n" \
+            msg = "This is not a valid team name!"\
+                  "Please have your team registered in the database."\
+                  "Call this script again with --help to see email" \
                   "contact for valid options."
             logger.exception(msg)
             raise Exception(msg)
@@ -144,14 +145,15 @@ def main():
         print(f"Total projects in our Data Store: {len(all_projects)}.")
         print()
         for pix, pr in enumerate(all_projects):
-            msg = f'   Project ({pix + 1}): ID: \'{pr["Project_ID"]}\' ' \
-                  f'-- Name: \'{pr["Project_Name"]}\'.'
+            msg = f'Project ({pix + 1}):\n' \
+                  f'  | ID: \'{pr["Project_ID"]}\'\n' \
+                  f'  | Name: \'{pr["Project_Name"]}\''
             logger.debug(msg)
             print(msg)
 
         print()
 
-    elif args.upload is not None and len(args.upload) == 2:
+    elif args.upload is not None and len(args.upload) == 3:
         """
         Upload data to the Data Store. Note that Project ID needs to be
         given as well in this case.
@@ -179,12 +181,15 @@ def main():
             logger.exception(msg)
             raise Exception(msg)
 
+        nickname = args.upload[2]  # human readable name for this data
+
         s3_url, s3_name, uid = upload_data(db=db,
                                            file_to_upload=data_file_to_upload,
                                            project_id=project_id)
 
         additional_tags = [] if not (args.tags is not None and
                                      len(args.tags) > 0) else args.tags
+        additional_tags.append({"nickname": nickname})
 
         # get the kind of data as well (the type if you will). Suggestions:
         # Was it collected during code development (dev), during testing
@@ -201,8 +206,8 @@ def main():
                                   data_type=data_type,
                                   file_to_upload=data_file_to_upload)
 
-        msg = f"\nFile '{data_file_to_upload}' successfully uploaded to " \
-              f"project '{project_id}'.\n"
+        msg = f"File '{data_file_to_upload}' successfully uploaded to " \
+              f"project '{project_id}'."
         logger.info(msg)
         print(msg)
 
@@ -239,12 +244,21 @@ def main():
               f"project ID = {project_id}"
         logger.info(msg)
 
-        print(f"Listing all files for project ID: {project_id}...")
+        print(f"Listing all files for project ID: {project_id}...\n")
         for fix, file in enumerate(files):
-            print(f" ({fix + 1}) - ID: '{file['Data_ID']}' at "
-                  f"S3 path '{file['s3_name']}'")
 
-        msg = "Successfully listed all files."
+            nickname = '(no nickname)'
+            for t in file['additional_tags']:
+                if isinstance(t, dict) and 'nickname' in t:
+                    nickname = t['nickname']
+                    break
+
+            print(f"File {fix + 1}:\n"
+                  f"  | Data ID: '{file['Data_ID']}'\n"
+                  f"  | nickname = '{nickname}'\n"
+                  f"  | S3 url '{file['s3_url']}'")
+
+        msg = "Successfully listed all files.\n"
         logger.info(msg)
 
     elif args.download_all_files:
@@ -302,6 +316,7 @@ def main():
         parser.print_help()
         return
 
+    print()
     msg = "Done."
     print(msg)
     logger.debug(msg)
@@ -443,8 +458,8 @@ def create_project_in_database(db=None, team=None, project_name=None):
                                    **get_common_tags()
                                    )
 
-    msg = f"\nProject ID '{project_id}' created in the Data Store!\n" \
-          f"Now you can upload data to this project.\n"
+    msg = f"Project ID '{project_id}' created in the Data Store!" \
+          f"Now you can upload data to this project."
     print(msg)
     logger.debug(msg)
 
@@ -483,13 +498,13 @@ def upload_data(db=None, file_to_upload=None, project_id=None):
             break  # we got a valid name
         except botocore.exceptions.ClientError:
             msg = f"Please enter a valid s3 bucket name " \
-                  f"'{s3_name}'!\nCheck the team and project names!"
+                  f"'{s3_name}'!Check the team and project names!"
             logger.exception(msg)
             raise Exception(msg)
         except Exception:
             n += 1
             if n > max_tries:
-                msg = "Was unable to create a new project folder under\n" \
+                msg = "Was unable to create a new project folder under" \
                       "'data-store-iterate-labs' on the company's S3!"
                 logger.exception(msg)
                 raise Exception(msg)
@@ -501,6 +516,6 @@ def upload_data(db=None, file_to_upload=None, project_id=None):
 
 if __name__ == "__main__":
     """
-    Run this as a script
+    Run this as a script.
     """
     main()
