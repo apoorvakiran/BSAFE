@@ -46,20 +46,6 @@ class BackendDataBase(object):
         self._projects_table_name = 'Projects'  # keep projects here
         self._meta_data_table_name = 'Meta-Data'
 
-    # def batch_write(self, table_name, items):
-    #     """
-    #     Batch-write items to given table name, i.e., write a lot of items
-    #     to the table at once.
-    #
-    #     :param items: list of items, each a dict, to insert.
-    #     """
-    #     dynamodb = self.conn
-    #     table = dynamodb.Table(table_name)
-    #     with table.batch_writer() as batch:
-    #         for item in items:
-    #             batch.put_item(Item=item)
-    #     return True
-
     def register_data_in_database(self, **kwargs):
         """
         Insert meta-data for a new datum in the database.
@@ -101,7 +87,10 @@ class BackendDataBase(object):
         Updates an existing datum in the "Meta-Data" Data Store table
         with BSAFE results.
 
-        Note: If the BSAFE results already exists
+        Based on:
+        https://docs.aws.amazon.com/amazondynamodb/latest/
+        developerguide/Expressions.UpdateExpressions.html
+        #Expressions.UpdateExpressions.SET
         """
 
         if bsafe_result is None or data_id is None:
@@ -153,11 +142,8 @@ class BackendDataBase(object):
                 }
             )
 
-        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-            return True
-        else:
-            return False
-
+        return response['ResponseMetadata']['HTTPStatusCode'] == 200
+    
     def insert_project_if_not_exist(self, **kwargs):
         """
         Insert a new project to the database.
@@ -389,3 +375,17 @@ class BackendDataBase(object):
     #         self.create_table(table_name, hash_name=hash_name)
     #     except:
     #         print("Error in creating table {}".format(table_name))
+    #
+    # def batch_write(self, table_name, items):
+    #     """
+    #     Batch-write items to given table name, i.e., write a lot of items
+    #     to the table at once.
+    #
+    #     :param items: list of items, each a dict, to insert.
+    #     """
+    #     dynamodb = self.conn
+    #     table = dynamodb.Table(table_name)
+    #     with table.batch_writer() as batch:
+    #         for item in items:
+    #             batch.put_item(Item=item)
+    #     return True
