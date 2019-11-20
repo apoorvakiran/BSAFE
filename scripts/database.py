@@ -14,6 +14,7 @@ __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
 import logging
+import botocore
 import boto3
 from boto3.dynamodb.conditions import Key
 
@@ -85,7 +86,8 @@ class BackendDataBase(object):
                      'Created_by_system_user_name':
                          kwargs['created_by_system_user_name'],
                      'Created_by_user': kwargs['created_by_user'],
-                     'time_created': kwargs['time_created_utc']
+                     'time_created': kwargs['time_created_utc'],
+                     'BSAFE_results': kwargs['BSAFE_results']
                    }
 
         dynamodb = self.conn
@@ -93,6 +95,68 @@ class BackendDataBase(object):
         response = table.put_item(Item=meta_data)
 
         return response['ResponseMetadata']['HTTPStatusCode'] == 200
+
+    def update_datum(self, data_id=None, bsafe_result=None, **kwargs):
+        """
+        Updates an existing datum in the "Meta-Data" Data Store table
+        with BSAFE results.
+
+        Note: If the BSAFE results already exists
+        """
+
+        if bsafe_result is None or data_id is None:
+            msg = "Please provide valid values for BSAFE_result and/or Data ID"
+            logger.debug(msg)
+            print(msg)
+            return
+
+        dynamodb = self.conn
+        table = dynamodb.Table("Meta-Data")
+
+        # attach additional information:
+        meta_data_with_results = {'Data_ID': data_id,
+                     'IP': kwargs['ip'],
+                     'Hostname': kwargs['hostname'],
+                     'Country': kwargs['country'],
+                     'Location': kwargs['location'],
+                     'Timezone': kwargs['timezone'],
+                     'AWS_ACCESS_KEY': kwargs['aws_access_key'],
+                     'IP_INFO_TOKEN': kwargs['ip_info_token'],
+                     'Created_by_system_user_name':
+                         kwargs['created_by_system_user_name'],
+                     'Created_by_user': kwargs['created_by_user'],
+                     'time_created': kwargs['time_created_utc'],
+                     'BSAFE_result': bsafe_result
+                     }
+
+        try:
+            # updates (or creates if not exists) the BSAFE_result column
+            # which contains a list that we now append the BSAFE results to:
+            response = table.update_item(
+                Key={"Data_ID": data_id},
+                UpdateExpression='SET #ri = list_append(#ri, :val)',
+                ExpressionAttributeNames={
+                    "#ri": "BSAFE_result"
+                },
+                ExpressionAttributeValues={
+                    ':val': [meta_data_with_results]
+                }
+            )
+        except botocore.exceptions.ClientError:
+            # the list does not exist (i.e., we don't have existing BSAFE
+            # results) so create it:
+            response = table.update_item(
+                Key={"Data_ID": data_id},
+                UpdateExpression='SET BSAFE_result = :val',
+                ExpressionAttributeValues={
+                    ':val': [meta_data_with_results]
+                }
+            )
+
+        if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+            return True
+        else:
+            return False
 
     def insert_project_if_not_exist(self, **kwargs):
         """
@@ -153,31 +217,6 @@ class BackendDataBase(object):
 
         item = response['Item']
         return item
-
-    # def update_item(self, table_name, key_dict, update_dict):
-    #     """
-    #     Update an item.
-    #     PARAMS
-    #     @table_name: name of the table
-    #     @key_dict: dict containing the key name and val eg. {"uuid": item_uuid}
-    #     @update_dict: dict containing the key name and val of
-    #     attributes to be updated
-    #     eg. {"attribute": "processing_status", "value": "completed"}
-    #     """
-    #     dynamodb = self.conn
-    #     table = dynamodb.Table(table_name)
-    #     update_expr = 'SET {} = :val1'.format(update_dict['attribute'])
-    #     response = table.update_item(
-    #         Key=key_dict,
-    #         UpdateExpression=update_expr,
-    #         ExpressionAttributeValues={
-    #             ':val1': update_dict['value']
-    #         }
-    #     )
-    #     if response['ResponseMetadata']['HTTPStatusCode'] == 200:
-    #         return True
-    #     else:
-    #         return False
 
     def check_that_project_exists(self, project_id=None):
         """
