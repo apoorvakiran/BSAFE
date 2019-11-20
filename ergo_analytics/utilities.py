@@ -25,7 +25,7 @@ logger = logging.getLogger()
 
 
 def subsample_data(data=None, number_of_subsamples=100,
-                   use_subsampling=True,
+                   use_subsampling=True, consecutive_subsamples=False,
                    subsample_size_index=1000, randomize=True,
                    **kwargs):
     """
@@ -52,6 +52,11 @@ def subsample_data(data=None, number_of_subsamples=100,
         yield data, chunk_info
         return
 
+    if consecutive_subsamples and randomize:
+        msg = "Please select one of consecutive subsamples or random!"
+        logger.exception(msg)
+        raise Exception(msg)
+
     if not randomize:
 
         # generate all chunks:
@@ -63,11 +68,20 @@ def subsample_data(data=None, number_of_subsamples=100,
             f"Splitting data into {num_chunks} chunks! "
             f"(requested: {num_chunks_target})")
 
+        if consecutive_subsamples:
+            # just take the chunks we already have based on the
+            # subsample size:
+            for chunk in all_chunks:
+                yield chunk, {}
+            return
+
+        # Here: we do not want consecutive chunks, but we want to
+        # process every "Nth" chunk (so we skip some chunks):
         # at this point, we have less chunks requested than we split the
         # data into, so now we need to evenly return a set of "num_chunks"
         # chunks. We can do this by leveraging KFold from scikit-learn
         # but just operate on indices:
-        chunk_indices = arange(num_chunks)
+        chunk_indices = arange(num_chunks)  # index the chunks
 
         latest_ix = None
         for ixs in array_split(chunk_indices, number_of_subsamples):
