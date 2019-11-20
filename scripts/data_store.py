@@ -89,6 +89,12 @@ def main():
                              'being uploaded. The tag goes in the '
                              'meta-data database. For example (2 tags added): '
                              '--tags "this is tag1" "this is tag 2"')
+    parser.add_argument('--update', nargs=2, metavar=('<data ID>',
+                                                      '<BSAFE result>'),
+                        help='Update existing datum in the Data Store.'
+                             'The BSAFE result argument needs to be a string,'
+                             'so a JSON turned into a string would be valid.')
+
 
     # start by parsing what the user wants to do:
     try:
@@ -132,6 +138,19 @@ def main():
             raise Exception(msg)
 
         create_project_in_database(db=db, team=team, project_name=project)
+
+    elif args.update:
+        # update existing datum with BSAFE results:
+
+        data_id = args.update[0]
+        bsafe_result = args.update[1]
+
+        db.update_datum(data_id=data_id,
+                        bsafe_result=bsafe_result, **get_common_tags())
+
+        msg = "Update done!"
+        logger.debug(msg)
+        print(msg)
 
     elif args.list_available_projects:
         """
@@ -386,6 +405,7 @@ def register_data_in_database(db=None, s3_url=None, s3_name=None, uid=None,
                                 project_name=project_details['Project_Name'],
                                 team_name=project_details['Team_Name'],
                                 data_type=data_type,
+                                BSAFE_results=None,
                                 **get_common_tags()
                                 )
 
