@@ -10,7 +10,10 @@ __all__ = ["ArduinoData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import logging
 from .base_data import BaseData
+
+logger = logging.getLogger()
 
 
 class ArduinoData(BaseData):
@@ -47,14 +50,17 @@ class ArduinoData(BaseData):
 
         for usb_port in all_usb_ports:
             try:
-                print(f"Trying port {usb_port}...")
+                logger.debug(f"Trying port {usb_port}...")
                 board = ArduinoMega(usb_port)  # usb port
             except Exception as msg:
-                print(" -- Error with this port:")
-                print(msg)
+                logger.exception(" -- Error with this port:")
+                logger.exception(msg)
                 continue
 
         if board is None:
-            raise Exception("The board was not found in any of the USB ports?")
+            msg = "The board was not found in any of the USB ports?"
+            logger.exception(msg)
+            raise Exception(msg)
 
         return board
+
