@@ -23,16 +23,16 @@ pipenv update
 pipenv install --dev
 echo "[OK] Python has been set up."
 
-echo "Setting up the Data Store script..."
-first_line=$(head -n 1 scripts/data_store.py)
-if [[ $first_line == "#"* ]]
-then
-	tail -n +2 scripts/data_store.py > data_store.tmp && mv data_store.tmp scripts/data_store.py
-fi
-echo -e "#"'!'"`which python`\n$(cat scripts/data_store.py)" > scripts/data_store.py
-pipenv run python scripts/data_store.py > /dev/null
-echo
-echo "[OK] Data Store set up"
+# echo "Setting up the Data Store script..."
+# first_line=$(head -n 1 scripts/data_store.py)
+# if [[ $first_line == "#"* ]]
+# then
+# 	tail -n +2 scripts/data_store.py > data_store.tmp && mv data_store.tmp scripts/data_store.py
+# fi
+# echo -e "#"'!'"`which python`\n$(cat scripts/data_store.py)" > scripts/data_store.py
+#pipenv run python scripts/data_store.py > /dev/null
+#echo
+#echo "[OK] Data Store set up"
 
 echo
 echo "Run python commands with \"pipenv run -m python <script to run.py>\""

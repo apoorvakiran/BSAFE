@@ -1,4 +1,3 @@
-#!/anaconda3/bin//python
 """
 This script is used to interact with Iterate Lab Inc.'s Data Store.
 The Data Store is an S3 bucket with all the data collected by Iterate Labs
@@ -164,10 +163,8 @@ def main():
         print(f"Total projects in our Data Store: {len(all_projects)}.")
         print()
         for pix, pr in enumerate(all_projects):
-            msg = f'Project ({pix + 1}):
-' \
-                  f'  | ID: \'{pr["Project_ID"]}\'
-' \
+            msg = f'Project ({pix + 1}):\n' \
+                  f'  | ID: \'{pr["Project_ID"]}\n\'' \
                   f'  | Name: \'{pr["Project_Name"]}\''
             logger.debug(msg)
             print(msg)
