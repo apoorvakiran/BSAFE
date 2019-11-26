@@ -47,4 +47,3 @@ echo "[completed]"
 echo
 echo "[ALL OK] All good to push commit!"
 echo
-

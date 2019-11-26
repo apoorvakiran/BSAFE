@@ -118,7 +118,7 @@ class LoadElasticSearch(BaseData):
 
         device_df = pd.DataFrame(device_data)
         device_df.columns = ['value', 'device', 'timestamp']
-        logger.info("{} documents found for device.".format(len(device_df),
+        logger.info("{} documents found for this device.".format(len(device_df),
                                                             mac_address))
         data_all_devices.append(device_df)
 

@@ -17,5 +17,3 @@ def generate_safety_score():
     logger.info(f"Received mac {mac}")
     safety_score_analysis.send(mac, start_time, end_time)
     return jsonify({'status': 'processed'}), 200
-
-

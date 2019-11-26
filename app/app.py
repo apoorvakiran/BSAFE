@@ -8,6 +8,7 @@ from sentry_dramatiq import DramatiqIntegration
 from .extensions import dramatiq
 from .api import api
 
+
 def create_app():
     environment = os.getenv('ENVIRONMENT', 'development')
     if environment != 'development':
