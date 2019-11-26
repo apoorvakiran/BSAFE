@@ -164,8 +164,10 @@ def main():
         print(f"Total projects in our Data Store: {len(all_projects)}.")
         print()
         for pix, pr in enumerate(all_projects):
-            msg = f'Project ({pix + 1}):\n' \
-                  f'  | ID: \'{pr["Project_ID"]}\'\n' \
+            msg = f'Project ({pix + 1}):
+' \
+                  f'  | ID: \'{pr["Project_ID"]}\'
+' \
                   f'  | Name: \'{pr["Project_Name"]}\''
             logger.debug(msg)
             print(msg)
@@ -263,7 +265,8 @@ def main():
               f"project ID = {project_id}"
         logger.info(msg)
 
-        print(f"Listing all files for project ID: {project_id}...\n")
+        print(f"Listing all files for project ID: {project_id}...
+")
         for fix, file in enumerate(files):
 
             nickname = '(no nickname)'
@@ -272,12 +275,16 @@ def main():
                     nickname = t['nickname']
                     break
 
-            print(f"File {fix + 1}:\n"
-                  f"  | Data ID: '{file['Data_ID']}'\n"
-                  f"  | nickname = '{nickname}'\n"
+            print(f"File {fix + 1}:
+"
+                  f"  | Data ID: '{file['Data_ID']}'
+"
+                  f"  | nickname = '{nickname}'
+"
                   f"  | S3 url '{file['s3_url']}'")
 
-        msg = "Successfully listed all files.\n"
+        msg = "Successfully listed all files.
+"
         logger.info(msg)
 
     elif args.download_all_files:
