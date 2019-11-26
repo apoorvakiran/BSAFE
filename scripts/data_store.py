@@ -20,6 +20,7 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
     ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
 sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
+sys.path.insert(1, os.path.join(ROOT_DIR, "scripts"))
 # ==
 
 import hashlib
@@ -42,6 +43,7 @@ DATA_STORE_S3_BUCKET = "data-store-iterate-labs"
 
 
 def main():
+
     parser = argparse.ArgumentParser(description=('Welcome to Iterate '
                                     'Lab Inc.\'s Data-Store Tool.'
                                     'With this tool you can create new buckets '
@@ -262,8 +264,7 @@ def main():
               f"project ID = {project_id}"
         logger.info(msg)
 
-        print(f"Listing all files for project ID: {project_id}...
-")
+        print(f"Listing all files for project ID: {project_id}...")
         for fix, file in enumerate(files):
 
             nickname = '(no nickname)'
@@ -272,16 +273,12 @@ def main():
                     nickname = t['nickname']
                     break
 
-            print(f"File {fix + 1}:
-"
-                  f"  | Data ID: '{file['Data_ID']}'
-"
-                  f"  | nickname = '{nickname}'
-"
+            print(f"File {fix + 1}:"
+                  f"  | Data ID: '{file['Data_ID']}'"
+                  f"  | nickname = '{nickname}'"
                   f"  | S3 url '{file['s3_url']}'")
 
-        msg = "Successfully listed all files.
-"
+        msg = "Successfully listed all files."
         logger.info(msg)
 
     elif args.download_all_files:
@@ -308,13 +305,13 @@ def main():
 
         local_folder = args.download_all_files[1]
 
-        if os.path.isdir(local_folder):
-                msg = f"The local folder '{local_folder}' already exists!"
-                logger.exception(msg)
-                print(msg)
-                raise Exception(msg)
+        # if os.path.isdir(local_folder):
+        #     msg = f"The local folder '{local_folder}' already exists!"
+        #     logger.exception(msg)
+        #     print(msg)
+        #     raise Exception(msg)
 
-        os.mkdir(local_folder)
+        os.makedirs(local_folder, exist_ok=True)
 
         msg = f"Downloading all files for " \
               f"project ID: {project_id} to local folder: {local_folder}..."

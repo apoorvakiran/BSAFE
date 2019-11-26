@@ -26,3 +26,6 @@ def test_load_data_store_basic():
 
     ds = LoadDataStore()
     list_raw_data = ds.load(project_id='data-science-dino-test1')
+
+    import pdb
+    pdb.set_trace()

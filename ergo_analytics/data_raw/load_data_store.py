@@ -11,7 +11,21 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
+import os
+import sys
+
+# == we start by finding the project root:
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
+    ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
+sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
+sys.path.insert(0, os.path.join(ROOT_DIR, 'scripts'))
+# ==
+
 import logging
+
+from tempfile import mkdtemp
+import subprocess
 from . import BaseData
 
 logger = logging.getLogger()
@@ -34,7 +48,20 @@ class LoadDataStore(BaseData):
         only that file from the specific project ID.
         """
 
-        from scripts import data_store
+        tmp_dir = mkdtemp()
+
+        result = subprocess.check_output(
+            [f'pipenv run python scripts/data_store.py '
+             f'--download-all-files {project_id} {tmp_dir}'],
+            shell=True)
+
+        # call the data_store script:
+
+        # 1) Parse the "result" to get all file names.
+        # 2) Load all files and create iterator over the data (lazy iterator).s
+        # 3) return that iterator.
+
+
 
         import pdb
         pdb.set_trace()

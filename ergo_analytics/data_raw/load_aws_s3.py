@@ -54,6 +54,7 @@ from boto3.exceptions import S3UploadFailedError
 
 logger = logging.getLogger()
 
+
 def _get_s3_client():
     """
     Common code for retrieving the S3 client associated
