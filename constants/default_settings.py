@@ -27,12 +27,11 @@ def convert_date(date_from_device=None):
     """
     Converts the string dates coming from the device.
     """
-    try:
-        date_to_return = pd.to_datetime(date_from_device)
-    except ValueError:
+    if date_from_device.strip().startswith('RTC:'):
         # some data includes the "RTC:" prepended:
-        date_to_return = date_from_device.lstrip('RTC:')
-        date_to_return = pd.to_datetime(date_to_return)
+        date_from_device = date_from_device.lstrip('RTC:')
+
+    date_to_return = pd.to_datetime(date_from_device)
 
     return date_to_return
 

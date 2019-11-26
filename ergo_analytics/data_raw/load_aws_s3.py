@@ -84,10 +84,8 @@ def get_existing_bucket_names():
     # Output the bucket names
     bucket_names = response['Buckets']
     logger.debug('Existing buckets on S3:')
-    print(bucket_names)
+    logger.debug(bucket_names)
 
-    import pdb
-    pdb.set_trace()
     return response['Buckets']
 
 
