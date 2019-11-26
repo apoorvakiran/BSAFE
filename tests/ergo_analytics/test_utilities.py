@@ -409,3 +409,48 @@ def test_subsample_randomize_largest_size():
 
     assert len(indices_seen) == 1
     assert count_num_times == 100
+
+
+def test_subsample_randomize_2():
+    """
+    Select larger-than-data subsample size.
+    """
+
+    data_format_code = '5'  # in which format is the data coming to us?
+
+    # this is data with 6256 rows
+    test_data_path = os.path.join(ROOT_DIR, "Demos",
+                                  "demo-data-from-device",
+                                  "test_data.csv")
+
+    this_test_data = pd.read_csv(test_data_path)
+
+    for data_chunk, _ in subsample_data(data=this_test_data,
+                                        use_subsampling=True,
+                                        subsample_size_index=600,
+                                        randomize=True,
+                                        number_of_subsamples=100):
+        assert len(data_chunk) == len(this_test_data)
+
+
+def test_floats():
+    """
+    Here we input floats for the indices.
+    """
+
+    indices_seen = set()
+    count_num_times = 0
+    for data_chunk, _ in subsample_data(data=test_data,
+                                        use_subsampling=True,
+                                        subsample_size_index=1000.0,
+                                        randomize=True,
+                                        number_of_subsamples=100):
+        assert len(data_chunk) == 1000
+        this_index = list(data_chunk.index)[0]
+        # the first index should still be unique
+        assert this_index not in indices_seen
+        indices_seen.add(this_index)
+
+        count_num_times += 1
+
+    assert count_num_times == 100

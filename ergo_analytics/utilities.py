@@ -43,6 +43,12 @@ def subsample_data(data=None, number_of_subsamples=100,
         yield None, dict()
         return
 
+    if subsample_size_index is not None:
+        subsample_size_index = int(subsample_size_index)
+
+    if number_of_subsamples is not None:
+        number_of_subsamples = int(number_of_subsamples)
+
     if subsample_size_index == 0 or number_of_subsamples == 0:
         yield [], dict()
         return
@@ -105,6 +111,7 @@ def subsample_data(data=None, number_of_subsamples=100,
         valid_start_indices = arange(len(data))
         cut_ix = where(valid_start_indices ==
                        len(data) - subsample_size_index)[0]
+
         if len(cut_ix) > 0:
             cut_ix = cut_ix[0]
             valid_start_indices = valid_start_indices[:cut_ix]

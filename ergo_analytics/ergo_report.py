@@ -133,6 +133,8 @@ class ErgoReport (object):
         analyzed_at_time = datetime.now().utcnow().isoformat()
         payload_dict['analyzed_at'] = analyzed_at_time
 
+        logger.debug(payload_dict)
+
         return payload_dict
 
     def to_csv(self):

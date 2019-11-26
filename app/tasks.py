@@ -107,6 +107,9 @@ def safety_score_analysis(mac_address, start_time, end_time):
     pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
     # run the pipeline!
 
+    raw_data.to_csv("log.csv", index=False)
+    print("Stored!")
+
     list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data,
                                             with_format_code=data_format_code,
                                             use_subsampling=use_subsampling,
@@ -132,6 +135,8 @@ def safety_score_analysis(mac_address, start_time, end_time):
                        authorization=auth,
                        combine_across_data_chunks=how_to_combine_data_chunks,
                        mac_address=mac_address)
+
+        print(report.response)
 
         logger.info(f"{report.response.status_code} "
                     f"{report.response.text}")
