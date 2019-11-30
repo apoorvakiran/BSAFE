@@ -2,7 +2,7 @@
 """
 This database is built starting from:
 https://github.com/santoshghimire/boto3-examples/blob/master/dynamodb.py
-(MIT license) and expanded to meet our needs for the Iterate Labs Data Store.
+(MIT license) and expanded to meet our needs for the Iterate Labs Data Storage.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc 2018-

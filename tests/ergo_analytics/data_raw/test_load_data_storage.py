@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """
+Test Iterate Lab Inc.'s Data Storage.
 
 @ author Jesper Kristensen
 Copyright 2018-
@@ -19,13 +20,14 @@ while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
 sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 # ==
 
-from ergo_analytics.data_raw import LoadDataStore
+from ergo_analytics.data_raw import LoadDataStorage
 
 
-def test_load_data_store_basic():
+def test_load_data_storage_basic():
 
-    ds = LoadDataStore()
-    list_raw_data = ds.load(project_id='data-science-dino-test1')
+    ds = LoadDataStorage()
+    # list_raw_data = ds.load(project_id='data-science-dino-test1')
 
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
+

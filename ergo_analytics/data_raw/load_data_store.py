@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Load data from Iterate Labs' Data Store.
+Load data from Iterate Labs' Data Storage.
 
 @ author Jesper Kristensen
 Copyright 2018-
 """
 
-__all__ = ["LoadDataStore"]
+__all__ = ["LoadDataStorage"]
 __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
@@ -31,16 +31,16 @@ from . import BaseData
 logger = logging.getLogger()
 
 
-class LoadDataStore(BaseData):
+class LoadDataStorage(BaseData):
     """
-    Loads data from Iterate Labs' Data Store.
+    Loads data from Iterate Labs' Data Storage.
     """
 
     def __init__(self):
 
         super().__init__()
 
-        logger.info("Data loading from Data Store object created!")
+        logger.info("Data loading from Data Storage object created!")
 
     def load(self, project_id=None, file_nickname=None):
         """
@@ -51,11 +51,11 @@ class LoadDataStore(BaseData):
         tmp_dir = mkdtemp()
 
         result = subprocess.check_output(
-            [f'pipenv run python scripts/data_store.py '
+            [f'pipenv run python scripts/data_storage.py '
              f'--download-all-files {project_id} {tmp_dir}'],
             shell=True)
 
-        # call the data_store script:
+        # call the data_storage script:
 
         # 1) Parse the "result" to get all file names.
         # 2) Load all files and create iterator over the data (lazy iterator).s
