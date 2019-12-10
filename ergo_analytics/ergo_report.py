@@ -17,7 +17,7 @@ __version__ = "Alpha"
 logger = logging.getLogger()
 
 
-class ErgoReport (object):
+class ErgoReport(object):
     """
     Provide an ErgoMetrics object and receive the output however you want:
     CSV, HTTP, String, etc.
