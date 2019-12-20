@@ -1,4 +1,6 @@
 #!/bin/bash
+# Script to plot data from the Data Store.
+#
 # Author: Jesper Kristensen, Iterate Labs, 2019
 
 python "$SCRIPTS_HOME/data_store_plot.py" "$@"
