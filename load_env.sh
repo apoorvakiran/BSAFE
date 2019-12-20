@@ -37,8 +37,17 @@ echo "[OK] Python has been set up."
 #echo
 #echo "[OK] Data Storage set up"
 
+# set env variables and make sure scripts can be called
+export SCRIPTS_HOME="$PWD/scripts"
+export PATH="$SCRIPTS_HOME:$PATH"
+export PATH="$PWD:$PATH"
+export PYTHONPATH="$PWD:$PYTHONPATH"
+chmod +x "$SCRIPTS_HOME"
+
 echo
 echo "Run python commands with \"pipenv run -m python <script to run.py>\""
 echo "[ALL OK] >> BSAFE is ready for use <<"
 echo
+
+pipenv shell
 
