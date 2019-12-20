@@ -20,14 +20,17 @@ while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
 sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
 # ==
 
-from ergo_analytics.data_raw import LoadDataStorage
+from ergo_analytics.data_raw import LoadDataStore
 
 
 def test_load_data_storage_basic():
+    """
+    Very basic test that the connections work to AWS etc.
 
-    ds = LoadDataStorage()
-    # list_raw_data = ds.load(project_id='data-science-dino-test1')
+    :return:
+    """
 
-    # import pdb
-    # pdb.set_trace()
+    ds = LoadDataStore()
+    raw_df = ds.load(tester='john', project='johnson')
 
+    assert len(raw_df) == 1750
