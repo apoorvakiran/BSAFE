@@ -26,6 +26,7 @@ from ergo_analytics.filters import WindowOfRelevantDataFilter
 from ergo_analytics.filters import DataImputationFilter
 from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import ErgoMetrics
+from ergo_analytics import ErgoReport
 
 
 if __name__ == '__main__':
@@ -65,9 +66,12 @@ if __name__ == '__main__':
 
     metrics = ErgoMetrics(list_of_structured_data_chunks=structured_data_chunks)
     metrics.compute()
-    score = metrics.get_score()
+
+    # now report out the scores:
+    report = ErgoReport(ergo_metrics=metrics)
+    result = report.to_json(combine_across_data_chunks='average')
 
     print("*" * 12)
-    print("The ErgoMetrics score is:")
-    print(score)
+    print("The ErgoMetric scores are:")
+    print(result)
     print("*" * 12)
