@@ -145,6 +145,14 @@ class ErgoReport(object):
         logger.exception(msg)
         raise NotImplementedError(msg)
 
+    def to_json(self, combine_across_data_chunks='average'):
+        """
+        Report to JSON.
+        """
+        payload_json = self._construct_payload(combine=combine_across_data_chunks)
+        self._response = 'success'
+        return payload_json
+
     def to_string(self, combine_across_data_chunks='average'):
         """
         Report to string.
