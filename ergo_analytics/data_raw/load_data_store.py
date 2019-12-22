@@ -11,11 +11,12 @@ __author__ = "Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
-import os
-import sys
 import boto3
+from boto3.dynamodb.conditions import Key
 import numpy as np
+import os
 import pandas as pd
+import sys
 
 # == we start by finding the project root:
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -27,39 +28,31 @@ sys.path.insert(0, os.path.join(ROOT_DIR, 'scripts'))
 
 import logging
 
-from tempfile import mkdtemp
-import subprocess
 from . import BaseData
 
 logger = logging.getLogger()
 
 
 class LoadDataStore(BaseData):
-    """
-    Loads data from Iterate Labs' Data Store.
-    """
+    """Loads data from Iterate Labs' Data Store."""
 
     def __init__(self):
-
+        """Construct the loader for the Data Store."""
         super().__init__()
 
         logger.info("Data loading from Data Store object created!")
 
     def iterate_over_files(self, tester=None, project=None):
-        """
-        Iterates over all files for this tester and project in
-        order of when the file was created (from most recent first).
-        """
-
-        s3 = boto3.resource('s3')
-        my_bucket = s3.Bucket('datastore.iteratelabs.co')
+        """Iterates over all files for this tester and project in
+        order of when the file was created (from most recent first)."""
+        resource = boto3.resource('s3')
+        my_bucket = resource.Bucket('datastore.iteratelabs.co')
 
         s3 = boto3.client('s3')
 
         # get the meta-data to find time-created:
         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
         table = dynamodb.Table('Meta-Data')
-        from boto3.dynamodb.conditions import Key
 
         # first collect dates created to sort by that:
         all_data_id = []
@@ -94,11 +87,9 @@ class LoadDataStore(BaseData):
             df = pd.read_csv(this_data['Body'])  # pandas DataFrame
             yield df
 
-    def load(self, tester=None, project=None):
-        """
-        Loads the latest file from the data store which is stored
-        for the given tester and under the given project.
-        """
+    def load_latest(self, tester=None, project=None):
+        """Loads the latest file from the data store which is stored
+        for the given tester and under the given project."""
         for df in self.iterate_over_files(tester=tester, project=project):
-            # just take the most recent file:
+            # just take the most recent file in this method:
             return df
