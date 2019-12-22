@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-This file handles data loading from an Elastic Search database.
+"""This file handles data loading from an Elastic Search database.
 
 @ author Jesper Kristensen
 Copyright 2018- Iterate Labs, Inc.

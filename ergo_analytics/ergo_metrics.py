@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Computes metrics for analyzing a collection of structured data.
+"""Compute metrics for analyzing a collection of structured data.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc. 2018
@@ -199,8 +198,7 @@ class ErgoMetrics(object):
 
     @staticmethod
     def _normalize_speed(speed_scores=None):
-        """
-        Normalizes the speed.
+        """Normalize the speed.
         """
         for key in ['yaw', 'pitch', 'roll']:
             speed_scores[key + '_normalized'] = \
