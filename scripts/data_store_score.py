@@ -135,7 +135,8 @@ if __name__ == '__main__':
                                               with_format_code='5',
                                               use_subsampling=False)
 
-        metrics = ErgoMetrics(list_of_structured_data_chunks=structured_data_chunks)
+        metrics = ErgoMetrics(
+            list_of_structured_data_chunks=structured_data_chunks)
         metrics.compute()
 
         # now report out the scores:
@@ -146,7 +147,10 @@ if __name__ == '__main__':
 
         # append the scores
         these_scores = {str(datetime.datetime.now().utcnow().isoformat()):
-                            this_result}
+                            {'result': this_result,
+                             'pipeline_structure': pipeline.describe()
+                             }
+                        }
 
         response = _put_in_database(data_id, these_scores)  # update the score
 
