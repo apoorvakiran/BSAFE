@@ -85,11 +85,18 @@ class LoadDataStore(BaseData):
             this_data = s3.get_object(Bucket='datastore.iteratelabs.co',
                                       Key=data_path)
             df = pd.read_csv(this_data['Body'])  # pandas DataFrame
-            yield df
+            yield df, data_path
 
-    def load_latest(self, tester=None, project=None):
-        """Loads the latest file from the data store which is stored
-        for the given tester and under the given project."""
-        for df in self.iterate_over_files(tester=tester, project=project):
+    def load(self, tester, project, all=False):
+        """Iterate over files from the project ID.
+
+        If 'all' is False, simply load the latest file in this project.
+        """
+        for df, file_path in self.iterate_over_files(tester=tester,
+                                                     project=project):
             # just take the most recent file in this method:
-            return df
+            yield df, file_path
+
+            if not all:
+                # just do the latest file
+                break

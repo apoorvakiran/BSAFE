@@ -4,4 +4,3 @@
 # Author: Jesper Kristensen, Iterate Labs, 2019
 
 python "$SCRIPTS_HOME/data_store_score.py" "$@"
-
