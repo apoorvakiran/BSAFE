@@ -127,11 +127,11 @@ class ErgoReport(object):
 
         start_time = self._ergo_metrics.earliest_time
         end_time = self._ergo_metrics.latest_time
-        payload_dict['start_time'] = start_time
-        payload_dict['end_time'] = end_time
+        payload_dict['start_time'] = str(start_time)
+        payload_dict['end_time'] = str(end_time)
 
         analyzed_at_time = datetime.now().utcnow().isoformat()
-        payload_dict['analyzed_at'] = analyzed_at_time
+        payload_dict['analyzed_at'] = str(analyzed_at_time)
 
         logger.debug(payload_dict)
 

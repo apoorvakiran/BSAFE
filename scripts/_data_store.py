@@ -44,30 +44,30 @@
 #
 # def main():
 #
-#     parser = argparse.ArgumentParser(description=('Welcome to Iterate '
-#                                     'Lab Inc.\'s Data-Store Tool.'
-#                                     'With this tool you can create new buckets '
-#                                     'for putting data in and add to existing '
-#                                     'buckets with data.'),
-#     epilog="Please contact 'jesper.kristensen@iteratelabs.co' "
-#            "if any questions.")
-#
-#     # User can create new bucket
-#     parser.add_argument('--create-new-project', action='store_true',
-#                         help='Creates a new project in the Data '
-#                              'Store if it does not exist.')
-#     # User can upload data to a bucket
-#     parser.add_argument('--upload', nargs=3, metavar=('<data file>',
-#                                                       '<project ID>',
-#                                                       '<nickname>'),
-#                         help='Upload a single file to the project ID in'
-#                              'the Data Store')
-#     # User can upload data to a bucket
-#     parser.add_argument('--list-available-projects',
-#                         action='store_true',
-#                         help='List all available projects in the Data Store. '
-#                              'This can help retrieve project IDs and '
-#                              'project names.')
+    # parser = argparse.ArgumentParser(description=('Welcome to Iterate '
+    #                                 'Lab Inc.\'s Data-Store Tool.'
+    #                                 'With this tool you can create new buckets '
+    #                                 'for putting data in and add to existing '
+    #                                 'buckets with data.'),
+    # epilog="Please contact 'jesper.kristensen@iteratelabs.co' "
+    #        "if any questions.")
+    #
+    # # User can create new bucket
+    # parser.add_argument('--create-new-project', action='store_true',
+    #                     help='Creates a new project in the Data '
+    #                          'Store if it does not exist.')
+    # # User can upload data to a bucket
+    # parser.add_argument('--upload', nargs=3, metavar=('<data file>',
+    #                                                   '<project ID>',
+    #                                                   '<nickname>'),
+    #                     help='Upload a single file to the project ID in'
+    #                          'the Data Store')
+    # # User can upload data to a bucket
+    # parser.add_argument('--list-available-projects',
+    #                     action='store_true',
+    #                     help='List all available projects in the Data Store. '
+    #                          'This can help retrieve project IDs and '
+    #                          'project names.')
 #     parser.add_argument('--project-id', nargs=1, metavar='<project ID>',
 #                         help='Upload data to the Data Store for'
 #                              'this project ID.')
@@ -97,13 +97,13 @@
 #                              'so a JSON turned into a string would be valid.')
 #
 #
-#     # start by parsing what the user wants to do:
-#     try:
-#         args = parser.parse_args()
-#     except Exception:
-#         # print help and exit:
-#         parser.print_help()
-#         return
+    # # start by parsing what the user wants to do:
+    # try:
+    #     args = parser.parse_args()
+    # except Exception:
+    #     # print help and exit:
+    #     parser.print_help()
+    #     return
 #
 #     # make sure the backend database is created on AWS
 #     # (only has to be done once):
