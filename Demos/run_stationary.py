@@ -15,13 +15,6 @@ __version__ = "Alpha"
 import os
 import sys
 
-# == we start by finding the project root:
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
-    ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
-sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
-# ==
-
 from ergo_analytics.data_raw import LoadDataFromLocalDisk
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
@@ -36,6 +29,7 @@ from constants import DATA_FORMAT_CODES
 
 data_format_code = '5'  # in which format is the data coming to us?
 
+ROOT_DIR = os.path.absdir(os.path.expanduser("."))
 basepath_raw_data = os.path.join(ROOT_DIR, "Demos",
                                  "demo-data-stationary",
                                  "raw_data.csv")

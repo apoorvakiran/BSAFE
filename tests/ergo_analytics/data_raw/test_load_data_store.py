@@ -14,13 +14,6 @@ import os
 import sys
 import pandas as pd
 
-# == we start by finding the project root:
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
-    ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
-sys.path.insert(0, ROOT_DIR)  # now insert into our Python path
-# ==
-
 from ergo_analytics.data_raw import LoadDataStore
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics.filters import FixDateOscillations
