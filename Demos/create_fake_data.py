@@ -17,15 +17,6 @@ number_of_datapoints_in_small_version = 100
 
 # NO NEED TO TOUCH CODE BELOW UNLESS YOU KNOW WHAT YOU'RE DOING
 
-# == we start by finding the project root:
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-while not os.path.split(ROOT_DIR)[1] == 'BSAFE':
-    ROOT_DIR = os.path.dirname(ROOT_DIR)  # cd ../
-# ==
-
-path_orig = os.getcwd()
-os.chdir(ROOT_DIR)
-
 data = pd.read_csv('Demos/base_data.csv', header=None)
 
 names = DATA_FORMAT_CODES[f'{code}']['NAMES']
@@ -44,4 +35,3 @@ data.to_csv(final_path, index=False)
 data = data.iloc[:number_of_datapoints_in_small_version, :]
 data.to_csv(final_path_small, index=False)
 
-os.chdir(path_orig)
