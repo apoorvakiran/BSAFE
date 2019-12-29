@@ -19,7 +19,6 @@ __version__ = "Alpha"
 from .base_data import *
 from .arduino_data import *
 from .load_flat_file import *
-from .load_data_store import *
 from .load_google_drive import *
 from .load_aws_s3 import *
 from .load_elastic_search import *

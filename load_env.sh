@@ -1,4 +1,6 @@
 # -------------------------------------------
+# Please call this script as `source ./load_env.sh`
+# 
 # Copyright Iterate Labs, Inc.
 # Contact: jesper.kristensen@iteratelabs.co
 # -------------------------------------------
@@ -48,6 +50,9 @@ echo
 echo "Run python commands with \"pipenv run -m python <script to run.py>\""
 echo "[ALL OK] >> BSAFE is ready for use <<"
 echo
+
+# make sure the BSAFE env is in the path:
+export PYTHONPATH="$PWD:$PYTHONPATH"
 
 pipenv shell
 
