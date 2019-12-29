@@ -75,7 +75,8 @@ if __name__ == '__main__':
         description=('Welcome to Iterate Lab Inc.\'s '
                      'Data-Store ErgoMetric Scoring tool.'),
         epilog="Please contact 'jesper.kristensen@iteratelabs.co' "
-               "if any questions.")
+               "if any questions.",
+               prog="dscore")
 
     parser.add_argument('--tester', required=True,
                         help='Project tester - which tester to use?')
