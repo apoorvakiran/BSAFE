@@ -1,6 +1,0 @@
-#!/bin/bash
-# Script to compute the score of data in the Data Store.
-#
-# Author: Jesper Kristensen, Iterate Labs, 2019
-
-python "$SCRIPTS_HOME/data_store_score.py" "$@"
