@@ -59,11 +59,16 @@ class ZeroShiftFilter(BaseTransformation):
         gradient = np.absolute(np.gradient(data))
         gradient = np.clip(gradient, a_min=0, a_max=None)
 
+        if np.all(gradient < 1e-10):
+            # no shift
+            return data
+
         q = 0
         percentile_to_use = np.abs(np.percentile(gradient, q=q))
         while percentile_to_use < 1e-10:
             q += 1  # 1 percentage-point at a time
             percentile_to_use = np.abs(np.percentile(gradient, q=q))
+
 
         logger.debug(f"Using the {q}th percentile to shift "
                      f"data up by before log.")

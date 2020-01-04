@@ -35,6 +35,8 @@ sentry-dramatiq = "*"
 argparse = "*"
 uuid = "*"
 ipinfo = "*"
+gsheets = "*"
+click = "*"
 
 [requires]
 python_version = "3.7"

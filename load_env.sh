@@ -21,8 +21,7 @@ echo ""
 # Set up the virtual environment from the pipfile:
 # (see the Pipfile and Pipfile.lock):
 echo "Setting up the Python environment for BSAFE"
-pipenv update
-pipenv install --dev
+pipenv update --dev
 echo "[OK] Python has been set up."
 
 # NOTE: THIS MESSES UP SOME LINE ENDINGS
@@ -39,20 +38,19 @@ echo "[OK] Python has been set up."
 #echo
 #echo "[OK] Data Storage set up"
 
-# set env variables and make sure scripts can be called
-export SCRIPTS_HOME="$PWD/scripts"
-export PATH="$SCRIPTS_HOME:$PATH"
-export PATH="$PWD:$PATH"
-export PYTHONPATH="$PWD:$PYTHONPATH"
-chmod +x "$SCRIPTS_HOME"
-
 echo
-echo "Run python commands with \"pipenv run -m python <script to run.py>\""
+echo "Run python commands with \"pipenv run -m python <file to run.py>\""
 echo "[ALL OK] >> BSAFE is ready for use <<"
 echo
 
-# make sure the BSAFE env is in the path:
-export PYTHONPATH="$PWD:$PYTHONPATH"
+cp .env .env_backup__tmp
+
+[[ ":$PATH:" != *":$PWD:"* ]] && PATH="$PWD:${PATH}"
+[[ ":$PYTHONPATH:" != *":$PWD:"* ]] && PYTHONPATH="$PWD:${PYTHONPATH}"
+echo "export PATH=$PATH" >> .env
+echo "export PYTHONPATH=$PYTHONPATH" >> .env
 
 pipenv shell
 
+cp .env_backup__tmp .env
+rm .env_backup__tmp
