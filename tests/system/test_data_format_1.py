@@ -68,7 +68,7 @@ def test_data_format_1():
                                    with_format_code=data_format_code,
                                    num_rows_per_chunk=100)
 
-    metrics = ErgoMetrics(structured_data=structured_data)
+    metrics = ErgoMetrics(list_of_structured_data_chunks=structured_data)
     metrics.compute()
 
     print(structured_data.name)

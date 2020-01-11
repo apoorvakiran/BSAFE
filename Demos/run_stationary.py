@@ -46,13 +46,13 @@ raw_data = raw_data_loader.get_data(path=basepath_raw_data,
 # now pass the raw data through our data filter pipeline:
 pipeline = DataFilterPipeline()
 # instantiate the filters:
-# pipeline.add_filter(name='fix_osc', filter=FixDateOscillations())
-# pipeline.add_filter(name='centering1', filter=DataCentering())
+pipeline.add_filter(name='fix_osc', filter=FixDateOscillations())
+pipeline.add_filter(name='centering1', filter=DataCentering())
 pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
-# pipeline.add_filter(name='centering2', filter=DataCentering())
-# pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
-# pipeline.add_filter(name='impute', filter=DataImputationFilter())
-# pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
+pipeline.add_filter(name='centering2', filter=DataCentering())
+pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
+pipeline.add_filter(name='impute', filter=DataImputationFilter())
+pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
 
 # run the pipeline!
 structured_data = pipeline.run(on_raw_data=raw_data,
@@ -62,6 +62,13 @@ structured_data = pipeline.run(on_raw_data=raw_data,
                                subsample_size_index=100,
                                randomize_subsampling=False)
 
+em = ErgoMetrics()
+em.compute(list_of_structured_data_chunks=structured_data)
+scores = em.get_score(name='total', combine='average')
+
+ergor = ErgoReport(ergo_metrics=em)
+print(ergor.to_string())
+ergor.to_http(...)
 
 def filter_zero_line_shifts(yaw=None):
     
