@@ -142,4 +142,4 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         # now we have boxed in the data to a region of interest
         data_to_use = self._update_data(data_transformed=data_to_use,
                                         columns_operated_on=operate_on_columns)
-        return data_to_use, {}
+        return data_to_use, {'updated': operate_on_columns}

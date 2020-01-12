@@ -85,6 +85,10 @@ def compute_angular_speed_score(delta_pitch=None, delta_yaw=None,
     elif method == 'binning':
 
         # the bins need to be decided from calibration data:
+        gradient_yaw = absolute(gradient_yaw)
+        gradient_pitch = absolute(gradient_pitch)
+        gradient_roll = absolute(gradient_roll)
+
         gradient_yaw = clip(gradient_yaw, a_min=None, a_max=THRESHOLD_GRAD)
         gradient_pitch = clip(gradient_pitch, a_min=None, a_max=THRESHOLD_GRAD)
         gradient_roll = clip(gradient_roll, a_min=None, a_max=THRESHOLD_GRAD)

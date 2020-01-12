@@ -20,8 +20,7 @@ logger = logging.getLogger()
 
 
 class ErgoMetrics(object):
-    """
-    Computes Ergonomic Metrics (ErgoMetrics) for the incoming data
+    """Computes Ergonomic Metrics (ErgoMetrics) for the incoming data
     which is assumed to be in "structured" form as opposed to "raw" data.
 
     The Ergo Metrics is what is responsible for creating the ergonomics
@@ -39,6 +38,7 @@ class ErgoMetrics(object):
         based off of a "Structured Data" object.
 
         :param structured_data:
+        :param data_id: If run from data in the data store this is provided.
         """
 
         if list_of_structured_data_chunks is None:
@@ -50,9 +50,6 @@ class ErgoMetrics(object):
 
         self._number_of_data_chunks = len(self._data_chunks)
         self._scores = dict()
-
-        # notice that the delta yaw/pitch/roll variables are
-        # defined as properties
 
     @property
     def earliest_time(self):

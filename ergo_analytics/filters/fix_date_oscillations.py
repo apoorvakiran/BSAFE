@@ -48,8 +48,7 @@ class FixDateOscillations(BaseTransformation):
 
         date_column = 'Date-Time'
 
-        # this filter does require the date to be pressent
-
+        # this filter does require the date to be present
         dates_as_int = data[date_column].apply(lambda x: x.asm8.astype(int))
 
         # data before this is considered wrong:
@@ -68,5 +67,4 @@ class FixDateOscillations(BaseTransformation):
 
         data_to_use = self._update_data(data_transformed=data,
                                         columns_operated_on=date_column)
-        return data_to_use, {}
-
+        return data_to_use, {'updated': date_column}

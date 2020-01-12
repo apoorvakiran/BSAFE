@@ -74,4 +74,5 @@ class QuadrantFilter(BaseTransformation):
         data_transformed = np.clip(this_data, a_min=-90, a_max=90)
 
         return self._update_data(data_transformed=data_transformed,
-                                 columns_operated_on=columns_to_use), {}
+                                 columns_operated_on=columns_to_use),\
+               {'updated': columns_to_use}

@@ -54,4 +54,5 @@ class DataImputationFilter(BaseTransformation):
             raise NotImplementedError("Implement me!")
 
         return self._update_data(data_transformed=data,
-                                 columns_operated_on=operate_on_columns), {}
+                                 columns_operated_on=operate_on_columns),\
+               {'updated': operate_on_columns}

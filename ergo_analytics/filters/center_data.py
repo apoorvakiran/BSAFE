@@ -42,4 +42,5 @@ class DataCentering(BaseTransformation):
         data_centered -= data_centered.mean(axis=0)
 
         return self._update_data(data_transformed=data_centered,
-                                 columns_operated_on=operate_on_columns), {}
+                                 columns_operated_on=operate_on_columns), \
+               {'updated': operate_on_columns}

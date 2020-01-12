@@ -44,17 +44,17 @@ class ZeroShiftFilter(BaseTransformation):
 
         delta_columns = ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']
 
-        for col in delta_columns:
-            data.loc[:, col] = self._adjust_for_zero_line(data=data.loc[:, col])
-
         data_transformed = data
+        for col in delta_columns:
+            data_transformed.loc[:, col] = \
+                self._adjust_for_zero_line(data=data_transformed.loc[:, col])
+
         return self._update_data(data_transformed=data_transformed,
-                                 columns_operated_on=delta_columns), {}
+                                 columns_operated_on=delta_columns), \
+               {'updated': delta_columns}
 
     def _adjust_for_zero_line(self, data=None):
-        """
-        Adjust the data by zero lines.
-        """
+        """Adjust the data by zero lines."""
 
         gradient = np.absolute(np.gradient(data))
         gradient = np.clip(gradient, a_min=0, a_max=None)

@@ -161,19 +161,24 @@ FRACTION_OF_DATA_USEFUL = 0.7  # prevent too much missing data for the analysis
 
 DATA_FORMAT_CODES = {"1": {"NAMES": COLUMN_NAMES_FORMAT_1,
                            "NUMERICS": COLUMN_NUMERICS_FORMAT_1,
-                           "TYPES": COLUMN_TYPES_FORMAT_1},
+                           "TYPES": COLUMN_TYPES_FORMAT_1,
+                           "TIMESTAMP": COLUMN_NAMES_FORMAT_1[0]},
                      "2": {"NAMES": COLUMN_NAMES_FORMAT_2,
                            "NUMERICS": COLUMN_NUMERICS_FORMAT_2,
-                           "TYPES": COLUMN_TYPES_FORMAT_2},
+                           "TYPES": COLUMN_TYPES_FORMAT_2,
+                           "TIMESTAMP": COLUMN_NAMES_FORMAT_2[0]},
                      "3": {"NAMES": COLUMN_NAMES_FORMAT_3,
                            "NUMERICS": COLUMN_NUMERICS_FORMAT_3,
-                           "TYPES": COLUMN_TYPES_FORMAT_3},
+                           "TYPES": COLUMN_TYPES_FORMAT_3,
+                           "TIMESTAMP": COLUMN_NAMES_FORMAT_3[0]},
                      "4": {"NAMES": COLUMN_NAMES_FORMAT_4,
                            "NUMERICS": COLUMN_NUMERICS_FORMAT_4,
-                           "TYPES": COLUMN_TYPES_FORMAT_4},
+                           "TYPES": COLUMN_TYPES_FORMAT_4,
+                           "TIMESTAMP": COLUMN_NAMES_FORMAT_4[0]},
                      "5": {"NAMES": COLUMN_NAMES_FORMAT_5,
                            "NUMERICS": COLUMN_NUMERICS_FORMAT_5,
-                           "TYPES": COLUMN_TYPES_FORMAT_5}
+                           "TYPES": COLUMN_TYPES_FORMAT_5,
+                           "TIMESTAMP": COLUMN_NAMES_FORMAT_5[0]}
                      }
 # ====
 
