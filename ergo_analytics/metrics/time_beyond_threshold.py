@@ -6,7 +6,7 @@ Computes the posture score among the Iterate Labs Ergo Metrics.
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["compute_posture_score"]
+__all__ = ["time_beyond_threshold"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -19,12 +19,13 @@ from ergo_analytics.metrics import normalize_to_scale
 logger = logging.getLogger()
 
 
-def compute_posture_score(delta_pitch=None, delta_yaw=None,
+def time_beyond_threshold(delta_pitch=None, delta_yaw=None,
                           delta_roll=None, safe_threshold=None,
-                          final_scale=(0, 7)):
-    """
-    Takes values of yaw, pitch, and roll, and calculates posture score
-    as percent of time spent outside of a "safe" posture degree value.
+                          final_scale=(0, 7), exclude_angles=None):
+    """Takes values of yaw, pitch, and roll, and calculates posture score.
+
+    This is defined as percent of time spent outside of a "safe"
+    posture degree value. So this is "time beyond threshold".
     """
     # This score is inherently on a scale of 0-1 so does not need
     # datasets to calibrate - however, if we want to turn this into
@@ -39,6 +40,9 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
         logger.debug(msg)
         return None
 
+    if exclude_angles is None:
+        exclude_angles = ()
+
     delta_yaw = absolute(delta_yaw)
     delta_pitch = absolute(delta_pitch)
     delta_roll = absolute(delta_roll)
@@ -49,6 +53,15 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
         raise Exception("Delta Pitch values outside range [-180, 180]")
     if np.any(delta_roll) > 180:
         raise Exception("Delta Roll values outside range [-180, 180]")
+
+    if 'yaw' in exclude_angles:
+        delta_yaw = np.zeros(len(delta_yaw))
+
+    if 'pitch' in exclude_angles:
+        delta_pitch = np.zeros(len(delta_pitch))
+
+    if 'roll' in exclude_angles:
+        delta_pitch = np.zeros(len(delta_roll))
 
     num_unsafe = len(np.where((absolute(delta_pitch) > safe_threshold) | 
                               (absolute(delta_yaw) > safe_threshold) | 
@@ -90,5 +103,14 @@ def compute_posture_score(delta_pitch=None, delta_yaw=None,
                                                 new_lo=final_scale[0],
                                                 new_hi=final_scale[1],
                                             values=posture_scores['unsafe_raw'])
+
+    if 'yaw' in exclude_angles:
+        posture_scores['yaw'] = 0
+
+    if 'pitch' in exclude_angles:
+        posture_scores['pitch'] = 0
+
+    if 'roll' in exclude_angles:
+        posture_scores['roll'] = 0
 
     return posture_scores

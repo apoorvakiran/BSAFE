@@ -11,10 +11,12 @@ __all__ = ["DataFilterPipeline"]
 __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
+from copy import deepcopy
 import os
 import json
 import numpy as np
 import pandas as pd
+import shutil
 import matplotlib.pyplot as plt
 from ergo_analytics.filters import CreateStructuredData
 from ergo_analytics.utilities import subsample_data
@@ -99,7 +101,8 @@ class DataFilterPipeline(object):
     def run(self, on_raw_data=None, with_format_code='5', is_sorted=True,
             use_subsampling=True, number_of_subsamples=10,
             randomize_subsampling=True, consecutive_subsamples=False,
-            subsample_size_index=1000, debug=False, **kwargs):
+            subsample_size_index=1000, debug=False, debug_folder_prepend=None,
+            **kwargs):
         """
         Run the pipeline on the incoming raw data.
         This is done by splitting the data into chunks and iterating over
@@ -118,8 +121,15 @@ class DataFilterPipeline(object):
         if debug:
             logger.debug("Creating pipeline folder - results will go there...")
             pipeline_folder = kwargs.get('debug_folder', 'pipeline')
-            if not os.path.isdir(pipeline_folder):
-                os.mkdir(pipeline_folder)
+
+            if debug_folder_prepend is not None:
+                pipeline_folder = "{}{}".format(debug_folder_prepend,
+                                                pipeline_folder)
+            if os.path.isdir(pipeline_folder):
+                shutil.rmtree(pipeline_folder)
+
+            os.mkdir(pipeline_folder)
+
             orig_dir = os.getcwd()
             logger.debug(f"Switching to folder '{pipeline_folder}'")
             os.chdir(pipeline_folder)
@@ -240,12 +250,16 @@ class DataFilterPipeline(object):
                 data_in_plot.plot()
                 plt.savefig("data_in.png")
 
+                data_in_before_filter = deepcopy(current_data)
+
+
             if filter_name not in parameters:
                 parameters[filter_name] = dict()
 
             self._results[filter] = dict()
             current_data, changes = filter.apply(data=current_data,
-                                            parameters=parameters[filter_name])
+                                            parameters=parameters[filter_name]
+                                                 )
             self._results[filter]['data'] = current_data
             self._results[filter]['changes'] = changes
 
@@ -256,6 +270,7 @@ class DataFilterPipeline(object):
 
             if debug:
                 current_data.to_csv("data_out.csv", index=False)
+
                 with open("changes.json", "w") as fd:
                     json.dump(changes, fd)
 
@@ -273,7 +288,20 @@ class DataFilterPipeline(object):
                     data_in_plot.plot()
                     plt.savefig("data_out_only_affected_columns.png")
 
+                # sometimes it can make sense to plot data before if columns
+                # were there:
+                try:
+                    columns_to_plot = filter.columns_operated_on
+                    if columns_to_plot is not None and \
+                            'Date-Time' not in columns_to_plot:
+                        data_in_plot = data_in_before_filter.loc[:, columns_to_plot]
+                        data_in_plot.plot()
+                        plt.savefig("data_in_only_affected_columns.png")
+                except:
+                    pass
+
                 os.chdir(curr_dir)
+                plt.close()
 
         all_added_columns = [item for sublist in all_added_columns for item in
                              sublist]
@@ -307,6 +335,9 @@ class DataFilterPipeline(object):
 
         logger.debug("After dropping duplicates we have "
                      "{} pts.".format(len(data_post_pipeline)))
+
+        if debug:
+            plt.close()
 
         return current_data
 

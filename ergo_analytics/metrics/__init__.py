@@ -14,6 +14,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 from .common import *
-from .posture import *
-from .strain import *
+from .base import *
+from .angular_binning import *
 from .angular_speed import *
+from .time_beyond_threshold import *

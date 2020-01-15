@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Contains functions commonly useful for all scores.
+"""Contains functionality commonly useful for all metrics/scores.
 
 @ author Jesper Kristensen
 Copyright 2018-
@@ -35,17 +34,23 @@ def compute_binned_score(bins=None, values=None, weighing_method='linear'):
     values_absolute = np.abs(values)
 
     try:
-        bins = digitize_values(values=values_absolute, bins=bins)
+        bins_filled = digitize_values(values=values_absolute, bins=bins)
     except IndexError:
         # we could also do a np.clip(...) based on the known bins above
-        msg = "The values seem to be outside the range [-180, 180].\n"
-        msg += "Consider applying a centering filter and/or others."
+        msg = "The values seem to be outside the range of the bins!\n"
+        msg += f"The bins range from {bins[0]} to {bins[-1]}.\n"
+        msg += f"But the data ranges from {values_absolute[0]} to {values_absolute[-1]}.\n"
+        msg += "Consider maybe applying a centering filter and/or others?"
         logger.exception(msg)
         raise Exception(msg)
 
+    # import matplotlib.pyplot as plt
+    # plt.plot(bins)
+    # plt.show()
+
     # the following sum is a way to take the bins and condense into a single
     # metric representing the scores:
-    raw_score_yaw = custom_weighted_sum(list_of_bins=bins,
+    raw_score_yaw = custom_weighted_sum(list_of_bins=bins_filled,
                                          weighing_method=weighing_method)
 
     return raw_score_yaw
