@@ -6,9 +6,11 @@ Computes the motion score among the Iterate Labs Ergo Metrics.
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["compute_strain_score"]
+__all__ = ["angular_binning"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
+
+import numpy as np
 
 from ergo_analytics.metrics import compute_binned_score
 from ergo_analytics.metrics import normalize_to_scale
@@ -17,8 +19,10 @@ import logging
 logger = logging.getLogger()
 
 
-def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None,
-                         final_scale=(0, 7), weighing_method='linear'):
+def angular_binning(delta_pitch=None, delta_yaw=None, delta_roll=None,
+                    final_scale=(0, 7), weighing_method='linear',
+                    total_score_method='max',
+                    exclude_angles=None):
     """
     Given the yaw pitch and roll in their delta format, compute the associated
     strain score.
@@ -33,19 +37,38 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None,
         logger.debug(msg)
         return None
 
-    m = 11  # how many bins?
+    if exclude_angles is None:
+        exclude_angles = ()
+
+    m = 3  # how many bins?
     bins_degrees = [15 * (i + 1) for i in range(m + 1)]
     # bins are: [0, 15, 30, 45, ...]
 
-    raw_score_yaw = compute_binned_score(bins=bins_degrees,
-                                         values=delta_yaw,
-                                         weighing_method=weighing_method)
-    raw_score_pitch = compute_binned_score(bins=bins_degrees,
-                                           values=delta_pitch,
-                                           weighing_method=weighing_method)
-    raw_score_roll = compute_binned_score(bins=bins_degrees,
-                                          values=delta_roll,
-                                          weighing_method=weighing_method)
+    total_count = 0
+    if 'yaw' not in exclude_angles:
+        raw_score_yaw = compute_binned_score(bins=bins_degrees,
+                                             values=delta_yaw,
+                                             weighing_method=weighing_method)
+        total_count += 1
+    else:
+        raw_score_yaw = 0
+
+    if 'pitch' not in exclude_angles:
+        raw_score_pitch = compute_binned_score(bins=bins_degrees,
+                                               values=delta_pitch,
+                                               weighing_method=weighing_method)
+        total_count += 1
+    else:
+        raw_score_pitch = 0
+
+    if 'roll' not in exclude_angles:
+        raw_score_roll = compute_binned_score(bins=bins_degrees,
+                                              values=delta_roll,
+                                              weighing_method=weighing_method)
+        total_count += 1
+    else:
+        raw_score_roll = 0
+
     # scores coming out are always on the scale [0, m] where "m" is
     # number of bins used
 
@@ -74,8 +97,16 @@ def compute_strain_score(delta_pitch=None, delta_yaw=None, delta_roll=None,
     strain_scores['roll'] = strain_scores['roll_raw']
 
     # how to construct the total score?
-    # we can take an average:
-    strain_scores['total'] = (strain_scores['yaw'] + strain_scores['pitch']
-                              + strain_scores['roll']) / 3
+    if total_score_method == 'average':
+        # we can take an average:
+        strain_scores['total'] = (strain_scores['yaw'] + strain_scores['pitch']
+                                  + strain_scores['roll']) / total_count
+    elif total_score_method == 'max':
+        # or the max:
+        strain_scores['total'] = np.max([np.max([strain_scores['yaw'],
+                                               strain_scores['pitch']]),
+                                        strain_scores['roll']])
+    else:
+        raise NotImplementedError("Implement me!")
 
     return strain_scores

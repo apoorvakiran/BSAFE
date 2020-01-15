@@ -11,9 +11,9 @@ __version__ = "Alpha"
 
 import numpy as np
 import logging
-from .metrics import compute_posture_score
-from .metrics import compute_strain_score
-from .metrics import compute_angular_speed_score
+# from .metrics import time_beyond_threshold
+# from .metrics import angular_binning
+# from .metrics import compute_angular_speed_score
 from .data_structured import StructuredData
 
 logger = logging.getLogger()
@@ -31,6 +31,7 @@ class ErgoMetrics(object):
     _data_chunks = None
     _number_of_data_chunks = None
     _scores = None
+    _metrics_to_use = None
 
     def __init__(self, list_of_structured_data_chunks=None):
         """
@@ -50,6 +51,11 @@ class ErgoMetrics(object):
 
         self._number_of_data_chunks = len(self._data_chunks)
         self._scores = dict()
+        self._metrics_to_use = dict()
+
+    def add(self, metric=None, name=None):
+        """Adds a metric to this object to be computed."""
+        self._metrics_to_use[name] = metric
 
     @property
     def earliest_time(self):
@@ -119,62 +125,33 @@ class ErgoMetrics(object):
         else:
             return self._data_chunks[chunk_index]
 
-    def compute(self, **kwargs):
+    def compute(self, debug=False, store_plots_here=None, **kwargs):
         """
         Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
+
+        :param debug: Whether to turn on plotting and more details.
         """
         # compute the scores
         logger.debug("Computing ErgoMetric scores...")
 
-        # compute a score for each chunk:
+        # compute a score for each chunk of data:
         num_good_chunks = 0
         for chunk_index in range(self._number_of_data_chunks):
 
-            strain_scores_tmp = compute_strain_score(
-                delta_pitch=self._delta_pitch(chunk_index=chunk_index),
-                delta_yaw=self._delta_yaw(chunk_index=chunk_index),
-                delta_roll=self._delta_roll(chunk_index=chunk_index),
-                **kwargs)
-
-            speed_scores_tmp = compute_angular_speed_score(
-                delta_pitch=self._delta_pitch(chunk_index=chunk_index),
-                delta_yaw=self._delta_yaw(chunk_index=chunk_index),
-                delta_roll=self._delta_roll(chunk_index=chunk_index),
-                method='binning', **kwargs)
-
-            posture_scores_tmp = compute_posture_score(
-                delta_pitch=self._delta_pitch(chunk_index=chunk_index),
-                delta_yaw=self._delta_yaw(chunk_index=chunk_index),
-                delta_roll=self._delta_roll(chunk_index=chunk_index),
-                safe_threshold=30, **kwargs)
-
-            if strain_scores_tmp is None or speed_scores_tmp is None \
-                or posture_scores_tmp is None:
-                msg = f"One of the scores were None for data " \
-                      f"chunk index '{chunk_index}'! Continue to next chunk."
-                logger.debug(msg)
-                continue
-
-            # finalize speed scores:
-            speed_scores = speed_scores_tmp
-            # normalize the speed scores:
-            self._normalize_speed(speed_scores=speed_scores)
-            total_speed_score = self._compute_total_speed_score(
-                speed_scores=speed_scores)
-            speed_scores['total'] = total_speed_score
-
             self._scores[chunk_index] = dict()
-            self._scores[chunk_index]['speed'] = speed_scores
 
-            # finalize posture scores:
-            self._scores[chunk_index]['posture'] = posture_scores_tmp
+            # compute each metric
+            for metric_name in self._metrics_to_use:
 
-            # finalize strain scores:
-            self._scores[chunk_index]['strain'] = strain_scores_tmp
+                metric = self._metrics_to_use[metric_name]
+                metric = metric()
+                this_score = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
+                                            delta_yaw=self._delta_yaw(chunk_index=chunk_index),
+                                            delta_roll=self._delta_roll(chunk_index=chunk_index),
+                                            method='rolling_window', debug=debug, prepend=chunk_index,
+                                            store_plots_here=store_plots_here, **kwargs)
 
-            total_score = self._compute_total_score(
-                scores=self._scores[chunk_index])
-            self._scores[chunk_index]['total'] = total_score
+                self._scores[chunk_index][metric_name] = this_score
 
             num_good_chunks += 1
 
@@ -270,7 +247,8 @@ class ErgoMetrics(object):
         name = name.split('/')  # support naming like "speed/yaw", etc.
         for n in name:
             if n not in scores:
-                msg = f"Was unable to find the score with name '{n}'"
+                msg = f"Was unable to find the score with name '{n}'.\n"
+                msg += f"Possible score names are: {list(scores.keys())}."
                 logger.exception(msg)
                 raise Exception(msg)
 

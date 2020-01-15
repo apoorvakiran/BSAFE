@@ -87,43 +87,46 @@ class ErgoReport(object):
         get_score = self._ergo_metrics.get_score
 
         payload_dict = dict()
-        #
-        payload_dict['speed_pitch_score'] = get_score(name='speed/pitch',
-                                                      combine=combine)
-        payload_dict['speed_yaw_score'] = get_score(name='speed/yaw',
-                                                    combine=combine)
-        payload_dict['speed_roll_score'] = get_score(name='speed/roll',
-                                                     combine=combine)
 
-        payload_dict['normalized_speed_pitch_score'] = \
-            get_score(name='speed/pitch_normalized', combine=combine)
-        payload_dict['normalized_speed_yaw_score'] = \
-            get_score(name='speed/yaw_normalized', combine=combine)
-        payload_dict['normalized_speed_roll_score'] = \
-            get_score(name='speed/roll_normalized', combine=combine)
-        payload_dict['speed_score'] = get_score(name='speed/total',
-                                                combine=combine)
+        payload_dict['speed'] = get_score(name='AngularSpeedScore',
+                                          combine=combine)
+
+        # payload_dict['speed_pitch_score'] = get_score(name='speed/pitch',
+        #                                               combine=combine)
+        # payload_dict['speed_yaw_score'] = get_score(name='speed/yaw',
+        #                                             combine=combine)
+        # payload_dict['speed_roll_score'] = get_score(name='speed/roll',
+        #                                              combine=combine)
         #
-        payload_dict['strain_pitch_score'] = get_score(name='strain/pitch',
-                                                       combine=combine)
-        payload_dict['strain_yaw_score'] = get_score(name='strain/yaw',
-                                                     combine=combine)
-        payload_dict['strain_roll_score'] = get_score(name='strain/roll',
-                                                      combine=combine)
-        payload_dict['strain_score'] = get_score(name='strain/total',
-                                                 combine=combine)
-        #
-        payload_dict['posture_pitch_score'] = get_score(name='posture/pitch',
-                                                        combine=combine)
-        payload_dict['posture_yaw_score'] = get_score(name='posture/yaw',
-                                                      combine=combine)
-        payload_dict['posture_roll_score'] = get_score(name='posture/roll',
-                                                       combine=combine)
-        payload_dict['posture_score'] = get_score(name='posture/unsafe',
-                                                  combine=combine)
-        #
-        payload_dict['safety_score'] = get_score(name='total',
-                                                 combine=combine)
+        # payload_dict['normalized_speed_pitch_score'] = \
+        #     get_score(name='speed/pitch_normalized', combine=combine)
+        # payload_dict['normalized_speed_yaw_score'] = \
+        #     get_score(name='speed/yaw_normalized', combine=combine)
+        # payload_dict['normalized_speed_roll_score'] = \
+        #     get_score(name='speed/roll_normalized', combine=combine)
+        # payload_dict['speed_score'] = get_score(name='speed/total',
+        #                                         combine=combine)
+        # #
+        # payload_dict['strain_pitch_score'] = get_score(name='strain/pitch',
+        #                                                combine=combine)
+        # payload_dict['strain_yaw_score'] = get_score(name='strain/yaw',
+        #                                              combine=combine)
+        # payload_dict['strain_roll_score'] = get_score(name='strain/roll',
+        #                                               combine=combine)
+        # payload_dict['strain_score'] = get_score(name='strain/total',
+        #                                          combine=combine)
+        # #
+        # payload_dict['posture_pitch_score'] = get_score(name='posture/pitch',
+        #                                                 combine=combine)
+        # payload_dict['posture_yaw_score'] = get_score(name='posture/yaw',
+        #                                               combine=combine)
+        # payload_dict['posture_roll_score'] = get_score(name='posture/roll',
+        #                                                combine=combine)
+        # payload_dict['posture_score'] = get_score(name='posture/unsafe',
+        #                                           combine=combine)
+        # #
+        # payload_dict['safety_score'] = get_score(name='total',
+        #                                          combine=combine)
 
         start_time = self._ergo_metrics.earliest_time
         end_time = self._ergo_metrics.latest_time

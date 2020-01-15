@@ -34,7 +34,7 @@ class DataImputationFilter(BaseTransformation):
         """
         super().apply(data=data, **kwargs)
 
-        operate_on_columns = data.columns
+        operate_on_columns = list(data.columns)
 
         # right now the data imputation is easy: Just get rid
         # of the NaN values - but going forward we can have more
