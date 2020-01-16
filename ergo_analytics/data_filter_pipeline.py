@@ -5,6 +5,7 @@ various transformations and outputs structured data.
 
 @ author Jesper Kristensen with Iterate Labs, Inc.
 Copyright 2018 Iterate Labs, Inc.
+All Rights Reserved.
 """
 
 __all__ = ["DataFilterPipeline"]

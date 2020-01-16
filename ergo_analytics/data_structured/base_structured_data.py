@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-This is the Base code of the structured data.
+"""This is the Base code of the structured data.
 
 @ author Jesper Kristensen
 Copyright 2018- Iterate Labs, Inc.
+All Rights Reserved.
 """
 
 __all__ = ["BaseStructuredData"]

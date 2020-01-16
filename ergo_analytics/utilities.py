@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Contains utilities for ErgoAnalytics.
+"""Contains utilities for ErgoAnalytics.
 
 @ author Jesper Kristensen
 Copyright 2018 Iterate Labs, Inc.

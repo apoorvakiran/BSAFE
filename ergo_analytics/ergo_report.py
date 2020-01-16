@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Handles reporting of Ergonomic Metrics and results to customers / the caller.
+"""Handles reporting of Ergonomic Metrics and results.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs 2018-
+All Rights Reserved.
 """
 
 import logging
@@ -18,9 +18,10 @@ logger = logging.getLogger()
 
 
 class ErgoReport(object):
-    """
-    Provide an ErgoMetrics object and receive the output however you want:
-    CSV, HTTP, String, etc.
+    """Given an ErgoMetrics object receive the scoring output in your
+    preferred format: csv, HTTP, string, etc.
+
+    Standardize the report-out.
     """
 
     _ergo_metrics = None
@@ -36,13 +37,11 @@ class ErgoReport(object):
         :param authorization:
         :param destination:
         """
-
         self._ergo_metrics = ergo_metrics
 
     @property
     def response(self):
-        """
-        Stores information about any results from reporting out.
+        """Stores information about any results from reporting out.
         For example, if sending to an HTTP endpoint: what is the return code?
         :return:
         """
@@ -50,10 +49,10 @@ class ErgoReport(object):
 
     def to_http(self, endpoint=None, authorization=None,
                 combine_across_data_chunks='average', mac_address=None):
-        """
-        Reports out to an HTTP endpoint.
+        """Reports out to an HTTP endpoint.
 
-        Stores the response in self.response.
+        Side effect: the response from POST to the end point of this
+        report-out is the response attribute.
 
         :param endpoint:
         :param authorization:
@@ -77,59 +76,24 @@ class ErgoReport(object):
             logger.error("Failure to send request", exc_info=True)
 
     def _construct_payload(self, combine='average'):
-        """
-        Report to HTTP.
-        Constructs the payload to send to the HTTP endpoint.
+        """Constructs the payload to report out.
 
         :return: dict representing the payload.
         """
 
+        ergo_metrics = self._ergo_metrics
         get_score = self._ergo_metrics.get_score
 
         payload_dict = dict()
 
-        payload_dict['speed'] = get_score(name='AngularSpeedScore',
-                                          combine=combine)
+        # which metrics do we have?
+        for metric_name in ergo_metrics.metrics:
+            payload_dict[metric_name] = \
+                ergo_metrics.get_score(name=metric_name,
+                                       combine=combine)
 
-        # payload_dict['speed_pitch_score'] = get_score(name='speed/pitch',
-        #                                               combine=combine)
-        # payload_dict['speed_yaw_score'] = get_score(name='speed/yaw',
-        #                                             combine=combine)
-        # payload_dict['speed_roll_score'] = get_score(name='speed/roll',
-        #                                              combine=combine)
-        #
-        # payload_dict['normalized_speed_pitch_score'] = \
-        #     get_score(name='speed/pitch_normalized', combine=combine)
-        # payload_dict['normalized_speed_yaw_score'] = \
-        #     get_score(name='speed/yaw_normalized', combine=combine)
-        # payload_dict['normalized_speed_roll_score'] = \
-        #     get_score(name='speed/roll_normalized', combine=combine)
-        # payload_dict['speed_score'] = get_score(name='speed/total',
-        #                                         combine=combine)
-        # #
-        # payload_dict['strain_pitch_score'] = get_score(name='strain/pitch',
-        #                                                combine=combine)
-        # payload_dict['strain_yaw_score'] = get_score(name='strain/yaw',
-        #                                              combine=combine)
-        # payload_dict['strain_roll_score'] = get_score(name='strain/roll',
-        #                                               combine=combine)
-        # payload_dict['strain_score'] = get_score(name='strain/total',
-        #                                          combine=combine)
-        # #
-        # payload_dict['posture_pitch_score'] = get_score(name='posture/pitch',
-        #                                                 combine=combine)
-        # payload_dict['posture_yaw_score'] = get_score(name='posture/yaw',
-        #                                               combine=combine)
-        # payload_dict['posture_roll_score'] = get_score(name='posture/roll',
-        #                                                combine=combine)
-        # payload_dict['posture_score'] = get_score(name='posture/unsafe',
-        #                                           combine=combine)
-        # #
-        # payload_dict['safety_score'] = get_score(name='total',
-        #                                          combine=combine)
-
-        start_time = self._ergo_metrics.earliest_time
-        end_time = self._ergo_metrics.latest_time
+        start_time = ergo_metrics.earliest_time
+        end_time = ergo_metrics.latest_time
         payload_dict['start_time'] = str(start_time)
         payload_dict['end_time'] = str(end_time)
 
@@ -141,25 +105,19 @@ class ErgoReport(object):
         return payload_dict
 
     def to_csv(self):
-        """
-        Report to CSV.
-        """
+        """Report out to CSV."""
         msg = "to_csv() method not implemented - implement me!"
         logger.exception(msg)
         raise NotImplementedError(msg)
 
     def to_json(self, combine_across_data_chunks='average'):
-        """
-        Report to JSON.
-        """
+        """Report out in a JSON format."""
         payload_json = self._construct_payload(combine=combine_across_data_chunks)
         self._response = 'success'
         return payload_json
 
     def to_string(self, combine_across_data_chunks='average'):
-        """
-        Report to string.
-        """
+        """Report out as a string."""
         payload = self._construct_payload(combine=combine_across_data_chunks)
         self._response = 'success'
         return payload

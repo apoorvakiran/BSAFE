@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Holds a Structured Data object and everything related to it.
+"""Holds a Structured Data object and everything related to it.
 
-@ author Jesper Kristensen, Jacob Tyrrell
-Copyright 2018
+@ author Jesper Kristensen
+Copyright 2018- Iterate Labs, Inc.
+All Rights Reserved.
 """
 
 __all__ = ["StructuredData"]
@@ -11,6 +11,7 @@ __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import pandas as pd
+
 from . import BaseStructuredData
 import logging
 
