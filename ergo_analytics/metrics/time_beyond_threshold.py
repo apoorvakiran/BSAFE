@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-Computes the posture score among the Iterate Labs Ergo Metrics.
+"""Computes the posture score among the Iterate Labs Ergo Metrics.
 
-@ author Jacob Tyrrell and Jesper Kristensen
+@ author Jesper Kristensen
 Copyright Iterate Labs 2018-
+All Rights Reserved.
 """
 
 __all__ = ["time_beyond_threshold"]
