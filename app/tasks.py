@@ -122,7 +122,9 @@ def safety_score_analysis(mac_address, start_time, end_time):
         em = ErgoMetrics(
             list_of_structured_data_chunks=list_of_structured_data_chunks)
         # add metrics to compute:
-        em.add(metric=AngularActivityScore, name='AngularActivityScore')
+        metrics = {"AngularActivityScore": AngularActivityScore}
+        for m_name in metrics:
+            em.add(metric=metrics[m_name], name=m_name)
         em.compute()
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
