@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-"""Contains functionality commonly useful for all metrics/scores.
+"""Contains functionality commonly useful for all metrics.
 
 @ author Jesper Kristensen
 Copyright 2018-
+All Rights Reserved
 """
 
 import numpy as np
@@ -18,6 +19,8 @@ logger = logging.getLogger()
 
 
 def compute_binned_score(bins=None, values=None, weighing_method='linear'):
+    """Computes the binned score given the bins and the values to populate
+    the bins with."""
 
     # but we also need to weigh by how much time is spent at this value
     # that contributed to the bin. For example:
@@ -57,8 +60,7 @@ def compute_binned_score(bins=None, values=None, weighing_method='linear'):
 
 
 def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
-    """
-    Applies a custom weighing function to a list of bins.
+    """Applies a custom weighing function to a list of bins.
 
     So if the list is:
     list_of_bins = [1,1,4,8,1] as an example and weighing is linear, we compute:
@@ -66,6 +68,8 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     weighted_sum = 1 * (0) + 1 * (1) + 4 * (2) + 8 * (3) + 1 * (4)
     where the number in each parenthesis represents the weight applied.
     Here it's linear since it increases linearly with bin number.
+
+    We can also weigh constantly or quadratically, etc.
     """
     list_of_bins = np.asarray(list_of_bins)  # say m = len(list_of_bins)
     counts_all_bins = sum(list_of_bins)
@@ -115,9 +119,14 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
 
 def normalize_to_scale(values=None, old_lo=None, old_hi=None, new_lo=None,
                        new_hi=None):
-    """
-    Converts a set of values from an old scale in range [old_lo, old_hi]
+    """Converts a set of values from an old scale in range [old_lo, old_hi]
     to a new scale [new_lo, new_hi].
+
+    For example, say you have computed something on a scale from [0, 100], but
+    now want to express those values on a scale from [0, 7]. This function
+    does just that.
+
+    :return values: values on the new scale.
     """
 
     if values is None:

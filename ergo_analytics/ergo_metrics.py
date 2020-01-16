@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Compute metrics for analyzing a collection of structured data.
 
+Stores a list of metric objects (defined under "metrics" folder) and
+just calls their compute method.
+
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc. 2018
 """
@@ -11,9 +14,6 @@ __version__ = "Alpha"
 
 import numpy as np
 import logging
-# from .metrics import time_beyond_threshold
-# from .metrics import angular_binning
-# from .metrics import compute_angular_speed_score
 from .data_structured import StructuredData
 
 logger = logging.getLogger()
@@ -34,9 +34,8 @@ class ErgoMetrics(object):
     _metrics_to_use = None
 
     def __init__(self, list_of_structured_data_chunks=None):
-        """
-        Constructs an object from which metrics can be computed
-        based off of a "Structured Data" object.
+        """Constructs an object from which metrics can be computed
+        based off of "Structured Data".
 
         :param structured_data:
         :param data_id: If run from data in the data store this is provided.
@@ -53,12 +52,27 @@ class ErgoMetrics(object):
         self._scores = dict()
         self._metrics_to_use = dict()
 
+    @property
+    def metrics(self):
+        """Which metrics do we have."""
+        return list(self._metrics_to_use.keys())
+
     def add(self, metric=None, name=None):
         """Adds a metric to this object to be computed."""
         self._metrics_to_use[name] = metric
 
+    def remove(self, name=None):
+        """Removes a metric via its given name from
+        the internal list of metrics"""
+        if name in self._metrics_to_use:
+            del[self._metrics_to_use[name]]
+        else:
+            raise ValueError(f"Invalid metric; options "
+                             f"are: {list(self._metrics_to_use.keys())}")
+
     @property
     def earliest_time(self):
+        """Earliest time for which we have data."""
 
         earliest_time = None
         for data_chunk in self._data_chunks:
@@ -77,6 +91,7 @@ class ErgoMetrics(object):
 
     @property
     def latest_time(self):
+        """Latest time for which we have data."""
 
         latest_time = None
         for data_chunk in self._data_chunks:
@@ -120,14 +135,17 @@ class ErgoMetrics(object):
 
     @property
     def data(self, chunk_index=None):
+        """Return the data used by this ErgoMetrics object."""
         if chunk_index is None:
             return self._data_chunks
         else:
             return self._data_chunks[chunk_index]
 
     def compute(self, debug=False, store_plots_here=None, **kwargs):
-        """
-        Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
+        """Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
+
+        For each metric added to this object, the score value of that metric is
+        computed and stored in an internal dictionary.
 
         :param debug: Whether to turn on plotting and more details.
         """
@@ -161,43 +179,19 @@ class ErgoMetrics(object):
 
         logger.debug("Done!")
 
-    @staticmethod
-    def _compute_total_score(scores=None):
+    def get_score(self, name=None, combine='median', chunk_index=0):
         """
-        Computes the total score from the incoming scores.
-        """
-        # combine the speed score with the total scores from strain and posture:
-        return min((scores['speed']['total'] + scores['strain']['total'] +
-                scores['posture']['unsafe']) / 2, 7)
-
-    @staticmethod
-    def _normalize_speed(speed_scores=None):
-        """Normalize the speed.
-        """
-        for key in ['yaw', 'pitch', 'roll']:
-            speed_scores[key + '_normalized'] = \
-                np.asarray(speed_scores[key])
-
-    @staticmethod
-    def _compute_total_speed_score(speed_scores=None):
-        """
-        Compute the speed score given potentially normalized speeds.
-        """
-        collected = []
-        for key in speed_scores:
-            if key.endswith("_normalized"):
-                collected.append(speed_scores[key])
-        return np.max(collected)
-
-    def get_score(self, name='total', combine='average', chunk_index=0):
-        """
-        Returns the score with "name".
+        Returns the score of metric with name "name".
 
         Combine can be one of {"average", "max", None}
         (if None: go by chunk_index and thus return score for single chunk).
         If combine is not None, then that is favored over a single score
         from a single chunk.
         """
+
+        if name is None:
+            raise ValueError(f"Name is invalid; options "
+                             f"are: {list(self._metrics_to_use.keys())}")
 
         if len(self._scores) == 0:
             msg = "Please compute the Ergo Metrics scores first!\n"\
@@ -239,8 +233,7 @@ class ErgoMetrics(object):
         return final_score
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
-        """
-        Returns the score "name" for a single data "chunk_index".
+        """Returns the score "name" for a single data "chunk_index".
         """
         scores = self._scores[chunk_index].copy()
 

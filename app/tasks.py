@@ -30,6 +30,7 @@ from ergo_analytics.filters import DataImputationFilter
 from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
+from ergo_analytics.metrics import AngularActivityScore
 from constants import DATA_FORMAT_CODES
 
 from .extensions import dramatiq
@@ -73,8 +74,8 @@ def safety_score_analysis(mac_address, start_time, end_time):
     # subsampling of the data:
     how_to_combine_data_chunks = 'average'
     number_of_subsamples = 10
-    randomize_subsampling = True
-    use_subsampling = True
+    randomize_subsampling = False
+    use_subsampling = False
 
 
     data_loader = LoadElasticSearch()
@@ -99,7 +100,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
     pipeline = DataFilterPipeline()
     # instantiate the filters:
     pipeline.add_filter(name='fix_osc', filter=FixDateOscillations())
-    pipeline.add_filter(name='centering1', filter=DataCentering())
+    # pipeline.add_filter(name='centering1', filter=DataCentering())
     pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
     pipeline.add_filter(name='centering2', filter=DataCentering())
     pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
@@ -120,9 +121,11 @@ def safety_score_analysis(mac_address, start_time, end_time):
     logger.info(f"Retrieved all data for {mac_address}")
     if len(list_of_structured_data_chunks) > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
-        metrics = ErgoMetrics(
+        em = ErgoMetrics(
             list_of_structured_data_chunks=list_of_structured_data_chunks)
-        metrics.compute()
+        # add metrics to compute:
+        em.add(metric=AngularActivityScore, name='AngularActivityScore')
+        em.compute()
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:

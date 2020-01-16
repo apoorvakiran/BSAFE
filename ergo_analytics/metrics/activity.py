@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Computes the posture score among the Iterate Labs Ergo Metrics.
+"""Computes the Angular Activity score among the Iterate Labs Ergo Metrics.
 
-@ author Jesper Kristensen and Jacob Tyrrell
+This measures, in a summarized fashion, the range of angles visited in a given
+time interval. The idea being that, the larger the difference between extreme
+values of the angle, the more active and hence prone to injury.
+
+@ author Jesper Kristensen
 Copyright Iterate Labs 2018-
 """
 
-__all__ = ["AngularSpeedScore"]
+__all__ = ["AngularActivityScore"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -27,14 +30,14 @@ import logging
 logger = logging.getLogger()
 
 
-class AngularSpeedScore(object):
+class AngularActivityScore(object):
     """Computes a score based on angular speed."""
 
     def __init__(self):
         pass
 
     def compute(self, delta_pitch=None, delta_yaw=None,
-                delta_roll=None, method='binning', exclude_angles=None,
+                delta_roll=None, method='rolling_window', exclude_angles=None,
                 debug=True, store_plots_here=None, prepend=None, **kwargs):
         """
         Computes the angular speed score. This is a score which captures the change-
@@ -87,29 +90,7 @@ class AngularSpeedScore(object):
         # smooth the data:
         THRESHOLD_GRAD = 100  # discard data beyond this value
 
-        if method == 'distribution':
-
-            # get the width of the distribution:
-            std_yaw = gradient_yaw[absolute(gradient_yaw) < THRESHOLD_GRAD].std()
-            std_pitch = \
-                gradient_pitch[absolute(gradient_pitch) < THRESHOLD_GRAD].std()
-            std_roll = gradient_roll[absolute(gradient_roll) < THRESHOLD_GRAD].std()
-
-            # TODO(JTK): To get these scores on a scale of 0-1 we need the datasets
-            # TODO: collected representing "mild" "mid" and "severe".
-            # TODO: Right now the score is somewhat "floating" around.
-            # TODO: We may also need to condense the statistics of the
-            # TODO: distribution in a different way (maybe more granular than just std)
-
-            # summarize speed scores
-            speed_scores = dict(yaw_raw=std_yaw, pitch_raw=std_pitch,
-                                roll_raw=std_roll)
-
-            speed_scores['yaw'] = speed_scores['yaw_raw'] * 7
-            speed_scores['pitch'] = speed_scores['pitch_raw'] * 7
-            speed_scores['roll'] = speed_scores['roll_raw'] * 7
-
-        elif method == 'binning':
+        if method == 'binning':
 
             # the bins need to be decided from calibration data:
             gradient_yaw = absolute(gradient_yaw)
@@ -228,10 +209,10 @@ class AngularSpeedScore(object):
 
             if debug:
                 plt.figure()
-                plt.plot(widths, speed_scores, 'ro-', label='speed')
+                plt.plot(widths, speed_scores, 'ro-')
                 plt.axhline(median(speed_scores), linestyle='--', color='k', label='median')
                 plt.xlabel("window width")
-                plt.ylabel("speed score")
+                plt.ylabel("activity score")
                 plt.grid()
                 plt.ylim(0, 7)
                 plt.legend(loc='best')
@@ -239,7 +220,7 @@ class AngularSpeedScore(object):
                 plt.gca().fill_between(widths, 0, 3, alpha=0.2, facecolor='g')
                 plt.gca().fill_between(widths, 3, 5, alpha=0.2, facecolor='y')
                 plt.gca().fill_between(widths, 5, 7, alpha=0.2, facecolor='r')
-                plt.savefig(os.path.join(store_plots_here, 'speed_vs_window.png'))
+                plt.savefig(os.path.join(store_plots_here, 'activity_vs_window.png'))
 
         else:
             raise NotImplementedError("Implement me!")
