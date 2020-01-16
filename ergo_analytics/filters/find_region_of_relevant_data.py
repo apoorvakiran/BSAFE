@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-This filter can help analyze and process data based on its
+"""This filter can help analyze and process data based on its
 standard deviation.
 
-@ author Jesper Kristensen & Jacob Tyrrell
+@ author Jesper Kristensen
 Copyright 2018- Iterate Labs, Inc.
+All Rights Reserved.
 """
 
 from constants import SAMPLING_RATE

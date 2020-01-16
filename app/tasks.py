@@ -1,15 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-This is a simple system (end-to-end) going from raw data all the way
+"""This is a simple system (end-to-end) going from raw data all the way
 through reporting.
 
-This code also serves as a "get started" for newcomers to BSAFE.
-
-@ author James Russo, Jesper Kristensen, Jacob Tyrrell
+@ author James Russo, Jesper Kristensen
 Copyright Iterate Labs Inc. 2018-
+All Rights Reserbed.
 """
 
-__author__ = "James Russo, Jesper Kristensen, Jacob Tyrrell"
+__author__ = "James Russo, Jesper Kristensen"
 __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 

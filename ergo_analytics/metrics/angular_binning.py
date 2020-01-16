@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
-Computes the motion score among the Iterate Labs Ergo Metrics.
+"""Computes the motion score among the Iterate Labs Ergo Metrics.
 
-@ author Jacob Tyrrell and Jesper Kristensen
+@ author Jesper Kristensen
 Copyright Iterate Labs 2018-
 """
 
