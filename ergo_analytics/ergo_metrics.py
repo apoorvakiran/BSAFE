@@ -233,8 +233,7 @@ class ErgoMetrics(object):
         return final_score
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
-        """Returns the score "name" for a single data "chunk_index".
-        """
+        """Returns the score "name" for a single data "chunk_index"."""
         scores = self._scores[chunk_index].copy()
 
         name = name.split('/')  # support naming like "speed/yaw", etc.
