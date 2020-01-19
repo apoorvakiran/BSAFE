@@ -52,6 +52,10 @@ class Preprocess(BaseTransformation):
             # do nothing
             data_transformed = data
 
+        if len(data_transformed) == 0:
+            msg = "No data left after filter applied!"
+            raise Exception(msg)
+
         columns_to_use = list(data.columns)
 
         date_column = DATA_FORMAT_CODES[params['data_format_code']]['TIMESTAMP']

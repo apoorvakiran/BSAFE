@@ -94,6 +94,7 @@ celerybeat-schedule
 
 # Environments
 .env
+.env_backup__tmp
 .venv
 env/
 venv/

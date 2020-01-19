@@ -15,6 +15,6 @@ __version__ = "Alpha"
 
 from .common import *
 from .base import *
-# from .angular_binning import *
+# import scores
 from .activity import *
-# from .time_beyond_threshold import *
+from .posture import *
