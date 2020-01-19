@@ -141,7 +141,8 @@ class ErgoMetrics(object):
         else:
             return self._data_chunks[chunk_index]
 
-    def compute(self, debug=False, store_plots_here=None, **kwargs):
+    def compute(self, debug=False, store_plots_here=None, prepend='',
+                metrics_parameters=None, **kwargs):
         """Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
 
         For each metric added to this object, the score value of that metric is
@@ -152,24 +153,34 @@ class ErgoMetrics(object):
         # compute the scores
         logger.debug("Computing ErgoMetric scores...")
 
+        if metrics_parameters is None:
+            metrics_parameters = dict()
+
         # compute a score for each chunk of data:
         num_good_chunks = 0
         for chunk_index in range(self._number_of_data_chunks):
 
             self._scores[chunk_index] = dict()
 
-            # compute each metric
+            # this_chunk = self._data_chunks[chunk_index]
+
+            # compute each metric:
             for metric_name in self._metrics_to_use:
+
+                these_params = metrics_parameters.get(metric_name, dict())
 
                 metric = self._metrics_to_use[metric_name]
                 metric = metric()
-                this_score = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
+                this_score, params_used = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
                                             delta_yaw=self._delta_yaw(chunk_index=chunk_index),
                                             delta_roll=self._delta_roll(chunk_index=chunk_index),
                                             method='rolling_window', debug=debug, prepend=chunk_index,
-                                            store_plots_here=store_plots_here, **kwargs)
+                                            store_plots_here=store_plots_here, **these_params, **kwargs)
 
-                self._scores[chunk_index][metric_name] = this_score
+                self._scores[chunk_index][metric_name] = dict()
+                self._scores[chunk_index][metric_name]['score'] = this_score
+                self._scores[chunk_index][metric_name]['params_used'] = params_used
+                self._scores[chunk_index][metric_name]['index'] = chunk_index
 
             num_good_chunks += 1
 
@@ -225,6 +236,8 @@ class ErgoMetrics(object):
                 final_score = np.median(all_scores)
             elif combine == 'max':
                 final_score = np.max(all_scores)
+            elif combine == 'keep-separate':
+                final_score = all_scores
             else:
                 msg = f"The combine method '{combine}' is not supported!"
                 logger.exception(msg)

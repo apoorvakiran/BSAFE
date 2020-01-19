@@ -26,7 +26,7 @@ logger = logging.getLogger()
 def subsample_data(data=None, number_of_subsamples=100,
                    use_subsampling=True, consecutive_subsamples=False,
                    subsample_size_index=1000, randomize=True,
-                   **kwargs):
+                   exact_chunk_size=True, anchor_data_vs_time=False, **kwargs):
     """
     This is a utility which can create chunks of data in various useful
     formats including support for randomization.
@@ -74,10 +74,34 @@ def subsample_data(data=None, number_of_subsamples=100,
             f"(requested: {num_chunks_target})")
 
         if consecutive_subsamples:
-            # just take the chunks we already have based on the
-            # subsample size:
-            for chunk in all_chunks:
-                yield chunk, {}
+
+            if exact_chunk_size:
+                # return as many chunks as we can:
+                we_have_data_left = num_chunks > 0
+                ix = 0
+                while we_have_data_left:
+
+                    # anchor the data to always start at zero?
+                    take_from = 0 if anchor_data_vs_time else ix
+
+                    yield data.iloc[take_from:ix + subsample_size_index], dict()
+                    ix += subsample_size_index
+                    # we need to have at least enough data for the subsample:
+                    we_have_data_left = len(data.iloc[ix:ix + subsample_size_index]) >= subsample_size_index
+            else:
+                # return as many chunks as we can:
+                we_have_data_left = len(data) > 0
+                ix = 0
+                while we_have_data_left:
+
+                    # anchor the data to always start at zero?
+                    take_from = 0 if anchor_data_vs_time else ix
+
+                    yield data.iloc[take_from:ix + subsample_size_index], dict()
+                    ix += subsample_size_index
+                    # any data left is ok
+                    we_have_data_left = len(data.iloc[ix:ix + subsample_size_index]) > 0
+
             return
 
         # Here: we do not want consecutive chunks, but we want to

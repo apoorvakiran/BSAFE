@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Computes the Angular Activity score among the Iterate Labs Ergo Metrics.
+"""Computes a score which aggregates time spent beyond given angular thresholds.
 
-This measures, in a summarized fashion, the range of angles visited in a given
-time interval. The idea being that, the larger the difference between extreme
-values of the angle, the more active and hence prone to injury.
+This is also called the Posture score.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs 2018-
+All Rights Reserved.
 """
 
-__all__ = ["AngularActivityScore"]
+__all__ = ["PostureScore"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -22,6 +21,7 @@ from numpy import clip
 from numpy import gradient
 from numpy import median
 from numpy import max
+from numpy import percentile
 import matplotlib.pyplot as plt
 from ergo_analytics.metrics import compute_binned_score
 from ergo_analytics.metrics import normalize_to_scale
@@ -31,33 +31,35 @@ import logging
 logger = logging.getLogger()
 
 
-class AngularActivityScore(object):
-    """Computes a score based on activity - range of angles."""
+class PostureScore(object):
+    """Computes a score based on time spent beyond given threshold angles.
+
+    This is also known as teh posture score.
+    """
 
     def __init__(self):
         pass
 
-    def _compute_activity_single_window(self, angles=None, delta_time=None,
-                                        window_start=None, window_end=None):
-        """Computes the activity for a single window."""
+    def _compute_posture_single_window(self, angles=None, delta_time=None,
+                                       window_start=None, window_end=None,
+                                       percentile_middle=50, threshold_angle=45):
+        """Computes the posture for a single window."""
 
-        max_angle = angles.iloc[window_start:window_end].max()
-        min_angle = angles.iloc[window_start:window_end].min()
-        delta_angle = absolute(max_angle - min_angle)
+        middle_val = percentile(angles, percentile_middle)
 
-        # start_angle = delta_yaw.iloc[this_window_start]
-        # end_angle = delta_yaw.iloc[this_window_end]
-        # delta_angle = end_angle - start_angle
+        angles -= middle_val
 
-        this_activity = absolute(delta_angle / delta_time)
-        this_activity = clip(this_activity, a_min=None, a_max=180)
+        # how much time was spent beyond the threshold:
+        percent_beyond = \
+            (angles[absolute(angles) > threshold_angle]).count() / len(angles)
 
-        return this_activity
+        return percent_beyond
 
     def compute(self, delta_pitch=None, delta_yaw=None,
                 delta_roll=None, exclude_angles=None, debug=True,
-                store_plots_here=None, prepend=None, widths=None,
-                combine_scores='max', **kwargs):
+                store_plots_here=None, prepend=None, percentile_middle=50,
+                threshold_angle=45, widths=None, combine_scores='max',
+                **kwargs):
         """Computes the Activity score. This is a score which captures the change-
         in angle vs. time. If this occurs faster the assumption is that there
         is an associated lower level of ergonomics.
@@ -94,14 +96,15 @@ class AngularActivityScore(object):
         # The width in essence is time and the delta angle
         # across the window is just that.
 
-        if widths is None or len(widths) == 0:
+        if widths is None:
             widths = [2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-        all_activity_scores = []
+        percentile = 50  # where to assume the zero-level is
+        all_posture_scores = []
         for widthix, width in enumerate(widths):
 
             start = 0
-            all_activities_this_width = dict(yaw=[], pitch=[], roll=[])
+            all_postures_this_width = dict(yaw=[], pitch=[], roll=[])
             for ix in range(len(delta_yaw)):
 
                 # this_window_start = int(start + (ix * width / 2))
@@ -113,56 +116,63 @@ class AngularActivityScore(object):
                     break
 
                 if 'yaw' not in exclude_angles:
-                    ix_yaw_activity = self._compute_activity_single_window(
+                    ix_yaw_activity = self._compute_posture_single_window(
                         angles=delta_yaw,
                         delta_time=delta_time,
                         window_start=this_window_start,
-                        window_end=this_window_end
+                        window_end=this_window_end,
+                        percentile_middle=percentile_middle,
+                        threshold_angle=threshold_angle
                     )
                 else:
                     ix_yaw_activity = 0
 
                 if 'pitch' not in exclude_angles:
-                    ix_pitch_activity = self._compute_activity_single_window(
+                    ix_pitch_activity = self._compute_posture_single_window(
                         angles=delta_pitch,
                         delta_time=delta_time,
                         window_start=this_window_start,
-                        window_end=this_window_end
+                        window_end=this_window_end,
+                        percentile_middle=percentile_middle
                     )
                 else:
                     ix_pitch_activity = 0
 
                 if 'roll' not in exclude_angles:
-                    ix_roll_activity = self._compute_activity_single_window(
+                    ix_roll_activity = self._compute_posture_single_window(
                         angles=delta_roll,
                         delta_time=delta_time,
                         window_start=this_window_start,
-                        window_end=this_window_end
+                        window_end=this_window_end,
+                        percentile_middle=percentile_middle,
+                        threshold_angle=threshold_angle
                     )
                 else:
                     ix_roll_activity = 0
 
-                all_activities_this_width['yaw'].append(ix_yaw_activity)
-                all_activities_this_width['pitch'].append(ix_pitch_activity)
-                all_activities_this_width['roll'].append(ix_roll_activity)
+                all_postures_this_width['yaw'].append(ix_yaw_activity)
+                all_postures_this_width['pitch'].append(ix_pitch_activity)
+                all_postures_this_width['roll'].append(ix_roll_activity)
 
             if debug:
                 collected_angles = dict(yaw=delta_yaw, pitch=delta_pitch, roll=delta_roll)
                 for angle_name in ('yaw', 'pitch', 'roll'):
                     if angle_name not in exclude_angles:
 
-                        AngularActivityScore._plot_scoring(angle_name=angle_name,
-                                                           angles=collected_angles[angle_name],
-                                                           width=width, prepend=f"width_{widthix}_{prepend}",
-                                                           store_plots_here=store_plots_here,
-                                            all_activities_this_width=all_activities_this_width)
+                        PostureScore._plot_scoring(angle_name=angle_name,
+                                                   angles=collected_angles[angle_name],
+                                                   width=width, prepend=f"width_{widthix}_{prepend}",
+                                                   store_plots_here=store_plots_here,
+                                                   all_postures_this_width=all_postures_this_width,
+                                                   percentile_middle=percentile_middle,
+                                                   threshold_angle=threshold_angle)
 
             yaw_score = self._compute_score(
-                activity_values=all_activities_this_width['yaw'])
+                posture_values=all_postures_this_width['yaw'])
             pitch_score = self._compute_score(
-                activity_values=all_activities_this_width['pitch'])
+                posture_values=all_postures_this_width['pitch'])
             roll_score = self._compute_score(
-                activity_values=all_activities_this_width['roll'])
+                posture_values=all_postures_this_width['roll'])
 
             if combine_scores == 'max':
                 summarized_score = max([pitch_score, yaw_score, roll_score])
@@ -171,15 +181,15 @@ class AngularActivityScore(object):
             else:
                 raise NotImplementedError("Implement me!")
 
-            all_activity_scores.append(summarized_score)
+            all_posture_scores.append(summarized_score)
 
         # if debug:
         #     plt.figure()
-        #     plt.plot(widths, all_activity_scores, 'ro-')
-        #     plt.axhline(median(all_activity_scores), linestyle='--',
+        #     plt.plot(widths, all_posture_scores, 'ro-')
+        #     plt.axhline(median(all_posture_scores), linestyle='--',
         #                 color='k', label='median')
         #     plt.xlabel("window width")
-        #     plt.ylabel("activity score")
+        #     plt.ylabel("posture score")
         #     plt.grid()
         #     plt.ylim(0, 7)
         #     plt.legend(loc='best')
@@ -187,49 +197,51 @@ class AngularActivityScore(object):
         #     plt.gca().fill_between(widths, 0, 3, alpha=0.2, facecolor='g')
         #     plt.gca().fill_between(widths, 3, 5, alpha=0.2, facecolor='y')
         #     plt.gca().fill_between(widths, 5, 7, alpha=0.2, facecolor='r')
-        #     plt.savefig(os.path.join(store_plots_here, 'activity_vs_parameter.png'))
+        #     plt.savefig(os.path.join(store_plots_here, 'posture_vs_parameter.png'))
 
-        return all_activity_scores, {"widths": widths}
+        return all_posture_scores, {"widths": widths}
 
-    def _compute_score(self, activity_values=None):
-        """Computes the score from given activity values."""
+    def _compute_score(self, posture_values=None):
+        """Computes the score from given posture values."""
 
-        # now bin these in bins from 0 - 15 in steps of 1 (determined heuristically):
-        bins = arange(11)
-        bins = append(bins, [180])
-        m = len(bins) - 1
-
-        activities_binned_raw = compute_binned_score(bins=bins,
-                                                     values=activity_values,
-                                                     weighing_method='constant')
-        activities_binned = normalize_to_scale(activities_binned_raw,
-                                               old_lo=0, old_hi=m,
-                                               new_lo=0, new_hi=7)
-        return activities_binned
+        # # now bin these in bins from 0 - 15 in steps of 1 (determined heuristically):
+        # bins = arange(11)
+        # m = len(bins) - 1
+        #
+        # activities_binned_raw = compute_binned_score(bins=bins,
+        #                                              values=posture_values,
+        #                                              weighing_method='constant')
+        posture_binned = normalize_to_scale(posture_values,
+                                            old_lo=0, old_hi=1,
+                                            new_lo=0, new_hi=7)
+        return posture_binned
 
     @staticmethod
     def _plot_scoring(angle_name=None, width=None, prepend=None,
                       store_plots_here=None, angles=None,
-                      all_activities_this_width=None, combine_scores=None):
+                      all_postures_this_width=None, percentile_middle=None,
+                      threshold_angle=None, combine_scores=None):
         """Plots these scoring details for the given angle_name."""
 
         if combine_scores not in ('keep-separate', ):
 
             plt.figure()
             plt.subplot(211)
-            plt.plot(all_activities_this_width[angle_name], 'b-')
+            plt.plot(all_postures_this_width[angle_name], 'b-')
             plt.grid()
-            plt.ylabel("|max-min|/Dt (width={})".format(
-                angle_name, angle_name, width))
-            plt.ylim(0, plt.gca().get_ylim()[1])
+            plt.ylabel(f"% time beyond {threshold_angle} (width={width})")
+            plt.ylim(0, 1)
 
             plt.subplot(212)
-            plt.plot(angles, 'r-')
+            plt.plot(angles - percentile(angles, percentile_middle), 'r-', label='angles')
+            plt.plot(absolute(angles - percentile(angles, percentile_middle)), 'g--', label='abs(angles)')
+            plt.axhline(threshold_angle, linestyle='--', label='threshold')
+            plt.legend(loc='best')
             plt.grid()
             plt.xlabel("Index")
             plt.ylabel("{} angle (width={})".format(angle_name, width))
             plt.tight_layout()
             plt.savefig(os.path.join(store_plots_here,
-                                     '{}_width_{}_activity_{}.png'.format(prepend,
+                                     '{}_width_{}_posture_{}.png'.format(prepend,
                                                                           width,
                                                                           angle_name)))
