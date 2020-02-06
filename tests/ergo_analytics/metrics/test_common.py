@@ -12,7 +12,7 @@ __version__ = "Alpha"
 
 import pytest
 from ergo_analytics.metrics import custom_weighted_sum
-from ergo_analytics.metrics import _angular_binning
+from ergo_analytics.metrics import angular_binning
 from ergo_analytics.metrics import normalize_to_scale
 from ergo_analytics.metrics import compute_binned_score
 
@@ -60,11 +60,11 @@ def test_strain_score():
     delta_yaw = [0, 0, 0, 0, 0]
     delta_pitch = [0, 0, 0, 0, 0]
     delta_roll = [0, 0, 0, 0, 0]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 0, 'pitch_raw': 0, 'roll_raw': 0,
                             'yaw': 0, 'pitch': 0, 'roll': 0,
@@ -73,11 +73,12 @@ def test_strain_score():
     delta_yaw = [0, 16, 0, 0, 21]  # 2 counts in bin 2 (15-29)
     delta_pitch = [0, 0, 28, 0, 0]
     delta_roll = [0, 0, 0, 0, 20]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 0.3636363636363637,
                             'pitch_raw': 0.2121212121212121,
@@ -85,16 +86,17 @@ def test_strain_score():
                             'yaw': 0.3636363636363637,
                             'pitch': 0.2121212121212121,
                             'roll': 0.2121212121212121,
-                            'total': 0.2626262626262626}
+                            'total': 0.3636363636363637}
 
     delta_yaw = [0, 178, 0, 0, 21]  # 2 counts in bin 2 (15-29)
     delta_pitch = [0, 0, 28, 0, 0]
     delta_roll = [0, 0, 0, 0, 20]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     # now yaw should be higher than the others
     assert strain_score == {'yaw_raw': 5.016042780748664,
@@ -103,16 +105,17 @@ def test_strain_score():
                             'yaw': 5.016042780748664,
                             'pitch': 0.2121212121212121,
                             'roll': 0.2121212121212121,
-                            'total': 1.813428401663696}
+                            'total': 5.016042780748664}
 
     delta_yaw = [180, 180, 180, 180, 1]  # 2 counts in bin 2 (15-29)
     delta_pitch = [0, 0, 28, 0, 0]
     delta_roll = [0, 0, 0, 0, 20]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 6.857142857142858,
                             'pitch_raw': 0.2121212121212121,
@@ -120,17 +123,18 @@ def test_strain_score():
                             'yaw': 6.857142857142858,
                             'pitch': 0.2121212121212121,
                             'roll': 0.2121212121212121,
-                            'total': 2.427128427128427}
+                            'total': 6.857142857142858}
 
     # now add in more time points with low risk:
     delta_yaw = [180, 180, 180, 180, 0, 0, 0, 0, 0, 0]
     delta_pitch = [0, 0, 28, 0, 0]
     delta_roll = [0, 0, 0, 0, 20]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 6.222222222222222,
                             'pitch_raw': 0.2121212121212121,
@@ -138,17 +142,18 @@ def test_strain_score():
                             'yaw': 6.222222222222222,
                             'pitch': 0.2121212121212121,
                             'roll': 0.2121212121212121,
-                            'total': 2.2154882154882154}
+                            'total': 6.222222222222222}
 
     delta_yaw = [180, 180, 180, 180, 0, 0, 0, 0, 0, 0]
     delta_yaw += [0] * 1000  # add a lot of time where we are not high risk
     delta_pitch = [0, 0, 28, 0, 0]
     delta_roll = [0, 0, 0, 0, 20]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 0.3187855787476281,
                             'pitch_raw': 0.2121212121212121,
@@ -156,17 +161,18 @@ def test_strain_score():
                             'yaw': 0.3187855787476281,
                             'pitch': 0.2121212121212121,
                             'roll': 0.2121212121212121,
-                            'total': 0.24767600099668408}
+                            'total': 0.3187855787476281}
 
     # very aggressive:
     delta_yaw = [0, 140, 140, 0, 170]  # 2 counts in bin 2 (15-29)
     delta_pitch = [0, 0, 180, 0, 0]
     delta_roll = [0, 0, 0, 0, 180]
-    strain_score = _angular_binning(delta_yaw=delta_yaw,
-                                    delta_pitch=delta_pitch,
-                                    delta_roll=delta_roll,
-                                    final_scale=(0, 7),
-                                    weighing_method='linear')
+    strain_score = angular_binning(delta_yaw=delta_yaw,
+                                   delta_pitch=delta_pitch,
+                                   delta_roll=delta_roll,
+                                   number_of_bins=11,
+                                   final_scale=(0, 7),
+                                   weighing_method='linear')
 
     assert strain_score == {'yaw_raw': 5.839572192513368,
                             'pitch_raw': 5.250000000000001,
@@ -174,7 +180,7 @@ def test_strain_score():
                             'yaw': 5.839572192513368,
                             'pitch': 5.250000000000001,
                             'roll': 5.250000000000001,
-                            'total': 5.446524064171123}
+                            'total': 5.839572192513368}
 
 
 def test_strain_linear_weights():
@@ -280,3 +286,4 @@ def test_compute_binned_score():
                                  weighing_method='constant')
     # we should get: (0 * 0 + 1 * 1 + 1 * 2) / 4 = 0.75:
     assert score == 0.75
+

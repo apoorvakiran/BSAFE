@@ -20,7 +20,7 @@ logger = logging.getLogger()
 
 def angular_binning(delta_pitch=None, delta_yaw=None, delta_roll=None,
                     final_scale=(0, 7), weighing_method='linear',
-                    total_score_method='max',
+                    total_score_method='max', number_of_bins=3,
                     exclude_angles=None):
     """
     Given the yaw pitch and roll in their delta format, compute the associated
@@ -39,7 +39,7 @@ def angular_binning(delta_pitch=None, delta_yaw=None, delta_roll=None,
     if exclude_angles is None:
         exclude_angles = ()
 
-    m = 3  # how many bins?
+    m = number_of_bins  # how many bins?
     bins_degrees = [15 * (i + 1) for i in range(m + 1)]
     # bins are: [0, 15, 30, 45, ...]
 

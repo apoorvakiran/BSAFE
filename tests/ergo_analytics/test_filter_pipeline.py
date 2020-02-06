@@ -190,9 +190,7 @@ def test_running_pipeline_consecutive():
                                                   subsample_size_index=8,
                                                   randomize_subsampling=False)
 
-    # the way np's "array_split" works it'll create size 9 for everything
-    # but the last of size 8:
-    assert len(list_of_structured_data_chunks[0].get_data()) == 9
+    assert len(list_of_structured_data_chunks[0].get_data()) == 8
     assert len(list_of_structured_data_chunks[-1].get_data()) == 8
     assert len(list_of_structured_data_chunks) == 12  # 100/8 = 12.5
 

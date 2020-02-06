@@ -26,14 +26,13 @@ class StructuredData(BaseStructuredData):
     """
 
     _time = None
-    _meta_data = None
     _data_format_code = None
     _delta_yaw = None
     _delta_pitch = None
     _delta_roll = None
     _number_of_points = None
 
-    def __init__(self, data=None, meta_data=None, data_format_code=None):
+    def __init__(self, data=None, data_format_code=None):
         """
         Construct a structured data object holding incoming
         data in an organized way.
@@ -58,8 +57,6 @@ class StructuredData(BaseStructuredData):
         self._roll = dict()
         self._roll['delta'] = data['DeltaRoll']
 
-        self._meta_data = meta_data
-
         self._number_of_points = len(data)
 
     @staticmethod
@@ -76,10 +73,6 @@ class StructuredData(BaseStructuredData):
     @property
     def number_of_points(self):
         return self._number_of_points
-
-    @property
-    def meta_data(self):
-        return self._meta_data
 
     @property
     def time(self):

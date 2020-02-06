@@ -63,7 +63,7 @@ class ErgoReport(object):
         :return: Nothing, side effect is to set the response variable.
         """
 
-        payload = self._construct_payload(combine=combine_across_data_chunks)
+        payload = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
 
         # put information about device in the payload:
         payload['mac'] = mac_address
@@ -75,14 +75,13 @@ class ErgoReport(object):
         except Exception:
             logger.error("Failure to send request", exc_info=True)
 
-    def _construct_payload(self, combine='average'):
+    def _construct_payload(self, combine_across_data_chunks='average'):
         """Constructs the payload to report out.
 
         :return: dict representing the payload.
         """
 
         ergo_metrics = self._ergo_metrics
-        get_score = self._ergo_metrics.get_score
 
         payload_dict = dict()
 
@@ -90,7 +89,7 @@ class ErgoReport(object):
         for metric_name in ergo_metrics.metrics:
             payload_dict[metric_name] = \
                 ergo_metrics.get_score(name=metric_name,
-                                       combine=combine)
+                                       combine_across_data_chunks=combine_across_data_chunks)
 
         start_time = ergo_metrics.earliest_time
         end_time = ergo_metrics.latest_time
@@ -112,12 +111,12 @@ class ErgoReport(object):
 
     def to_json(self, combine_across_data_chunks='average'):
         """Report out in a JSON format."""
-        payload_json = self._construct_payload(combine=combine_across_data_chunks)
+        payload_json = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
         self._response = 'success'
         return payload_json
 
     def to_string(self, combine_across_data_chunks='average'):
         """Report out as a string."""
-        payload = self._construct_payload(combine=combine_across_data_chunks)
+        payload = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
         self._response = 'success'
         return payload
