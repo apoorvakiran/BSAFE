@@ -13,6 +13,7 @@ __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
 import numpy as np
+import pandas as pd
 import logging
 from .data_structured import StructuredData
 
@@ -141,7 +142,7 @@ class ErgoMetrics(object):
         else:
             return self._data_chunks[chunk_index]
 
-    def compute(self, debug=False, store_plots_here=None, prepend='',
+    def compute(self, debug=False, store_plots_here=None,
                 metrics_parameters=None, **kwargs):
         """Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
 
@@ -171,7 +172,7 @@ class ErgoMetrics(object):
 
                 metric = self._metrics_to_use[metric_name]
                 metric = metric()
-                this_score, params_used = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
+                this_score = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
                                             delta_yaw=self._delta_yaw(chunk_index=chunk_index),
                                             delta_roll=self._delta_roll(chunk_index=chunk_index),
                                             method='rolling_window', debug=debug, prepend=chunk_index,
@@ -179,7 +180,7 @@ class ErgoMetrics(object):
 
                 self._scores[chunk_index][metric_name] = dict()
                 self._scores[chunk_index][metric_name]['score'] = this_score
-                self._scores[chunk_index][metric_name]['params_used'] = params_used
+                # self._scores[chunk_index][metric_name]['params_used'] = params_used
                 self._scores[chunk_index][metric_name]['index'] = chunk_index
 
             num_good_chunks += 1
@@ -190,7 +191,7 @@ class ErgoMetrics(object):
 
         logger.debug("Done!")
 
-    def get_score(self, name=None, combine='median', chunk_index=0):
+    def get_score(self, name=None, combine_across_parameter='median', chunk_index=0, **kwargs):
         """
         Returns the score of metric with name "name".
 
@@ -201,8 +202,11 @@ class ErgoMetrics(object):
         """
 
         if name is None:
+            options = list(self._metrics_to_use.keys())
+            if len(options) == 0:
+                raise Exception("Please run the ErgoMetrics with metrics first!")
             raise ValueError(f"Name is invalid; options "
-                             f"are: {list(self._metrics_to_use.keys())}")
+                             f"are: {options}")
 
         if len(self._scores) == 0:
             msg = "Please compute the Ergo Metrics scores first!\n"\
@@ -210,53 +214,36 @@ class ErgoMetrics(object):
             logger.exception(msg)
             raise Exception(msg)
 
-        if combine is None:
-            # just return single score as per incoming chunk index:
-            if chunk_index is None:
-                msg = "Please pass in a valid chunk index (such as 0)!"
-                logger.exception(msg)
-                raise Exception(msg)
+        all_scores = []
+        for chunk_index in self._scores:
+            this_score = self._get_score_single_chunk(name=name, chunk_index=chunk_index)
+            all_scores.append(this_score)
 
-            final_score = self._get_score_single_chunk(name=name,
-                                                       chunk_index=chunk_index)
+        if callable(combine_across_parameter):
+            combiner = combine_across_parameter
+        elif combine_across_parameter == 'average':
+            combiner = np.average
+        elif combine_across_parameter == 'median':
+            combiner = np.median
+        elif combine_across_parameter == 'max':
+            combiner = np.max
+        elif combine_across_parameter == 'keep-separate':
+            def keep_separate(x=None, axis=0):
+                return x
+            combiner = keep_separate
         else:
-            # the user wants a combination of all the scores from the various
-            # data chunks:
-            all_scores = []
-            for chunk_index in self._scores:
-                this_score = self._get_score_single_chunk(name=name,
-                                                        chunk_index=chunk_index)
-                all_scores.append(this_score)
+            msg = f"The combine_across_parameter method '{combine_across_parameter}' is not supported!"
+            logger.exception(msg)
+            raise Exception(msg)
 
-            if callable(combine):
-                final_score = combine(all_scores)
-            elif combine == 'average':
-                final_score = np.average(all_scores)
-            elif combine == 'median':
-                final_score = np.median(all_scores)
-            elif combine == 'max':
-                final_score = np.max(all_scores)
-            elif combine == 'keep-separate':
-                final_score = all_scores
-            else:
-                msg = f"The combine method '{combine}' is not supported!"
-                logger.exception(msg)
-                raise Exception(msg)
+        final_score = [combiner(el, axis=1).tolist() for el in all_scores]
 
         return final_score
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
         """Returns the score "name" for a single data "chunk_index"."""
-        scores = self._scores[chunk_index].copy()
 
-        name = name.split('/')  # support naming like "speed/yaw", etc.
-        for n in name:
-            if n not in scores:
-                msg = f"Was unable to find the score with name '{n}'.\n"
-                msg += f"Possible score names are: {list(scores.keys())}."
-                logger.exception(msg)
-                raise Exception(msg)
-
-            scores = scores[n]
+        scores = self._scores[chunk_index][name]['score']  # {p0: ..., p1: ...}
+        scores = pd.DataFrame.from_dict(scores)
 
         return scores

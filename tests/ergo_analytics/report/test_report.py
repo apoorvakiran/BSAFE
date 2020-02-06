@@ -13,12 +13,15 @@ __version__ = "Alpha"
 import os
 import sys
 import pandas as pd
+import pytest
 
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import ErgoReport
+from ergo_analytics.metrics import AngularActivityScore
+from ergo_analytics.metrics import PostureScore
 
 ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
 
@@ -50,14 +53,32 @@ def test_report():
 
     metrics = ErgoMetrics(
         list_of_structured_data_chunks=list_of_structured_data_chunks)
+    metrics.add(AngularActivityScore, name='activity')
+    metrics.add(PostureScore, name='posture')
     metrics.compute()
 
     reporter = ErgoReport(ergo_metrics=metrics)
 
     string = reporter.to_string()
 
-    assert string['speed_pitch_score'] == 0.
-    assert string['speed_yaw_score'] == 2.381443298969072
-    assert string['speed_roll_score'] == 0.
-    assert string['normalized_speed_pitch_score'] == 0.
-    assert string['posture_score'] == 7.
+    assert pytest.approx(string['activity'][0][0], 0.00001) == 1.0738636363636365
+    assert pytest.approx(string['activity'][0][1], 0.00001) == 1.0738636363636365
+    assert pytest.approx(string['activity'][0][2], 0.00001) == 0.4375
+
+    assert len(string['activity'][1]) == 0
+    assert len(string['activity'][2]) == 0
+
+    assert pytest.approx(string['activity'][3][0], 0.00001) == 1.0738636363636365
+    assert pytest.approx(string['activity'][3][1], 0.00001) == 1.0738636363636365
+    assert pytest.approx(string['activity'][3][2], 0.00001) == 0.4375
+
+    assert pytest.approx(string['posture'][0][0], 0.00001) == 0.08750000000000001
+    assert pytest.approx(string['posture'][0][1], 0.00001) == 0.08750000000000001
+    assert pytest.approx(string['posture'][0][2], 0.00001) == 0.08750000000000001
+
+    assert len(string['posture'][1]) == 0
+    assert len(string['posture'][2]) == 0
+
+    assert pytest.approx(string['posture'][3][0], 0.00001) == 0.08750000000000001
+    assert pytest.approx(string['posture'][3][1], 0.00001) == 0.08750000000000001
+    assert pytest.approx(string['posture'][3][2], 0.00001) == 0.08750000000000001

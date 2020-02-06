@@ -19,6 +19,7 @@ __copyright__ = "Copyright (C) 2018- Iterate Labs, Inc."
 __version__ = "Alpha"
 
 import os
+import logging
 import sys
 
 import pytest
@@ -27,8 +28,11 @@ from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
+from ergo_analytics.metrics import AngularActivityScore
 
 ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
+
+logger = logging.getLogger()
 
 
 def test_with_metrics():
@@ -55,10 +59,12 @@ def test_with_metrics():
     metrics = ErgoMetrics(
         list_of_structured_data_chunks=list_of_structured_data_chunks)
 
+    metrics.add(AngularActivityScore, name='activity')
     metrics.compute()
-
-    combined_score = metrics.get_score(name='total', combine='average')
-    assert pytest.approx(combined_score, 0.00001) == 5.78668125
+    # first [0] below is the time chunk (we only have 1).
+    # second [0] is the yaw score:
+    combined_score = metrics.get_score(name='activity')[0][0]
+    assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
 
 
 def test_some_of_the_chunks_have_no_data():
@@ -82,15 +88,26 @@ def test_some_of_the_chunks_have_no_data():
                                                   number_of_subsamples=4,
                                                   randomize_subsampling=False)
 
-    list_of_structured_data_chunks[2] = []
+    list_of_structured_data_chunks[2] = []  # force to empty
 
     metrics = ErgoMetrics(
         list_of_structured_data_chunks=list_of_structured_data_chunks)
 
+    metrics.add(AngularActivityScore, name='activity')
     metrics.compute()
+    # [[1.0738636363636365, 1.0738636363636365, 0.4375],
+    # [1.0738636363636365, 1.0738636363636365, 0.4375],
+    # [],
+    # [1.0738636363636365, 1.0738636363636365, 0.4375]]
 
-    combined_score = metrics.get_score(name='total', combine='average')
-    assert pytest.approx(combined_score, 0.00001) == 5.78668125
+    combined_score = metrics.get_score(name='activity')[0][0]
+    assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
+
+    combined_score = metrics.get_score(name='activity')[0][2]
+    assert pytest.approx(combined_score, 0.00001) == 0.4375
+
+    combined_score = metrics.get_score(name='activity')[2]
+    assert len(combined_score) == 0
 
 
 def test_some_of_the_chunks_have_none_data():
@@ -120,7 +137,23 @@ def test_some_of_the_chunks_have_none_data():
     metrics = ErgoMetrics(
         list_of_structured_data_chunks=list_of_structured_data_chunks)
 
+    metrics.add(AngularActivityScore, name='activity')
     metrics.compute()
 
-    combined_score = metrics.get_score(name='total', combine='average')
-    assert pytest.approx(combined_score, 0.00001) == 5.78668125
+    combined_score = metrics.get_score(name='activity')[0][0]
+    assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
+
+    combined_score = metrics.get_score(name='activity')[0][1]
+    assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
+
+    combined_score = metrics.get_score(name='activity')[0][2]
+    assert pytest.approx(combined_score, 0.00001) == 0.4375
+
+    combined_score = metrics.get_score(name='activity')[1]
+    assert len(combined_score) == 0
+
+    combined_score = metrics.get_score(name='activity')[2]
+    assert len(combined_score) == 0
+
+    combined_score = metrics.get_score(name='activity')[3][0]
+    assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
