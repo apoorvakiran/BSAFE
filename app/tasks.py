@@ -75,7 +75,6 @@ def safety_score_analysis(mac_address, start_time, end_time):
     randomize_subsampling = False
     use_subsampling = False
 
-
     data_loader = LoadElasticSearch()
     raw_data = data_loader.retrieve_data(mac_address=mac_address,
                                          start_time=start_time,
@@ -130,7 +129,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:
 
-        report = ErgoReport(ergo_metrics=metrics)
+        report = ErgoReport(ergo_metrics=em)
         # now we can report to any format we want - here HTTP:
         auth = f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"
         report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
@@ -138,11 +137,11 @@ def safety_score_analysis(mac_address, start_time, end_time):
                        authorization=auth,
                        combine_across_data_chunks=how_to_combine_data_chunks,
                        mac_address=mac_address)
-
-        print(report.response)
-
+        logger.info(report.response)
         logger.info(f"{report.response.status_code} "
                     f"{report.response.text}")
         logger.info(f"Created safety_score for {mac_address}")
+
+        logger.info("JSON = {}".format(report.to_json()))
     else:
         logger.info(f"No values to analyze for {mac_address}")
