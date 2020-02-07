@@ -19,6 +19,9 @@ jobs:
           root: ~/BSAFE
           paths:
             - .
+      - store_test_results:
+          path: test-results
+
 
   build_image_and_deploy_staging:
     docker:
