@@ -181,7 +181,7 @@ def test_strain_score():
                             'pitch': 5.250000000000001,
                             'roll': 5.250000000000001,
                             'total': 5.839572192513368}
-
+    
 
 def test_strain_linear_weights():
 
