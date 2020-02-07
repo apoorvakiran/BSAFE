@@ -69,8 +69,12 @@ class ErgoReport(object):
         payload['mac'] = mac_address
         try:
             headers = {'Authorization': authorization}
+            logger.info("Sending payload to endpoint {}".format(endpoint))
             self._response = \
                 requests.post(endpoint, headers=headers, data=payload)
+            logger.info("response is = {}".format(self._response))
+            logger.info(self._response.text)
+
             self._response.raise_for_status()
         except Exception:
             logger.error("Failure to send request", exc_info=True)
@@ -99,7 +103,7 @@ class ErgoReport(object):
         analyzed_at_time = datetime.now().utcnow().isoformat()
         payload_dict['analyzed_at'] = str(analyzed_at_time)
 
-        logger.debug(payload_dict)
+        logger.info("Payload dict = {}".format(payload_dict))
 
         return payload_dict
 

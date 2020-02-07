@@ -13,6 +13,9 @@ __pycache__/
 # VS Code
 .vscode/
 
+.pytest_cache
+dump.rdb
+
 # Distribution / packaging
 .Python
 build/
@@ -117,3 +120,4 @@ venv.bak/
 
 # pickle files
 *.pkl
+/log.csv
