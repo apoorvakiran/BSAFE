@@ -236,7 +236,15 @@ class ErgoMetrics(object):
             logger.exception(msg)
             raise Exception(msg)
 
-        final_score = [combiner(el, axis=1).tolist() for el in all_scores]
+        final_score = []
+        for el in all_scores:
+
+            if el is not None and el.empty:
+                this_combined_score = [None, None, None]
+            else:
+                this_combined_score = combiner(el, axis=1).tolist()
+
+            final_score.append(this_combined_score)
 
         return final_score
 

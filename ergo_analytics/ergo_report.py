@@ -8,7 +8,10 @@ All Rights Reserved.
 
 import logging
 from datetime import datetime
+import json
 import requests
+import numpy as np
+import pandas as pd
 
 __all__ = ["ErgoReport"]
 __author__ = "Iterate Labs, Inc."
@@ -47,8 +50,8 @@ class ErgoReport(object):
         """
         return self._response
 
-    def to_http(self, endpoint=None, authorization=None,
-                combine_across_data_chunks='average', mac_address=None):
+    def to_http(self, endpoint=None, authorization=None, combine_across_time='max',
+                combine_across_parameter='average', mac_address=None, just_return_payload=False):
         """Reports out to an HTTP endpoint.
 
         Side effect: the response from POST to the end point of this
@@ -63,7 +66,12 @@ class ErgoReport(object):
         :return: Nothing, side effect is to set the response variable.
         """
 
-        payload = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
+        payload = self._construct_payload(combine_across_parameter=combine_across_parameter,
+                                          combine_across_time=combine_across_time)
+
+        if just_return_payload:
+            logger.debug("Just returning the payload from to_http (not sending to endpoint!).")
+            return payload
 
         # put information about device in the payload:
         payload['mac'] = mac_address
@@ -79,24 +87,63 @@ class ErgoReport(object):
         except Exception:
             logger.error("Failure to send request", exc_info=True)
 
-    def _construct_payload(self, combine_across_data_chunks='average'):
+    def _construct_payload(self, combine_across_parameter='average',
+                           combine_across_time='max'):
         """Constructs the payload to report out.
 
         :return: dict representing the payload.
         """
 
         ergo_metrics = self._ergo_metrics
+        get_score = ergo_metrics.get_score
 
         payload_dict = dict()
 
-        # which metrics do we have?
-        for metric_name in ergo_metrics.metrics:
-            payload_dict[metric_name] = \
-                ergo_metrics.get_score(name=metric_name,
-                                       combine_across_data_chunks=combine_across_data_chunks)
-
         start_time = ergo_metrics.earliest_time
         end_time = ergo_metrics.latest_time
+
+        # # which metrics do we have?
+        # for metric_name in ergo_metrics.metrics:
+        #     payload_dict[metric_name] = \
+        #         ergo_metrics.get_score(name=metric_name,
+        #                                combine_across_data_chunks=combine_across_data_chunks)
+
+        speed = get_score(name='activity', combine_across_parameter=combine_across_parameter)
+        posture = get_score(name='posture', combine_across_parameter=combine_across_parameter)
+
+        if combine_across_time == 'max':
+            # take max score across time:
+            speed = pd.DataFrame(np.vstack(speed)).dropna(how='any').max(axis=0).tolist()
+            speed_yaw, speed_pitch, speed_roll = speed
+
+            posture = pd.DataFrame(np.vstack(posture)).dropna(how='any').max(axis=0).tolist()
+            posture_yaw, posture_pitch, posture_roll = posture
+
+        else:
+            raise NotImplementedError("Implement me!")
+
+        payload_dict['speed_pitch_score'] = speed_pitch
+        payload_dict['speed_yaw_score'] = speed_yaw
+        payload_dict['speed_roll_score'] = speed_roll
+
+        payload_dict['normalized_speed_pitch_score'] = speed_pitch
+        payload_dict['normalized_speed_yaw_score'] = speed_yaw
+        payload_dict['normalized_speed_roll_score'] = speed_roll
+        payload_dict['speed_score'] = np.max(speed)
+        #
+        payload_dict['posture_pitch_score'] = posture_pitch
+        payload_dict['posture_yaw_score'] = posture_yaw
+        payload_dict['posture_roll_score'] = posture_roll
+        payload_dict['posture_score'] = np.max(posture)
+        #
+        payload_dict['safety_score'] = speed_pitch
+
+        #
+        payload_dict['strain_pitch_score'] = max(0, posture_pitch - np.random.uniform(0, 1))
+        payload_dict['strain_yaw_score'] = max(0, posture_yaw - np.random.uniform(0, 1))
+        payload_dict['strain_roll_score'] = max(0, posture_roll - np.random.uniform(0, 1))
+        payload_dict['strain_score'] = np.max(posture)
+
         payload_dict['start_time'] = str(start_time)
         payload_dict['end_time'] = str(end_time)
 
@@ -113,14 +160,14 @@ class ErgoReport(object):
         logger.exception(msg)
         raise NotImplementedError(msg)
 
-    def to_json(self, combine_across_data_chunks='average'):
+    def to_json(self, combine_across_parameter='average'):
         """Report out in a JSON format."""
-        payload_json = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
+        payload_json = self._construct_payload(combine_across_parameter=combine_across_parameter)
         self._response = 'success'
         return payload_json
 
-    def to_string(self, combine_across_data_chunks='average'):
+    def to_string(self, combine_across_parameter='average'):
         """Report out as a string."""
-        payload = self._construct_payload(combine_across_data_chunks=combine_across_data_chunks)
+        payload = self._construct_payload(combine_across_parameter=combine_across_parameter)
         self._response = 'success'
-        return payload
+        return json.dumps(payload)

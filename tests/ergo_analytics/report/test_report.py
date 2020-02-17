@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Tests the report implementation.
+"""Tests the report implementation.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs, Inc. 2018-
@@ -27,7 +26,6 @@ ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
 
 
 def test_report():
-
 
     data_format_code = '5'
     test_data_path = os.path.join(ROOT_DIR, "Demos",
@@ -60,25 +58,59 @@ def test_report():
     reporter = ErgoReport(ergo_metrics=metrics)
 
     string = reporter.to_string()
+    assert type(string) == str
 
-    assert pytest.approx(string['activity'][0][0], 0.00001) == 1.0738636363636365
-    assert pytest.approx(string['activity'][0][1], 0.00001) == 1.0738636363636365
-    assert pytest.approx(string['activity'][0][2], 0.00001) == 0.4375
 
-    assert len(string['activity'][1]) == 0
-    assert len(string['activity'][2]) == 0
+def test_http():
 
-    assert pytest.approx(string['activity'][3][0], 0.00001) == 1.0738636363636365
-    assert pytest.approx(string['activity'][3][1], 0.00001) == 1.0738636363636365
-    assert pytest.approx(string['activity'][3][2], 0.00001) == 0.4375
+    data_format_code = '5'
+    test_data_path = os.path.join(ROOT_DIR, "Demos",
+                                  f"demo-format-{data_format_code}",
+                                  "data_small.csv")
+    test_data = pd.read_csv(test_data_path)
 
-    assert pytest.approx(string['posture'][0][0], 0.00001) == 0.08750000000000001
-    assert pytest.approx(string['posture'][0][1], 0.00001) == 0.08750000000000001
-    assert pytest.approx(string['posture'][0][2], 0.00001) == 0.08750000000000001
+    #
+    pipeline = DataFilterPipeline()
+    pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    pipeline.add_filter(name="quadrant", filter=QuadrantFilter())
 
-    assert len(string['posture'][1]) == 0
-    assert len(string['posture'][2]) == 0
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
+                                                  with_format_code=data_format_code,
+                                                  is_sorted=True,
+                                                  use_subsampling=True,
+                                                  subsample_size_index=8000,
+                                                  number_of_subsamples=4,
+                                                  randomize_subsampling=False)
 
-    assert pytest.approx(string['posture'][3][0], 0.00001) == 0.08750000000000001
-    assert pytest.approx(string['posture'][3][1], 0.00001) == 0.08750000000000001
-    assert pytest.approx(string['posture'][3][2], 0.00001) == 0.08750000000000001
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks)
+    metrics.add(AngularActivityScore, name='activity')
+    metrics.add(PostureScore, name='posture')
+    metrics.compute()
+
+    reporter = ErgoReport(ergo_metrics=metrics)
+
+    # test that we are sending the correct format:
+    payload = reporter.to_http(just_return_payload=True)
+
+    # here we check that the payload is OK:
+    # make sure all keys are as expected:
+    assert 'speed_yaw_score' in payload
+    assert 'speed_pitch_score' in payload
+    assert 'speed_roll_score' in payload
+    assert 'speed_score' in payload
+    #
+    assert 'posture_yaw_score' in payload
+    assert 'posture_pitch_score' in payload
+    assert 'posture_roll_score' in payload
+    assert 'posture_score' in payload
+    #
+    assert 'strain_yaw_score' in payload
+    assert 'strain_pitch_score' in payload
+    assert 'strain_roll_score' in payload
+    assert 'strain_score' in payload
+    #
+    assert 'safety_score' in payload
+    #
+    assert 'start_time' in payload
+    assert 'end_time' in payload
