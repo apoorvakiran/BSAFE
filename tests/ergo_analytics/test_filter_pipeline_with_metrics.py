@@ -99,15 +99,19 @@ def test_some_of_the_chunks_have_no_data():
     # [1.0738636363636365, 1.0738636363636365, 0.4375],
     # [],
     # [1.0738636363636365, 1.0738636363636365, 0.4375]]
-
+    
     combined_score = metrics.get_score(name='activity')[0][0]
+
     assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
 
     combined_score = metrics.get_score(name='activity')[0][2]
     assert pytest.approx(combined_score, 0.00001) == 0.4375
 
     combined_score = metrics.get_score(name='activity')[2]
-    assert len(combined_score) == 0
+    assert len(combined_score) == 3
+    assert combined_score[0] is None
+    assert combined_score[1] is None
+    assert combined_score[2] is None
 
 
 def test_some_of_the_chunks_have_none_data():
@@ -150,10 +154,16 @@ def test_some_of_the_chunks_have_none_data():
     assert pytest.approx(combined_score, 0.00001) == 0.4375
 
     combined_score = metrics.get_score(name='activity')[1]
-    assert len(combined_score) == 0
+    assert len(combined_score) == 3
+    assert combined_score[0] is None
+    assert combined_score[1] is None
+    assert combined_score[2] is None
 
     combined_score = metrics.get_score(name='activity')[2]
-    assert len(combined_score) == 0
+    assert len(combined_score) == 3
+    assert combined_score[0] is None
+    assert combined_score[1] is None
+    assert combined_score[2] is None
 
     combined_score = metrics.get_score(name='activity')[3][0]
     assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365

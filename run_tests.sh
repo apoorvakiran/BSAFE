@@ -38,8 +38,8 @@ echo
 
 # Run tests of the BSAFE code base in parallel over 4 workers:
 echo "Run pytest to unit, integration, and system tests..."
-pipenv run python -m pytest -v -n 4 --ignore tests/system tests tests/
-echo "[completed]"
+pipenv run python -m pytest -v -n 4 --ignore tests/system tests tests/ > pytest.log
+echo "[completed] (results in pytest.log)"
 
 # Run pylama as a linter / code checker - make sure our code looks good:
 echo
