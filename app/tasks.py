@@ -29,6 +29,7 @@ from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
 from ergo_analytics.metrics import AngularActivityScore
+from ergo_analytics.metrics import PostureScore
 from constants import DATA_FORMAT_CODES
 
 from .extensions import dramatiq
@@ -70,7 +71,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
     data_format_code = '5'  # what format is the data in?
 
     # subsampling of the data:
-    how_to_combine_data_chunks = 'average'  # note: cannot be "keep separate"
+    how_to_combine_across_parameter = 'average'  # note: cannot be "keep separate"
     number_of_subsamples = 10
     randomize_subsampling = False
     use_subsampling = False
@@ -87,6 +88,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
         return
     logger.info(f"Found {len(raw_data)} elements in "
                 f"the ES database for {mac_address}.")
+    logger.info(raw_data.head(10))
 
     num_data = len(raw_data)
     # take 10% as subsampling but not below 1 minute:
@@ -121,7 +123,8 @@ def safety_score_analysis(mac_address, start_time, end_time):
         em = ErgoMetrics(
             list_of_structured_data_chunks=list_of_structured_data_chunks)
         # add metrics to compute:
-        metrics = {"AngularActivityScore": AngularActivityScore}
+        metrics = {"activity": AngularActivityScore,
+                   "posture": PostureScore}
         for m_name in metrics:
             em.add(metric=metrics[m_name], name=m_name)
         em.compute()
@@ -135,7 +138,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
         report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
                                 f"safety_scores",
                        authorization=auth,
-                       combine_across_data_chunks=how_to_combine_data_chunks,
+                       combine_across_parameter=how_to_combine_across_parameter,
                        mac_address=mac_address)
         logger.info(report.response)
         logger.info(f"{report.response.status_code} "
