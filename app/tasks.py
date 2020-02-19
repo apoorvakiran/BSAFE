@@ -70,7 +70,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
     data_format_code = '5'  # what format is the data in?
 
     # subsampling of the data:
-    how_to_combine_data_chunks = 'average'
+    how_to_combine_data_chunks = 'average'  # note: cannot be "keep separate"
     number_of_subsamples = 10
     randomize_subsampling = False
     use_subsampling = False
