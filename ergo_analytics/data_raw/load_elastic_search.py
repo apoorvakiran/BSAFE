@@ -88,13 +88,14 @@ class LoadElasticSearch(BaseData):
         try:
             search = Search(using=es, index=index).query("match",
                             device__keyword=mac_address).query("range",
-                                        **{"timestamp":
+                                        **{"received_timestamp":
                                             {"gte": start_time,
                                              "lte": end_time}
-                                        }).sort('timestamp')
+                                        }).sort('received_timestamp')
             search.count()  # used to test connection
-        except elasticsearch.exceptions.ConnectionError:
-            msg = "\nCommon Cause: Have you started the Elasticnet server?\n"
+        except elasticsearch.exceptions.ConnectionError as e:
+            msg = "\nCommon Cause: Have you started the Elasticnet database server?\n"
+            msg += "The error was: {}".format(e)
             logger.exception(msg)
             raise Exception(msg)
 
@@ -111,15 +112,21 @@ class LoadElasticSearch(BaseData):
             # {timestamp: 'data', device: 'mac',
             # values: 'yaw1,pitch1,roll1,yaw2,pitch2,roll2}
             # BSAFE loads the data as "time + values" in _load_datum(...):
-            data = [f"{hit['timestamp']}, {hit['value']}",
-                    hit['device'], hit['timestamp']]
+            # data = [f"{hit['timestamp']}, {hit['value']}",
+            #         hit['device'], hit['timestamp']]
+            data = [f"{hit['received_timestamp']}, {hit['value']}",
+                    hit['device'], hit['received_timestamp'], hit['wearable_timestamp']]
+            # new format: received_timestamp is when cassia received the data
+            # we also have wearable_timestamp which can be used to sort the data
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
-        device_df.columns = ['value', 'device', 'timestamp']
+        device_df.columns = ['value', 'device', 'received_timestamp', 'wearable_timestamp']
         logger.info("{} documents found for this device.".format(len(device_df),
                                                             mac_address))
         data_all_devices.append(device_df)
+
+        logger.info(device_df.head(10))
 
         if len(data_all_devices) > 0:
 
