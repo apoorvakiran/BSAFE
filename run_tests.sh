@@ -42,10 +42,10 @@ pipenv run python -m pytest -v -n 4 --ignore tests/system tests tests/ > pytest.
 echo "[completed] (results in pytest.log)"
 
 # Run pylama as a linter / code checker - make sure our code looks good:
-echo
-echo "Now making sure code quality is OK."
+#echo
+#echo "Now making sure code quality is OK."
 # pipenv run python -m pytest --pylama -n 4 ergo_analytics/
-echo "[completed]"
+#echo "[completed]"
 
 echo
 echo "[ALL OK] All good to push commit!"
