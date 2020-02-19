@@ -5,6 +5,9 @@ This measures, in a summarized fashion, the range of angles visited in a given
 time interval. The idea being that, the larger the difference between extreme
 values of the angle, the more active and hence prone to injury.
 
+Note: This score may also be referred to, somewhat approximately, as the
+speed score for historical reasons.
+
 @ author Jesper Kristensen
 Copyright Iterate Labs 2018-
 """

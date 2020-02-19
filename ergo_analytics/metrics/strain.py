@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-"""Computes a score which aggregates time spent beyond given angular thresholds.
+"""Computes a score which breaks down the angular ranges and bins them.
 
-This is also called the Posture score for historical reasons.
+Specifically, the range of angles is split into 15-degree increments.
+Then, a custom weighing function is applied to the bins
+
+This is also called the strain score for historical reasons.
 
 @ author Jesper Kristensen
 Copyright Iterate Labs 2018-
