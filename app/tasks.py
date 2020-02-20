@@ -135,6 +135,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
         report = ErgoReport(ergo_metrics=em)
         # now we can report to any format we want - here HTTP:
         auth = f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"
+
         report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
                                 f"safety_scores",
                        authorization=auth,
