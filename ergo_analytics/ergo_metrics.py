@@ -192,8 +192,7 @@ class ErgoMetrics(object):
         logger.debug("Done!")
 
     def get_score(self, name=None, combine_across_parameter='median', chunk_index=0, **kwargs):
-        """
-        Returns the score of metric with name "name".
+        """Returns the score of metric with name "name".
 
         Combine can be one of {"average", "max", None}
         (if None: go by chunk_index and thus return score for single chunk).
@@ -238,7 +237,17 @@ class ErgoMetrics(object):
 
         final_score = []
         for el in all_scores:
+            # here we loop over the scores for each chunk of data.
+            # Generally, the score for a _single_ chunk can be in the form:
+            # [[yaw1, pitch1, roll1],
+            #  [yaw2, pitch2, roll2],
+            #  [yaw3, pitch3, roll3]]
+            # where the indices identify the parameter.
+            # The reason is that a parameter can be used to compute
+            # the scores with (such as "30", "40", "50" as angle
+            # threshold for posture score).
 
+            # So note: We are not combining over the chunks themselves
             if el is not None and el.empty:
                 this_combined_score = [None, None, None]
             else:

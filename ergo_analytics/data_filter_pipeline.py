@@ -118,6 +118,10 @@ class DataFilterPipeline(object):
         :param do_randomize_chunks: should the chunks of data be
         selected at random?
         """
+        # ensure the data has the correct columns
+        with_format_code = str(with_format_code).strip()
+
+        logger.info(f"Anchor data chunks in time?: {anchor_data_vs_time}.")
 
         if debug:
             logger.debug("Creating pipeline folder - results will go there...")
@@ -143,8 +147,6 @@ class DataFilterPipeline(object):
         logger.debug("Subsample settings:")
         logger.debug(f"Number of subsamples = {number_of_subsamples}")
         logger.debug(f"Subsample size = {subsample_size_index}")
-
-        with_format_code = str(with_format_code).strip()
 
         # ability to pass around information between data chunks
         # was originally introduced due to the zero-line-filter
@@ -185,8 +187,8 @@ class DataFilterPipeline(object):
 
             this_structured_data_chunk = self._run_chunk(
                 on_raw_data_chunk=this_chunk,
-                with_format_code=with_format_code,
                 is_sorted=is_sorted, parameters=parameters,
+                with_format_code=with_format_code,
                 debug=debug)
 
             list_of_transformed_data_chunks.append(this_structured_data_chunk)
@@ -216,8 +218,8 @@ class DataFilterPipeline(object):
 
         return all_structured_data
 
-    def _run_chunk(self, on_raw_data_chunk=None, parameters=None,
-                  with_format_code='5', is_sorted=True, debug=False):
+    def _run_chunk(self, with_format_code='5',
+                   on_raw_data_chunk=None, parameters=None, is_sorted=True, debug=False):
         """
         Runs the pipeline on incoming raw data.
         Returns structured data.
