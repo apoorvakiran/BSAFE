@@ -82,6 +82,20 @@ class StructuredData(BaseStructuredData):
         """
         return self._time
 
+    def get_first_index(self):
+        """Return the first index of the data.
+
+        :return:
+        """
+        return self.get_data(type='yaw', loc='delta').index[0]
+
+    def get_last_index(self):
+        """Return the last index of the data.
+
+        :return:
+        """
+        return self.get_data(type='yaw', loc='delta').index[-1]
+
     def get_data(self, type='yaw', loc='delta'):
         """
         Returns data collected from the device.
