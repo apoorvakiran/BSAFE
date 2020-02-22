@@ -145,12 +145,14 @@ class ErgoMetrics(object):
     def get_first_data_index(self, chunk_index=None):
         """Return the first index of the data for this chunk index."""
         if chunk_index is not None:
-            return self._data_chunks[chunk_index].get_first_index()
+            if isinstance(self._data_chunks[chunk_index], StructuredData):
+                return self._data_chunks[chunk_index].get_first_index()
 
     def get_last_data_index(self, chunk_index=None):
         """Return the last index of the data for this chunk index."""
         if chunk_index is not None:
-            return self._data_chunks[chunk_index].get_last_index()
+            if isinstance(self._data_chunks[chunk_index], StructuredData):
+                return self._data_chunks[chunk_index].get_last_index()
 
     @property
     def number_of_data_chunks(self):
@@ -196,10 +198,18 @@ class ErgoMetrics(object):
                 self._scores[chunk_index][metric_name]['score'] = this_score
                 # self._scores[chunk_index][metric_name]['params_used'] = params_used
                 self._scores[chunk_index][metric_name]['index'] = chunk_index
-                self._scores[chunk_index][metric_name]['data_index_from'] = \
-                    self._data_chunks[chunk_index].get_first_index()
-                self._scores[chunk_index][metric_name]['data_index_till'] = \
-                    self._data_chunks[chunk_index].get_last_index()
+
+                this_data_chunk = self._data_chunks[chunk_index]
+
+                if this_data_chunk is not None and isinstance(this_data_chunk, StructuredData):
+                    data_index_from = this_data_chunk.get_first_index()
+                    data_index_till = this_data_chunk.get_last_index()
+                else:
+                    data_index_from = None
+                    data_index_till = None
+
+                self._scores[chunk_index][metric_name]['data_index_from'] = data_index_from
+                self._scores[chunk_index][metric_name]['data_index_till'] = data_index_till
 
             num_good_chunks += 1
 
