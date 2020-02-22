@@ -111,14 +111,49 @@ class ErgoReport(object):
         speed = get_score(name='activity', combine_across_parameter=combine_across_parameter)
         posture = get_score(name='posture', combine_across_parameter=combine_across_parameter)
 
+        speed = pd.DataFrame(np.vstack(speed)).dropna(how='any')
+        posture = pd.DataFrame(np.vstack(posture)).dropna(how='any')
         if combine_across_time == 'max':
             # take max score across time:
-            speed = pd.DataFrame(np.vstack(speed)).dropna(how='any').max(axis=0).tolist()
+            speed = speed.max(axis=0).tolist()
             speed_yaw, speed_pitch, speed_roll = speed
 
-            posture = pd.DataFrame(np.vstack(posture)).dropna(how='any').max(axis=0).tolist()
+            posture = posture.max(axis=0).tolist()
             posture_yaw, posture_pitch, posture_roll = posture
 
+            speed_score = np.max(speed)
+            posture_score = np.max(posture)
+
+            # in this case, the score is the max over all chunks
+            # we the first and last index is the very first data index and
+            # the last index is the very last index:
+            first_data_index = self._ergo_metrics.get_first_data_index(chunk_index=0)
+            last_data_index = self._ergo_metrics.get_last_data_index(chunk_index=-1)
+
+        elif combine_across_time == 'keep-separate':
+
+            speed_yaw = speed.iloc[:, 0].tolist()
+            speed_pitch = speed.iloc[:, 1].tolist()
+            speed_roll = speed.iloc[:, 2].tolist()
+
+            posture_yaw = posture.iloc[:, 0].tolist()
+            posture_pitch = posture.iloc[:, 1].tolist()
+            posture_roll = posture.iloc[:, 2].tolist()
+
+            speed_score = np.max(speed, axis=0).tolist()
+            posture_score = np.max(posture, axis=0).tolist()
+
+            # in this case, we have the score vs time, so create the list of indices:
+            from_indices = []
+            till_indices = []
+            for chunk_index in range(ergo_metrics.number_of_data_chunks):
+                this_first_data_index = self._ergo_metrics.get_first_data_index(chunk_index=chunk_index)
+                this_last_data_index = self._ergo_metrics.get_last_data_index(chunk_index=chunk_index)
+
+                from_indices.append(this_first_data_index)
+                till_indices.append(this_last_data_index)
+            first_data_index = from_indices
+            last_data_index = till_indices
         else:
             raise NotImplementedError("Implement me!")
 
@@ -129,26 +164,31 @@ class ErgoReport(object):
         payload_dict['normalized_speed_pitch_score'] = speed_pitch
         payload_dict['normalized_speed_yaw_score'] = speed_yaw
         payload_dict['normalized_speed_roll_score'] = speed_roll
-        payload_dict['speed_score'] = np.max(speed)
+        payload_dict['speed_score'] = speed_score
         #
         payload_dict['posture_pitch_score'] = posture_pitch
         payload_dict['posture_yaw_score'] = posture_yaw
         payload_dict['posture_roll_score'] = posture_roll
-        payload_dict['posture_score'] = np.max(posture)
+        payload_dict['posture_score'] = posture_score
         #
         payload_dict['safety_score'] = speed_pitch
 
-        #
-        payload_dict['strain_pitch_score'] = max(0, posture_pitch - np.random.uniform(0, 1))
-        payload_dict['strain_yaw_score'] = max(0, posture_yaw - np.random.uniform(0, 1))
-        payload_dict['strain_roll_score'] = max(0, posture_roll - np.random.uniform(0, 1))
-        payload_dict['strain_score'] = np.max(posture)
+        if not combine_across_time == 'keep-separate':
+            # not covered yet with "keep separate":
+            payload_dict['strain_pitch_score'] = max(0, posture_pitch - np.random.uniform(0, 1))
+            payload_dict['strain_yaw_score'] = max(0, posture_yaw - np.random.uniform(0, 1))
+            payload_dict['strain_roll_score'] = max(0, posture_roll - np.random.uniform(0, 1))
+            payload_dict['strain_score'] = np.max(posture)
 
         payload_dict['start_time'] = str(start_time)
         payload_dict['end_time'] = str(end_time)
 
+        # when was this run?
         analyzed_at_time = datetime.now().utcnow().isoformat()
         payload_dict['analyzed_at'] = str(analyzed_at_time)
+
+        payload_dict['first_data_index'] = first_data_index
+        payload_dict['last_data_index'] = last_data_index
 
         logger.info("Payload dict = {}".format(payload_dict))
 
@@ -160,9 +200,10 @@ class ErgoReport(object):
         logger.exception(msg)
         raise NotImplementedError(msg)
 
-    def to_json(self, combine_across_parameter='average'):
+    def to_json(self, combine_across_parameter='average', combine_across_time='max'):
         """Report out in a JSON format."""
-        payload_json = self._construct_payload(combine_across_parameter=combine_across_parameter)
+        payload_json = self._construct_payload(combine_across_parameter=combine_across_parameter,
+                                               combine_across_time=combine_across_time)
         self._response = 'success'
         return payload_json
 
