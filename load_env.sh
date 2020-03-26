@@ -21,7 +21,7 @@ echo ""
 # Set up the virtual environment from the pipfile:
 # (see the Pipfile and Pipfile.lock):
 echo "Setting up the Python environment for BSAFE"
-pipenv update --dev
+# pipenv update --dev
 echo "[OK] Python has been set up."
 
 # NOTE: THIS MESSES UP SOME LINE ENDINGS
