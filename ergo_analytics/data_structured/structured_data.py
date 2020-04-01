@@ -26,6 +26,7 @@ class StructuredData(BaseStructuredData):
     """
 
     _time = None
+    _data_matrix = None
     _data_format_code = None
     _delta_yaw = None
     _delta_pitch = None
@@ -58,6 +59,13 @@ class StructuredData(BaseStructuredData):
         self._roll['delta'] = data['DeltaRoll']
 
         self._number_of_points = len(data)
+
+        self._data_matrix = data
+
+    @property
+    def data_matrix(self):
+        """Return the data matrix as originally came in."""
+        return self._data_matrix
 
     @staticmethod
     def _check_data(data=None):
