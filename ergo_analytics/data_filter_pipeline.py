@@ -55,6 +55,7 @@ class DataFilterPipeline(object):
         This is usefu if there are common parameters between all filters.
         """
         for filter_name in self._pipeline.keys():
+            # TODO: We should index into the filter here?!
             self._pipeline[filter_name].update(new_params=new_params)
 
     def view(self):

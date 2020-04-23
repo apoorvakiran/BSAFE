@@ -51,7 +51,7 @@ class ConstructDeltaValues(BaseTransformation):
         super().apply(data=data, **kwargs)
 
         params = self._params
-        if params['data_format_code'] in {'1', '5'}:
+        if params['data_format_code'] in {'1', '2', '5'}:
             # construct delta angles between the two boards;
             # leverage rotation matrices to account for the two different
             # co-ordinate systems:
