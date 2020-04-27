@@ -18,6 +18,7 @@ import requests
 from numpy import ceil
 from urllib.error import HTTPError
 from periodiq import PeriodiqMiddleware, cron
+from app.utils import get_authentication_header
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics.filters import FixDateOscillations
@@ -42,7 +43,7 @@ def automated_analysis():
     current_time = datetime.datetime.utcnow()
     end_time = datetime.datetime.utcnow().isoformat()
     start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
-    headers = {'Authorization': f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"}
+    headers = {'Authorization': get_authentication_header()}
     try:
         response = requests.get(
             f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/wearables?automated=true",
@@ -134,11 +135,10 @@ def safety_score_analysis(mac_address, start_time, end_time):
 
         report = ErgoReport(ergo_metrics=em)
         # now we can report to any format we want - here HTTP:
-        auth = f"Bearer {os.getenv('INFINITY_GAUNTLET_AUTH')}"
 
         report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
                                 f"safety_scores",
-                       authorization=auth,
+                       authorization=get_authentication_header(),
                        combine_across_parameter=how_to_combine_across_parameter,
                        mac_address=mac_address)
         logger.info(report.response)
