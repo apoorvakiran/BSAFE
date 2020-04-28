@@ -1,10 +1,16 @@
 import os
 import requests
 import logging
-from urllib.error import HTTPError
-from requests.exceptions import RequestException
 
 logger = logging.getLogger()
+
+
+def auth_success(response):
+    return response.status_code == 200
+
+
+def response_token(response):
+    return response.json()["data"]["attributes"]["auth_token"]
 
 
 class Authentication(object):
@@ -14,29 +20,24 @@ class Authentication(object):
         self.password = password or os.getenv("INFINITY_GAUNTLET_PASSWORD")
 
     def get_authentication_header(self):
+        # TODO: Refactor so that refreshing happens only when auth token expires
         self.current_token = self._refresh_token_if_needed()
         return f"Bearer {self.current_token}"
 
     def _refresh_token_if_needed(self):
         try:
-            token_response = self._check_auth()
-            if token_response.status_code == 200:
-                token = token_response.json()["data"]["attributes"]["auth_token"]
-                return token
+            check_auth_response = self._check_auth()
+            if auth_success(check_auth_response):
+                return response_token(check_auth_response)
             else:
                 logger.info(f"Re-authenticating with Infinity Gauntlet")
                 login_response = self._login()
-                if login_response.status_code == 200:
-                    token = login_response.json()["data"]["attributes"]["auth_token"]
-                    return token
+                if auth_success(login_response):
+                    return response_token(login_response)
                 else:
                     raise Exception(f"Authentication failure: {login_response.json()}")
-        except HTTPError as err:  # TODO: handle other errors
-            logger.error(f"HTTPError: {err}", exc_info=True)
-        except RequestException as err:
-            logger.error(f"ConnectionError: {err}", exc_info=True)
         except Exception as err:
-            logger.error(f"Failure to authenticate: {err}", exc_info=True)
+            logger.error(f"Authentication failure: {err}", exc_info=True)
             raise Exception(f"Authentication failure: {err}")
 
     def _check_auth(self):
