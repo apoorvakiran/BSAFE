@@ -18,7 +18,7 @@ import requests
 from numpy import ceil
 from urllib.error import HTTPError
 from periodiq import PeriodiqMiddleware, cron
-from app.utils import get_authentication_header
+from app.authentication import Authentication
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics.filters import FixDateOscillations
@@ -36,6 +36,7 @@ from constants import DATA_FORMAT_CODES
 from .extensions import dramatiq
 
 logger = logging.getLogger()
+auth = Authentication()
 
 @dramatiq.actor(periodic=cron('*/15 * * * *'))
 def automated_analysis():
@@ -43,8 +44,8 @@ def automated_analysis():
     current_time = datetime.datetime.utcnow()
     end_time = datetime.datetime.utcnow().isoformat()
     start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
-    headers = {'Authorization': get_authentication_header()}
     try:
+        headers = {"Authorization": auth.get_authentication_header()}
         response = requests.get(
             f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/wearables?automated=true",
             headers=headers
@@ -136,11 +137,12 @@ def safety_score_analysis(mac_address, start_time, end_time):
         report = ErgoReport(ergo_metrics=em)
         # now we can report to any format we want - here HTTP:
 
-        report.to_http(endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/"
-                                f"safety_scores",
-                       authorization=get_authentication_header(),
-                       combine_across_parameter=how_to_combine_across_parameter,
-                       mac_address=mac_address)
+        report.to_http(
+            endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/safety_scores",
+            authorization=auth.get_authentication_header(),
+            combine_across_parameter=how_to_combine_across_parameter,
+            mac_address=mac_address,
+        )
         logger.info(report.response)
         logger.info(f"{report.response.status_code} "
                     f"{report.response.text}")
