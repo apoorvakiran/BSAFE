@@ -14,11 +14,10 @@ __version__ = "Alpha"
 import logging
 import os
 import datetime
-import requests
 from numpy import ceil
 from urllib.error import HTTPError
 from periodiq import PeriodiqMiddleware, cron
-from app.authentication import Authentication
+from app.api_client import ApiClient
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics.filters import FixDateOscillations
@@ -36,7 +35,7 @@ from constants import DATA_FORMAT_CODES
 from .extensions import dramatiq
 
 logger = logging.getLogger()
-auth = Authentication()
+api_client = ApiClient()
 
 @dramatiq.actor(periodic=cron('*/15 * * * *'))
 def automated_analysis():
@@ -45,11 +44,7 @@ def automated_analysis():
     end_time = datetime.datetime.utcnow().isoformat()
     start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
     try:
-        headers = {"Authorization": auth.get_authentication_header()}
-        response = requests.get(
-            f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/wearables?automated=true",
-            headers=headers
-        )
+        response = api_client.get_request('api/v1/wearables?automated=true')
         response.raise_for_status()
         wearables = response.json()['data']
         logger.info(f"Running automated analysis for {len(wearables)}")
@@ -138,8 +133,7 @@ def safety_score_analysis(mac_address, start_time, end_time):
         # now we can report to any format we want - here HTTP:
 
         report.to_http(
-            endpoint=f"{os.getenv('INFINITY_GAUNTLET_URL')}/api/v1/safety_scores",
-            authorization=auth.get_authentication_header(),
+            api_client=api_client,
             combine_across_parameter=how_to_combine_across_parameter,
             mac_address=mac_address,
         )
