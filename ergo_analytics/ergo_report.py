@@ -50,7 +50,7 @@ class ErgoReport(object):
         """
         return self._response
 
-    def to_http(self, endpoint=None, authorization=None, combine_across_time='max',
+    def to_http(self, api_client=None, combine_across_time='max',
                 combine_across_parameter='average', mac_address=None, just_return_payload=False):
         """Reports out to an HTTP endpoint.
 
@@ -76,10 +76,8 @@ class ErgoReport(object):
         # put information about device in the payload:
         payload['mac'] = mac_address
         try:
-            headers = {'Authorization': authorization}
-            logger.info("Sending payload to endpoint {}".format(endpoint))
-            self._response = \
-                requests.post(endpoint, headers=headers, data=payload)
+            logger.info("Sending payload to endpoint /api/v1/safety_scores")
+            self._response = api_client.post_request("api/v1/safety_scores", payload)
             logger.info("response is = {}".format(self._response))
             logger.info(self._response.text)
 
