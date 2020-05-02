@@ -30,6 +30,7 @@ def create_app():
     configure_logging(app)
     return app
 
+
 def configure_logging(app):
     import logging
     logging.basicConfig(
@@ -39,5 +40,6 @@ def configure_logging(app):
         logging.FileHandler(f"{app.config['LOG_FOLDER']}/log.log"),
         logging.StreamHandler()
     ])
+
 
 bsafe = create_app()

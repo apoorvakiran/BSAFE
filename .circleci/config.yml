@@ -17,7 +17,7 @@ jobs:
           command: pipenv run python -m pytest tests/unit
       - run:
           name: Run Tests
-          command: ./run_tests.sh
+          command: pipenv run python -m pytest -v -nauto tests/
       - persist_to_workspace:
           root: ~/BSAFE
           paths:

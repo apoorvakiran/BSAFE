@@ -179,7 +179,11 @@ class ErgoMetrics(object):
 
             self._scores[chunk_index] = dict()
 
-            # this_chunk = self._data_chunks[chunk_index]
+            if self._data_chunks[chunk_index] is None or \
+                    isinstance(self._data_chunks[chunk_index], list):
+                if self._data_chunks[chunk_index] is not None:
+                    assert len(self._data_chunks[chunk_index]) == 0
+                continue
 
             # compute each metric:
             for metric_name in self._metrics_to_use:
@@ -287,7 +291,7 @@ class ErgoMetrics(object):
             # threshold for posture score).
 
             # So note: We are not combining over the chunks themselves
-            if el is not None and el.empty:
+            if el is None or el.empty:
                 this_combined_score = [None, None, None]
             else:
                 this_combined_score = combiner(el, axis=1).tolist()
@@ -298,6 +302,12 @@ class ErgoMetrics(object):
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
         """Returns the score "name" for a single data "chunk_index"."""
+
+        if len(self._scores[chunk_index]) == 0:
+            # no data for this chunk:
+            if self._data_chunks[chunk_index] is not None:
+                assert len(self._data_chunks[chunk_index]) == 0
+            return
 
         scores = self._scores[chunk_index][name]['score']  # {p0: ..., p1: ...}
         scores = pd.DataFrame.from_dict(scores)
