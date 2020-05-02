@@ -13,9 +13,6 @@ jobs:
             sudo pip install pipenv
             pipenv install --dev
       - run:
-          name: Run Unit Tests
-          command: pipenv run python -m pytest tests/unit
-      - run:
           name: Run Tests
           command: pipenv run python -m pytest -v -nauto tests/
       - persist_to_workspace:
