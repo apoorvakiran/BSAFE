@@ -99,8 +99,9 @@ def test_some_of_the_chunks_have_no_data():
     # [1.0738636363636365, 1.0738636363636365, 0.4375],
     # [],
     # [1.0738636363636365, 1.0738636363636365, 0.4375]]
-    
+
     combined_score = metrics.get_score(name='activity')[0][0]
+
 
     assert pytest.approx(combined_score, 0.00001) == 1.0738636363636365
 
