@@ -20,6 +20,7 @@ import sys
 from ergo_analytics.data_raw import LoadDataFromLocalDisk
 from ergo_analytics import DataFilterPipeline
 from ergo_analytics import ErgoMetrics
+from ergo_analytics.metrics import AngularActivityScore
 from ergo_analytics.filters import FixDateOscillations
 from ergo_analytics.filters import DataCentering
 from ergo_analytics.filters import ConstructDeltaValues
@@ -28,6 +29,7 @@ from ergo_analytics.filters import DataImputationFilter
 from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics.filters import ZeroShiftFilter
 from constants import DATA_FORMAT_CODES
+
 
 ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
 
@@ -64,13 +66,15 @@ def test_data_format_1():
     pipeline.add_filter(name='impute', filter=DataImputationFilter())
     pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
     # run the pipeline!
-    structured_data = pipeline.run(on_raw_data=raw_data,
-                                   with_format_code=data_format_code,
-                                   num_rows_per_chunk=100)
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data,
+                                                  with_format_code=data_format_code,
+                                                  num_rows_per_chunk=100)
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=structured_data)
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+
+    metrics.add(AngularActivityScore, name='activity')
     metrics.compute()
 
-    print(structured_data.name)
-    print(metrics.get_score(name='posture'))
-    print(metrics.get_score(name='speed'))
+    # we made it to here with this data format code so we should be good:
+    assert len(metrics.get_score(name='activity')[0]) == 3
+    assert metrics.get_score(name='activity')[0] is not None
