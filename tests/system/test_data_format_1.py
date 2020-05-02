@@ -78,3 +78,6 @@ def test_data_format_1():
     # we made it to here with this data format code so we should be good:
     assert len(metrics.get_score(name='activity')[0]) == 3
     assert metrics.get_score(name='activity')[0] is not None
+
+    assert False
+
