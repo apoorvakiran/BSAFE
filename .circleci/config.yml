@@ -141,6 +141,7 @@ workflows:
             branches:
               only:
                 - master
+                - master-fix
       - build_image_and_deploy_prod:
           requires:
             - test
