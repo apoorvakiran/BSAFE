@@ -14,7 +14,7 @@ First, you need to make sure your credentials are correct. These credentials are
 like your own set of keys to access the bucket. So each member need their own set of keys.
 
 This is done by creating a folder ".aws" in your home directory. Open your terminal and
-type this command:
+type this command (or alternatively, use the "aws configure" command):
     >> mkdir ~/.aws
 
 Then also create the file "credentials" (note: no extension needed):

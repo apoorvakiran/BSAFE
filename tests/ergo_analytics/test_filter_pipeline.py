@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-Tests the Data Filter Pipeline.
+"""Test the Data Filter Pipeline.
 
 ============
 How to run:
@@ -41,7 +40,7 @@ def test_filter_pipeline():
     filter1._params = dict(param1=4)
     filter2 = MagicMock()
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name='test_filter1', filter=filter1)
 
     assert len(pipeline.view()) == 1
@@ -74,7 +73,7 @@ def test_running_pipeline():
     test_data = pd.read_csv(test_data_path)
 
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 
     list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
@@ -104,7 +103,7 @@ def test_running_pipeline_2():
     test_data = pd.read_csv(test_data_path)
 
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 
     list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
@@ -131,7 +130,7 @@ def test_running_pipeline_3():
     test_data = pd.read_csv(test_data_path)
 
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 
     list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
@@ -158,7 +157,7 @@ def test_running_pipeline_consecutive():
     test_data = pd.read_csv(test_data_path)
 
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 
     list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
@@ -204,15 +203,15 @@ def test_consecutive_and_random_both_times():
     test_data = pd.read_csv(test_data_path)
 
     #
-    pipeline = DataFilterPipeline()
+    pipeline = DataFilterPipeline(verify_pipeline=False)
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 
     with pytest.raises(Exception):
         # we can't have consecutive and random:
         _ = pipeline.run(on_raw_data=test_data,
-                          with_format_code=data_format_code,
-                          is_sorted=True,
-                          use_subsampling=True,
-                          consecutive_subsamples=True,
-                          subsample_size_index=8,
-                          randomize_subsampling=True)
+                         with_format_code=data_format_code,
+                         is_sorted=True,
+                         use_subsampling=True,
+                         consecutive_subsamples=True,
+                         subsample_size_index=8,
+                         randomize_subsampling=True)

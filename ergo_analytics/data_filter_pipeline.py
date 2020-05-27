@@ -13,14 +13,17 @@ __author__ = "Iterate Labs, Inc."
 __version__ = "Alpha"
 
 from copy import deepcopy
+import hashlib
 import os
 import json
 import numpy as np
 import pandas as pd
+import pickle
 import shutil
 import matplotlib.pyplot as plt
 from ergo_analytics.filters import CreateStructuredData
 from ergo_analytics.utilities import subsample_data
+from ergo_analytics.aws_utilities import Pipestore
 import logging
 
 logger = logging.getLogger()
@@ -36,8 +39,11 @@ class DataFilterPipeline(object):
 
     _pipeline = None
     _results = None
+    _do_verify_pipeline = None
+    _most_recent_pipestore_hash = None
+    _found_in_pipestore = None
 
-    def __init__(self):
+    def __init__(self, verify_pipeline=True):
         """
         Constructs an object from which metrics can be computed
         based off of a "Structured Data" object.
@@ -48,6 +54,7 @@ class DataFilterPipeline(object):
 
         self._pipeline = dict()  # dict is ordered
         self._results = dict()
+        self._do_verify_pipeline = verify_pipeline
 
     def update_params(self, new_params=None):
         """
@@ -100,13 +107,67 @@ class DataFilterPipeline(object):
 
         self._pipeline[name].update(new_params=new_params)
 
+    def _verify_pipeline(self):
+        """Make some sanity checks."""
+        # TODO(jesper)
+        return
+
+    # @staticmethod
+    # def construct_from_definition_file(definition_file=None):
+    #     """Construct pipeline from definition file such as from a Yaml."""
+    #
+    #     dfp = DataFilterPipeline()
+    #
+    #     for fix, filter in enumerate(definition_file['filters']):
+    #         name_to_use = "{}_{}".format(filter['name'], fix + 1)
+    #         exec("from ergo_analytics.filters import {}".format(filter['name']))
+    #         exec("this_filter = {}".format(filter['name']))
+    #         dfp.add_filter(name=name_to_use, filter=this_filter())
+    #
+    #         if 'params' in filter:
+    #             dfp.update_filter(name=name_to_use, new_params=filter['params'])
+    #
+    #     import pdb
+    #     pdb.set_trace()
+
+    def get_pipestore_hash(self, data=None, options=None):
+        """Hash this pipeline as per the pipestore."""
+        _hash = hashlib.sha256()
+
+        # hash the data:
+        data_hash = pd.util.hash_pandas_object(data, index=True).values
+        _hash.update(data_hash)
+
+        # hash the filters (notice the order matters)
+        for _, (_, filter) in enumerate(self._pipeline.items()):
+            name = filter.__class__.__name__
+            # params = filter.get_parameters()  # params can change between each run, so don't use as source of hash
+            # this_filter = {name: params}
+            this_filter = name
+            _hash.update(json.dumps(this_filter).encode())
+
+        # the options to run the pipeline:
+        _hash.update(json.dumps(options).encode())
+
+        return _hash.hexdigest()
+
+    def check_pipestore(self, data=None, options=None):
+        """Check the pipestore for whether this pipeline was already run and return results if so."""
+
+        pipestore_hash = self.get_pipestore_hash(data=data, options=options)
+
+        pst = Pipestore()
+        hash_exists, data = pst.pipestore_hash_exists(hash=pipestore_hash)
+
+        return hash_exists, data, pipestore_hash
+
     def run(self, on_raw_data=None, with_format_code='5', is_sorted=True,
             use_subsampling=False, number_of_subsamples=10,
             randomize_subsampling=False, consecutive_subsamples=False,
             subsample_size_index=1000, debug=False, debug_folder_prepend=None,
             anchor_data_vs_time=False, **kwargs):
-        """
-        Run the pipeline on the incoming raw data.
+        """Run the pipeline on the incoming raw data.
+
         This is done by splitting the data into chunks and iterating over
         said chunks. The chunk size can be controlled via the incoming
         parameters.
@@ -119,8 +180,31 @@ class DataFilterPipeline(object):
         :param do_randomize_chunks: should the chunks of data be
         selected at random?
         """
+        raw_data = on_raw_data.copy()
+
         # ensure the data has the correct columns
         with_format_code = str(with_format_code).strip()
+
+        options = (with_format_code,
+                  is_sorted,
+                      use_subsampling,
+                      number_of_subsamples,
+                      randomize_subsampling,
+                      consecutive_subsamples,
+                      subsample_size_index,
+                      debug,
+                      debug_folder_prepend,
+                      anchor_data_vs_time,
+                      kwargs)
+
+        pipeline_run_found, results, pipestore_hash = self.check_pipestore(data=raw_data, options=options)
+
+        self._most_recent_pipestore_hash = pipestore_hash
+        self._found_in_pipestore = pipeline_run_found
+
+        if pipeline_run_found:
+            logger.debug("Previous pipeline results found in pipestore, returning those")
+            return results
 
         logger.info(f"Anchor data chunks in time?: {anchor_data_vs_time}.")
 
@@ -148,6 +232,10 @@ class DataFilterPipeline(object):
         logger.debug("Subsample settings:")
         logger.debug(f"Number of subsamples = {number_of_subsamples}")
         logger.debug(f"Subsample size = {subsample_size_index}")
+
+        # make sure the pipeline makes sense:
+        if self._do_verify_pipeline:
+            self._verify_pipeline()
 
         # ability to pass around information between data chunks
         # was originally introduced due to the zero-line-filter
@@ -217,15 +305,24 @@ class DataFilterPipeline(object):
             os.chdir(orig_dir)
             plt.close()
 
+        # now upload to the pipestore
+        data_to_upload = pickle.dumps(all_structured_data)
+
+        logger.debug("Uploading results to the pipestore.")
+        self._upload_to_pipestore(hash=pipestore_hash, data=data_to_upload)
+
         return all_structured_data
+
+    def _upload_to_pipestore(self, hash=None, data=None):
+        """Upload data to the pipestore."""
+        pst = Pipestore()
+        pst.upload_data(hash=hash, data=data, metadata=None)
 
     def _run_chunk(self, with_format_code='5',
                    on_raw_data_chunk=None, parameters=None, is_sorted=True, debug=False):
-        """
-        Runs the pipeline on incoming raw data.
-        Returns structured data.
+        """Run the pipeline on incoming raw data.
 
-        :return:
+        :return: structured data.
         """
         # make sure the raw data points have unique indices:
         on_raw_data_chunk.reset_index(drop=True, inplace=True)
@@ -262,7 +359,6 @@ class DataFilterPipeline(object):
                 plt.savefig("data_in.png")
 
                 data_in_before_filter = deepcopy(current_data)
-
 
             if filter_name not in parameters:
                 parameters[filter_name] = dict()
@@ -368,8 +464,7 @@ class DataFilterPipeline(object):
     @staticmethod
     def _create_structured_data(list_of_transformed_data_chunks=None,
                                 data_format_code='5'):
-        """
-        Taking in a list of transformed data chunks (i.e., each element in
+        """Taking in a list of transformed data chunks (i.e., each element in
         the list is a transformed data element - it has gone through
         the ETL pipeline) this method returns a list of same length where
         the ith element is now the structured data version of the transformed
@@ -387,13 +482,9 @@ class DataFilterPipeline(object):
         return all_chunks_of_structured_data
 
     def get_result(self, name=None):
-        """
-        Returns the results of a filter.
-        """
+        """Return the results of a filter in the data pipeline."""
         return self._results[name]
 
     def get_parameters(self, name=None):
-        """
-        Returns the parameters of a filter.
-        """
+        """Return the parameters of a filter in the data pipeline."""
         return self._pipeline[name].get_parameters()
