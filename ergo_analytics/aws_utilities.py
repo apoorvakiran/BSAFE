@@ -33,14 +33,14 @@ class Pipestore(object):
 
     def _get_s3_client(self):
         """Return S3 object in form of a client."""
-        client = boto3.client('s3', aws_access_key_id=os.environ.get('IL_AWS_ACCESS_KEY'),
-                              aws_secret_access_key=os.environ.get('IL_AWS_SECRET_KEY'))
+        client = boto3.client('s3', aws_access_key_id=os.environ.get('IL_AWS_ACCESS_KEY', 'AWS_ACCESS_KEY_ID'),
+                              aws_secret_access_key=os.environ.get('IL_AWS_SECRET_KEY', "AWS_ACCESS_KEY"))
         return client
 
     def _get_s3_resource(self):
         """Returns S3 object in form of a resource."""
-        return boto3.resource('s3', aws_access_key_id=os.environ.get('IL_AWS_ACCESS_KEY'),
-                              aws_secret_access_key=os.environ.get('IL_AWS_SECRET_KEY'))
+        return boto3.resource('s3', aws_access_key_id=os.environ.get('IL_AWS_ACCESS_KEY', "AWS_ACCESS_KEY_ID"),
+                              aws_secret_access_key=os.environ.get('IL_AWS_SECRET_KEY', "AWS_ACCESS_KEY"))
 
     def _check_if_data_exists(self, path=None):
         """Let's see if the data exists."""
