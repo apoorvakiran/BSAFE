@@ -96,4 +96,5 @@ spec:
           requests:
             cpu: 1000m
             memory: 2000Mi
-
+      nodeSelector:
+          nodegroup: production
