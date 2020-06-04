@@ -449,13 +449,16 @@ class DataFilterPipeline(object):
         return current_data
 
     def describe(self):
-        """List this pipeline with its filters."""
+        """List this pipeline with its filters and associated parameter values."""
         structure = dict()  # pipeline structure
+
         for filter_ix, (filter_name, filter) in \
                 enumerate(self._pipeline.items()):
 
             key = str(filter)[1:].split(' object at ')[0]
-            structure[key] = filter.get_parameters()
+            assert key not in structure
+            structure[key] = dict()
+            structure[key]['parameters'] = filter.get_parameters()
             structure[key]['user_defined_name'] = filter_name
             structure[key]['position'] = filter_ix  # position in the pipeline
 
