@@ -34,7 +34,7 @@ class FixDateOscillations(BaseTransformation):
 
     def _initialize_params(self):
         super()._initialize_params()
-        self._params.update(**dict(cut_off_date='2015-01-01'))
+        self._params.update(**dict(cut_off_date="2015-01-01"))
 
     def apply(self, data=None, **kwargs):
         """
@@ -46,13 +46,13 @@ class FixDateOscillations(BaseTransformation):
         """
         super().apply(data=data, **kwargs)
 
-        date_column = 'Date-Time'
+        date_column = "Date-Time"
 
         # this filter does require the date to be present
         dates_as_int = data[date_column].apply(lambda x: x.asm8.astype(int))
 
         # data before this is considered wrong:
-        cut_off_date = self._params['cut_off_date']
+        cut_off_date = self._params["cut_off_date"]
         cut_off_date_as_int = to_datetime(cut_off_date).asm8.astype(int)
 
         if (dates_as_int > cut_off_date_as_int).all():
@@ -60,11 +60,9 @@ class FixDateOscillations(BaseTransformation):
             return data, {}
 
         # since we didn't return we know that some dates are off
-        first_normal_data_point = dates_as_int[dates_as_int <
-                                        cut_off_date_as_int].index.max() + 1
+        first_normal_data_point = dates_as_int[dates_as_int < cut_off_date_as_int].index.max() + 1
 
         data = data.iloc[first_normal_data_point:, :]
 
-        data_to_use = self._update_data(data_transformed=data,
-                                        columns_operated_on=date_column)
-        return data_to_use, {'updated': date_column}
+        data_to_use = self._update_data(data_transformed=data, columns_operated_on=date_column)
+        return data_to_use, {"updated": date_column}

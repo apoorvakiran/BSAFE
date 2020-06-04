@@ -66,10 +66,9 @@ class ErgoMetrics(object):
         """Removes a metric via its given name from
         the internal list of metrics"""
         if name in self._metrics_to_use:
-            del[self._metrics_to_use[name]]
+            del [self._metrics_to_use[name]]
         else:
-            raise ValueError(f"Invalid metric; options "
-                             f"are: {list(self._metrics_to_use.keys())}")
+            raise ValueError(f"Invalid metric; options " f"are: {list(self._metrics_to_use.keys())}")
 
     @property
     def earliest_time(self):
@@ -111,16 +110,14 @@ class ErgoMetrics(object):
 
     def _delta_yaw(self, chunk_index=0):
         try:
-            data = self._data_chunks[chunk_index].get_data(
-                type='yaw', loc='delta')
+            data = self._data_chunks[chunk_index].get_data(type="yaw", loc="delta")
         except AttributeError:
             return None
         return data
 
     def _delta_pitch(self, chunk_index=0):
         try:
-            data = self._data_chunks[chunk_index].get_data(type='pitch',
-                                                           loc='delta')
+            data = self._data_chunks[chunk_index].get_data(type="pitch", loc="delta")
         except AttributeError:
             return None
 
@@ -128,8 +125,7 @@ class ErgoMetrics(object):
 
     def _delta_roll(self, chunk_index=0):
         try:
-            data = self._data_chunks[chunk_index].get_data(type='roll',
-                                                           loc='delta')
+            data = self._data_chunks[chunk_index].get_data(type="roll", loc="delta")
         except AttributeError:
             return None
         return data
@@ -158,8 +154,7 @@ class ErgoMetrics(object):
     def number_of_data_chunks(self):
         return self._number_of_data_chunks
 
-    def compute(self, debug=False, store_plots_here=None,
-                metrics_parameters=None, **kwargs):
+    def compute(self, debug=False, store_plots_here=None, metrics_parameters=None, **kwargs):
         """Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
 
         For each metric added to this object, the score value of that metric is
@@ -179,8 +174,7 @@ class ErgoMetrics(object):
 
             self._scores[chunk_index] = dict()
 
-            if self._data_chunks[chunk_index] is None or \
-                    isinstance(self._data_chunks[chunk_index], list):
+            if self._data_chunks[chunk_index] is None or isinstance(self._data_chunks[chunk_index], list):
                 if self._data_chunks[chunk_index] is not None:
                     assert len(self._data_chunks[chunk_index]) == 0
                 continue
@@ -192,20 +186,28 @@ class ErgoMetrics(object):
 
                 metric = self._metrics_to_use[metric_name]
                 metric = metric()
-                this_score = metric.compute(delta_pitch=self._delta_pitch(chunk_index=chunk_index),
-                                            delta_yaw=self._delta_yaw(chunk_index=chunk_index),
-                                            delta_roll=self._delta_roll(chunk_index=chunk_index),
-                                            method='rolling_window', debug=debug, prepend=chunk_index,
-                                            store_plots_here=store_plots_here, **these_params, **kwargs)
+                this_score = metric.compute(
+                    delta_pitch=self._delta_pitch(chunk_index=chunk_index),
+                    delta_yaw=self._delta_yaw(chunk_index=chunk_index),
+                    delta_roll=self._delta_roll(chunk_index=chunk_index),
+                    method="rolling_window",
+                    debug=debug,
+                    prepend=chunk_index,
+                    store_plots_here=store_plots_here,
+                    **these_params,
+                    **kwargs,
+                )
 
                 self._scores[chunk_index][metric_name] = dict()
-                self._scores[chunk_index][metric_name]['score'] = this_score
+                self._scores[chunk_index][metric_name]["score"] = this_score
                 # self._scores[chunk_index][metric_name]['params_used'] = params_used
-                self._scores[chunk_index][metric_name]['index'] = chunk_index
-                self._scores[chunk_index][metric_name]['data_index_from'] = \
-                    self._data_chunks[chunk_index].get_first_index()
-                self._scores[chunk_index][metric_name]['data_index_till'] = \
-                    self._data_chunks[chunk_index].get_last_index()
+                self._scores[chunk_index][metric_name]["index"] = chunk_index
+                self._scores[chunk_index][metric_name]["data_index_from"] = self._data_chunks[
+                    chunk_index
+                ].get_first_index()
+                self._scores[chunk_index][metric_name]["data_index_till"] = self._data_chunks[
+                    chunk_index
+                ].get_last_index()
 
                 this_data_chunk = self._data_chunks[chunk_index]
 
@@ -216,8 +218,8 @@ class ErgoMetrics(object):
                     data_index_from = None
                     data_index_till = None
 
-                self._scores[chunk_index][metric_name]['data_index_from'] = data_index_from
-                self._scores[chunk_index][metric_name]['data_index_till'] = data_index_till
+                self._scores[chunk_index][metric_name]["data_index_from"] = data_index_from
+                self._scores[chunk_index][metric_name]["data_index_till"] = data_index_till
 
             num_good_chunks += 1
 
@@ -227,7 +229,7 @@ class ErgoMetrics(object):
 
         logger.debug("Done!")
 
-    def get_score(self, name=None, combine_across_parameter='median', chunk_index=0, **kwargs):
+    def get_score(self, name=None, combine_across_parameter="median", chunk_index=0, **kwargs):
         """Returns the score of metric with name "name".
 
         Combine can be one of {"average", "max", None}
@@ -240,12 +242,10 @@ class ErgoMetrics(object):
             options = list(self._metrics_to_use.keys())
             if len(options) == 0:
                 raise Exception("Please run the ErgoMetrics with metrics first!")
-            raise ValueError(f"Name is invalid; options "
-                             f"are: {options}")
+            raise ValueError(f"Name is invalid; options " f"are: {options}")
 
         if len(self._scores) == 0:
-            msg = "Please compute the Ergo Metrics scores first!\n"\
-                  "Do this by calling the .compute() method."
+            msg = "Please compute the Ergo Metrics scores first!\n" "Do this by calling the .compute() method."
             logger.exception(msg)
             raise Exception(msg)
 
@@ -256,13 +256,14 @@ class ErgoMetrics(object):
 
         if callable(combine_across_parameter):
             combiner = combine_across_parameter
-        elif combine_across_parameter == 'average':
+        elif combine_across_parameter == "average":
             combiner = np.average
-        elif combine_across_parameter == 'median':
+        elif combine_across_parameter == "median":
             combiner = np.median
-        elif combine_across_parameter == 'max':
+        elif combine_across_parameter == "max":
             combiner = np.max
-        elif combine_across_parameter == 'keep-separate':
+        elif combine_across_parameter == "keep-separate":
+
             def keep_separate(x=None, axis=0):
                 """Do not combine scores for this single data chunk
                 in any way - keep them separate."""
@@ -272,6 +273,7 @@ class ErgoMetrics(object):
                 # to create the score
                 # (such as "angle threshold" in the "strain score")
                 return np.hstack(x.values)
+
             combiner = keep_separate
         else:
             msg = f"The combine_across_parameter method '{combine_across_parameter}' is not supported!"
@@ -309,7 +311,7 @@ class ErgoMetrics(object):
                 assert len(self._data_chunks[chunk_index]) == 0
             return
 
-        scores = self._scores[chunk_index][name]['score']  # {p0: ..., p1: ...}
+        scores = self._scores[chunk_index][name]["score"]  # {p0: ..., p1: ...}
         scores = pd.DataFrame.from_dict(scores)
 
         return scores

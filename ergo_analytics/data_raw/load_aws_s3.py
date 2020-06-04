@@ -42,8 +42,12 @@ Questions? Contact Jesper Kristensen or James Russo.
 Copyright IterateLabs.co 2018-
 """
 
-__all__ = ["create_s3_bucket", "get_existing_bucket_names",
-           "upload_data_to_aws_s3", "download_from_aws_s3"]
+__all__ = [
+    "create_s3_bucket",
+    "get_existing_bucket_names",
+    "upload_data_to_aws_s3",
+    "download_from_aws_s3",
+]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
@@ -60,7 +64,7 @@ def _get_s3_client():
     Common code for retrieving the S3 client associated
     with your AWS account.
     """
-    client = boto3.client('s3')
+    client = boto3.client("s3")
     return client
 
 
@@ -83,15 +87,14 @@ def get_existing_bucket_names():
     response = s3.list_buckets()
 
     # Output the bucket names
-    bucket_names = response['Buckets']
-    logger.debug('Existing buckets on S3:')
+    bucket_names = response["Buckets"]
+    logger.debug("Existing buckets on S3:")
     logger.debug(bucket_names)
 
-    return response['Buckets']
+    return response["Buckets"]
 
 
-def upload_data_to_aws_s3(bucketname=None, name_on_s3=None,
-                          local_filename=None):
+def upload_data_to_aws_s3(bucketname=None, name_on_s3=None, local_filename=None):
     """
     Uploads the given file using a managed uploader, which will split up large
     files automatically and upload parts in parallel.
@@ -107,9 +110,11 @@ def upload_data_to_aws_s3(bucketname=None, name_on_s3=None,
         s3.upload_file(local_filename, bucketname, name_on_s3)
     except S3UploadFailedError as e:
         # something did not work!
-        msg = "There was an error uploading the file to the S3 bucket!\n" \
-              "The error is: {}\nDo you have the latest up-to-date\n" \
-              "local ~/.aws/credentials file?".format(e)
+        msg = (
+            "There was an error uploading the file to the S3 bucket!\n"
+            "The error is: {}\nDo you have the latest up-to-date\n"
+            "local ~/.aws/credentials file?".format(e)
+        )
         logger.exception(msg)
         raise Exception(msg)
 
@@ -127,7 +132,7 @@ def download_from_aws_s3(bucketname=None, s3_name=None, local_filename=None):
     try:
         s3.download_file(bucketname, s3_name, local_filename)
     except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
+        if e.response["Error"]["Code"] == "404":
             print("The object does not exist in the AWS S3 bucket.")
         else:
             # something did not work!

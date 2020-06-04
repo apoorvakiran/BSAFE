@@ -24,7 +24,7 @@ class Pipestore(object):
     """Here we can interact with the S3 bucket where we hold runs such as those
     from data pipelines."""
 
-    _bucket_name = 'pipestore.iteratelabs.co'
+    _bucket_name = "pipestore.iteratelabs.co"
 
     def delete_data(self, hash=None):
         """Delete all data under given hash."""
@@ -33,14 +33,20 @@ class Pipestore(object):
 
     def _get_s3_client(self):
         """Return S3 object in form of a client."""
-        client = boto3.client('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY'),
-                              aws_secret_access_key=os.environ.get('AWS_SECRET_KEY'))
+        client = boto3.client(
+            "s3",
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_KEY"),
+        )
         return client
 
     def _get_s3_resource(self):
         """Returns S3 object in form of a resource."""
-        return boto3.resource('s3', aws_access_key_id=os.environ.get('AWS_ACCESS_KEY'),
-                              aws_secret_access_key=os.environ.get('AWS_SECRET_KEY'))
+        return boto3.resource(
+            "s3",
+            aws_access_key_id=os.environ.get("AWS_ACCESS_KEY"),
+            aws_secret_access_key=os.environ.get("AWS_SECRET_KEY"),
+        )
 
     def _check_if_data_exists(self, path=None):
         """Let's see if the data exists."""
@@ -62,11 +68,11 @@ class Pipestore(object):
         else:
             response = s3o.put(Body=data)
 
-        assert response['ResponseMetadata']['HTTPStatusCode'] == 200
+        assert response["ResponseMetadata"]["HTTPStatusCode"] == 200
 
     def _return_folder(self, hash=None):
         """Return folder given hash."""
-        return 'data_pipeline' + '/' + hash + "/"
+        return "data_pipeline" + "/" + hash + "/"
 
     def _return_path(self, hash=None):
         """Returns path to data on S3 given hash."""

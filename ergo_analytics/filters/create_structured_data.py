@@ -47,6 +47,7 @@ class CreateStructuredData(BaseTransformation):
         """
         super().apply(data=data, **kwargs)
 
-        return StructuredData(data=data,
-                        data_format_code=self._params['data_format_code']), \
-               {'action': 'convert to structured data'}
+        return (
+            StructuredData(data=data, data_format_code=self._params["data_format_code"]),
+            {"action": "convert to structured data"},
+        )

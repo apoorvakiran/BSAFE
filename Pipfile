@@ -10,6 +10,7 @@ v = {editable = true,version = "*"}
 pytest-xdist = "*"
 pylama = "*"
 pylint = "*"
+black = "==19.10b0"
 
 [packages]
 numpy = "*"
