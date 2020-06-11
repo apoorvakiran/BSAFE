@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""AWS utilities.
+"""AWS utilities for the Data Lab.
 
 @ author Jesper Kristensen with Iterate Labs, Inc.
 Copyright 2018 Iterate Labs, Inc.
