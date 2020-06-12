@@ -14,6 +14,7 @@ __version__ = "Alpha"
 
 from constants import DATA_FORMAT_CODES
 import logging
+
 logger = logging.getLogger()
 
 
@@ -33,7 +34,7 @@ class BaseData(object):
     def number_of_points(self):
         return self._number_of_points
 
-    def _cast_to_correct_types(self, all_data=None, data_format_code='4'):
+    def _cast_to_correct_types(self, all_data=None, data_format_code="4"):
         """
         Makes sure the data is in the format expected from its streaming type.
 
@@ -47,10 +48,9 @@ class BaseData(object):
             raise Exception(msg)
 
         # now convert data based on the types we know:
-        data_column_names = DATA_FORMAT_CODES[data_format_code]['NAMES']
-        data_column_types = DATA_FORMAT_CODES[data_format_code]['TYPES']
-        all_data = \
-                all_data.apply(dict(zip(data_column_names, data_column_types)))
+        data_column_names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
+        data_column_types = DATA_FORMAT_CODES[data_format_code]["TYPES"]
+        all_data = all_data.apply(dict(zip(data_column_names, data_column_types)))
 
         # make sure index is ints (can convert to "float64" if there are
         # some NaNs here and there):

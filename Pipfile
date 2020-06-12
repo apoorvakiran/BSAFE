@@ -10,12 +10,13 @@ v = {editable = true,version = "*"}
 pytest-xdist = "*"
 pylama = "*"
 pylint = "*"
+black = "==19.10b0"
 
 [packages]
 numpy = "*"
 pandas = "*"
 requests = "*"
-boto3 = "*"
+boto3 = "==1.13.22"
 elasticsearch = "*"
 scipy = "*"
 matplotlib = "*"
@@ -37,6 +38,8 @@ uuid = "*"
 ipinfo = "*"
 gsheets = "*"
 click = "*"
+pytest = "*"
+ipython = "*"
 
 [requires]
 python_version = "3.7"

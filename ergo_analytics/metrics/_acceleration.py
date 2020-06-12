@@ -17,7 +17,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-__all__ = ['do_acceleration_analysis', 'do_angular_velocity']
+__all__ = ["do_acceleration_analysis", "do_angular_velocity"]
 
 
 def do_acceleration_analysis(experiments=None, filename=None):
@@ -35,9 +35,9 @@ def do_acceleration_analysis(experiments=None, filename=None):
     plt.figure(2000)
     for exp_ix, exp in enumerate(experiments):
 
-        ax = exp.ax(loc='hand')
-        ay = exp.ay(loc='hand')
-        az = exp.az(loc='hand')
+        ax = exp.ax(loc="hand")
+        ay = exp.ay(loc="hand")
+        az = exp.az(loc="hand")
 
         ax = ax.iloc[5000:]
         ay = ay.iloc[5000:]
@@ -66,7 +66,7 @@ def do_acceleration_analysis(experiments=None, filename=None):
             vx = vx0 + j.values[0] * dt  # dt [s]
             vx0 = vx
         velocity_x = np.asarray(velocity_x)
-        velocity_x = pd.DataFrame(data=velocity_x.T, columns=['vx'])
+        velocity_x = pd.DataFrame(data=velocity_x.T, columns=["vx"])
 
         dt = 0.4
         velocity_y = []
@@ -77,7 +77,7 @@ def do_acceleration_analysis(experiments=None, filename=None):
             vy = vy0 + j.values[0] * dt  # dt [s]
             vy0 = vy
         velocity_y = np.asarray(velocity_y)
-        velocity_y = pd.DataFrame(data=velocity_y.T, columns=['vy'])
+        velocity_y = pd.DataFrame(data=velocity_y.T, columns=["vy"])
 
         dt = 0.4
         velocity_z = []
@@ -88,41 +88,41 @@ def do_acceleration_analysis(experiments=None, filename=None):
             vz = vz0 + j.values[0] * dt  # dt [s]
             vz0 = vz
         velocity_z = np.asarray(velocity_z)
-        velocity_z = pd.DataFrame(data=velocity_z.T, columns=['vz'])
+        velocity_z = pd.DataFrame(data=velocity_z.T, columns=["vz"])
 
         plt.figure(1001)
         plt.subplot(321)
         plt.plot(ax, label=exp.name)
-        plt.ylabel('$a_x$ [ft/s^2]')
+        plt.ylabel("$a_x$ [ft/s^2]")
         plt.grid()
-        plt.legend(loc='best')
+        plt.legend(loc="best")
         plt.subplot(322)
         plt.plot(velocity_x)
-        plt.ylabel('$v_x$ [ft/s]')
+        plt.ylabel("$v_x$ [ft/s]")
         plt.grid()
         plt.subplot(323)
         plt.plot(ay)
-        plt.ylabel('$a_y$ [ft/s^2]')
+        plt.ylabel("$a_y$ [ft/s^2]")
         plt.grid()
         plt.subplot(324)
         plt.plot(velocity_y)
-        plt.ylabel('$v_y$ [ft/s]')
+        plt.ylabel("$v_y$ [ft/s]")
         plt.grid()
         plt.subplot(325)
         plt.plot(az)
-        plt.ylabel('$a_z$ [ft/s^2]')
+        plt.ylabel("$a_z$ [ft/s^2]")
         plt.grid()
         plt.subplot(326)
         plt.plot(velocity_z)
-        plt.ylabel('$v_z$ [ft/s]')
+        plt.ylabel("$v_z$ [ft/s]")
         plt.grid()
         plt.tight_layout()
 
         velocity = np.sqrt(np.add(np.add(velocity_x ** 2, velocity_y ** 2), velocity_z ** 2))
 
-        if exp.name == 'A':
+        if exp.name == "A":
             velocity = velocity.iloc[:6500]
-        elif exp.name == 'B':
+        elif exp.name == "B":
             velocity = velocity.iloc[:10000]
 
         coeff = np.polyfit(velocity.index, velocity.values, deg=1)
@@ -133,23 +133,23 @@ def do_acceleration_analysis(experiments=None, filename=None):
         plt.figure(1002)
         # plt.subplot(211)
         plt.plot(velocity, label=exp.name)
-        plt.plot(velocity.index, mean, label='fit')
-        plt.xlabel('time [.]')
-        plt.ylabel('v(t) [ft/s]')
-        plt.grid('on')
-        plt.legend(loc='best')
+        plt.plot(velocity.index, mean, label="fit")
+        plt.xlabel("time [.]")
+        plt.ylabel("v(t) [ft/s]")
+        plt.grid("on")
+        plt.legend(loc="best")
 
         plt.figure(1004)
         # plt.plot(velocity_osc, 'b-')
         plt.hist(np.abs(velocity_osc) / np.abs(velocity_osc).max() * 96, bins=20)
-        plt.grid('on')
-        plt.xlabel('speed')
-        plt.ylabel('count')
-        plt.axvline(0, linestyle='--', color='k')
-        plt.axvline(25, linestyle='--', color='k')
-        plt.axvline(50, linestyle='--', color='k')
-        plt.axvline(75, linestyle='--', color='k')
-        plt.savefig('velocity_{}.png'.format(exp.name))
+        plt.grid("on")
+        plt.xlabel("speed")
+        plt.ylabel("count")
+        plt.axvline(0, linestyle="--", color="k")
+        plt.axvline(25, linestyle="--", color="k")
+        plt.axvline(50, linestyle="--", color="k")
+        plt.axvline(75, linestyle="--", color="k")
+        plt.savefig("velocity_{}.png".format(exp.name))
 
         # Get position:
 
@@ -174,10 +174,10 @@ def do_acceleration_analysis(experiments=None, filename=None):
             rx = rx0 + j.values[0] * dt  # dt [s]
             rx0 = rx
         position_x = np.asarray(position_x)
-        position_x = pd.DataFrame(data=position_x.T, columns=['rx'])
+        position_x = pd.DataFrame(data=position_x.T, columns=["rx"])
 
         plt.figure(1006)
-        if exp.name == 'A':
+        if exp.name == "A":
             vals1 = np.tile(position_x / np.max(np.abs(position_x)) * 4, (4, 1))
             vals2 = np.tile(position_x / np.max(np.abs(position_x)) * 2, (2, 1))
             vals3 = np.tile(position_x / np.max(np.abs(position_x)) * 1, (6, 1))
@@ -188,29 +188,28 @@ def do_acceleration_analysis(experiments=None, filename=None):
             vals3 = np.tile(position_x / np.max(np.abs(position_x)) * 1, (2, 1))
             vals4 = np.tile(position_x / np.max(np.abs(position_x)) * 4, (6, 1))
 
-
         plt.plot(np.r_[vals1, vals2, vals3, vals4])
-        plt.grid('on')
-        plt.xlabel('time [.]')
-        plt.ylabel('position')
+        plt.grid("on")
+        plt.xlabel("time [.]")
+        plt.ylabel("position")
         # plt.show()
-        plt.savefig('position_{}.png'.format(exp.name))
+        plt.savefig("position_{}.png".format(exp.name))
 
-        position_x_modified = np.r_[vals1, vals2, vals3, vals4][:len(ax)]
+        position_x_modified = np.r_[vals1, vals2, vals3, vals4][: len(ax)]
         ax = ax.reset_index(drop=True)
         # position_x = position_x_modified.reset_index(drop=True)
         work_per_unit_mass = np.multiply(ax.values.reshape(-1, 1), position_x_modified.reshape(-1, 1))
 
         plt.figure(2000)
 
-        plt.subplot('{}'.format(int(''.join(list(map(str, [2,1,exp_ix + 1]))))))
+        plt.subplot("{}".format(int("".join(list(map(str, [2, 1, exp_ix + 1]))))))
         if exp_ix == 0:
-            plt.plot(work_per_unit_mass / 100, 'b')
+            plt.plot(work_per_unit_mass / 100, "b")
         else:
-            plt.plot(work_per_unit_mass / 100, 'orange')
-        plt.grid('on')
-        plt.xlabel('time [.]')
-        plt.ylabel('work/mass')
+            plt.plot(work_per_unit_mass / 100, "orange")
+        plt.grid("on")
+        plt.xlabel("time [.]")
+        plt.ylabel("work/mass")
         # plt.show()
 
         # import pdb
@@ -220,16 +219,16 @@ def do_acceleration_analysis(experiments=None, filename=None):
         # pdb.set_trace()
 
     plt.figure(2000)
-    plt.savefig('work_{}.png'.format(exp.name))
+    plt.savefig("work_{}.png".format(exp.name))
     # plt.show()
 
-
     import pdb
+
     pdb.set_trace()
 
     if filename is None:
-        filename = 'acceleration.png'
-    plt.savefig(filename, format='png')
+        filename = "acceleration.png"
+    plt.savefig(filename, format="png")
 
     # plt.show()
 
@@ -245,9 +244,9 @@ def do_angular_velocity(experiments=None, filename=None):
     plt.figure()
     for exp in experiments:
 
-        gx = exp.gx(loc='hand')
-        gy = exp.gy(loc='hand')
-        gz = exp.gz(loc='hand')
+        gx = exp.gx(loc="hand")
+        gy = exp.gy(loc="hand")
+        gz = exp.gz(loc="hand")
         g = np.sqrt(gx ** 2 + gy ** 2 + gz ** 2)
 
         plt.hist(g, label=exp.name)
@@ -255,18 +254,18 @@ def do_angular_velocity(experiments=None, filename=None):
     # plt.title('worker {}'.format(exp.name))
     # plt.axvline(-0.5, linestyle='--', color='r')
     # plt.axvline(-1, linestyle='--', color='r')
-    plt.axvline(0, linestyle='--', color='k')
-    plt.axvline(90, linestyle='--', color='r')
-    plt.axvline(180, linestyle='--', color='r')
-    plt.axvline(270, linestyle='--', color='r')
-    plt.axvline(360, linestyle='--', color='r')
-    plt.grid('on')
-    plt.xlabel('angular velocity $\omega$(t) [dps]')
-    plt.ylabel('count')
-    plt.legend(loc='best')
+    plt.axvline(0, linestyle="--", color="k")
+    plt.axvline(90, linestyle="--", color="r")
+    plt.axvline(180, linestyle="--", color="r")
+    plt.axvline(270, linestyle="--", color="r")
+    plt.axvline(360, linestyle="--", color="r")
+    plt.grid("on")
+    plt.xlabel("angular velocity $\omega$(t) [dps]")
+    plt.ylabel("count")
+    plt.legend(loc="best")
 
     if filename is None:
-        filename = 'angular_velocity.png'
+        filename = "angular_velocity.png"
     # plt.savefig(filename, format='png')
 
     plt.show()

@@ -50,8 +50,14 @@ class ErgoReport(object):
         """
         return self._response
 
-    def to_http(self, api_client=None, combine_across_time='max',
-                combine_across_parameter='average', mac_address=None, just_return_payload=False):
+    def to_http(
+        self,
+        api_client=None,
+        combine_across_time="max",
+        combine_across_parameter="average",
+        mac_address=None,
+        just_return_payload=False,
+    ):
         """Reports out to an HTTP endpoint.
 
         Side effect: the response from POST to the end point of this
@@ -66,15 +72,16 @@ class ErgoReport(object):
         :return: Nothing, side effect is to set the response variable.
         """
 
-        payload = self._construct_payload(combine_across_parameter=combine_across_parameter,
-                                          combine_across_time=combine_across_time)
+        payload = self._construct_payload(
+            combine_across_parameter=combine_across_parameter, combine_across_time=combine_across_time
+        )
 
         if just_return_payload:
             logger.debug("Just returning the payload from to_http (not sending to endpoint!).")
             return payload
 
         # put information about device in the payload:
-        payload['mac'] = mac_address
+        payload["mac"] = mac_address
         try:
             logger.info("Sending payload to endpoint /api/v1/safety_scores")
             self._response = api_client.post_request("api/v1/safety_scores", payload)
@@ -85,8 +92,7 @@ class ErgoReport(object):
         except Exception:
             logger.error("Failure to send request", exc_info=True)
 
-    def _construct_payload(self, combine_across_parameter='average',
-                           combine_across_time='max'):
+    def _construct_payload(self, combine_across_parameter="average", combine_across_time="max"):
         """Constructs the payload to report out.
 
         :return: dict representing the payload.
@@ -106,12 +112,12 @@ class ErgoReport(object):
         #         ergo_metrics.get_score(name=metric_name,
         #                                combine_across_data_chunks=combine_across_data_chunks)
 
-        speed = get_score(name='activity', combine_across_parameter=combine_across_parameter)
-        posture = get_score(name='posture', combine_across_parameter=combine_across_parameter)
+        speed = get_score(name="activity", combine_across_parameter=combine_across_parameter)
+        posture = get_score(name="posture", combine_across_parameter=combine_across_parameter)
 
-        speed = pd.DataFrame(np.vstack(speed)).dropna(how='any')
-        posture = pd.DataFrame(np.vstack(posture)).dropna(how='any')
-        if combine_across_time == 'max':
+        speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
+        posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
+        if combine_across_time == "max":
             # take max score across time:
             speed = speed.max(axis=0).tolist()
             speed_yaw, speed_pitch, speed_roll = speed
@@ -128,7 +134,7 @@ class ErgoReport(object):
             first_data_index = self._ergo_metrics.get_first_data_index(chunk_index=0)
             last_data_index = self._ergo_metrics.get_last_data_index(chunk_index=-1)
 
-        elif combine_across_time == 'keep-separate':
+        elif combine_across_time == "keep-separate":
 
             speed_yaw = speed.iloc[:, 0].tolist()
             speed_pitch = speed.iloc[:, 1].tolist()
@@ -155,38 +161,38 @@ class ErgoReport(object):
         else:
             raise NotImplementedError("Implement me!")
 
-        payload_dict['speed_pitch_score'] = speed_pitch
-        payload_dict['speed_yaw_score'] = speed_yaw
-        payload_dict['speed_roll_score'] = speed_roll
+        payload_dict["speed_pitch_score"] = speed_pitch
+        payload_dict["speed_yaw_score"] = speed_yaw
+        payload_dict["speed_roll_score"] = speed_roll
 
-        payload_dict['normalized_speed_pitch_score'] = speed_pitch
-        payload_dict['normalized_speed_yaw_score'] = speed_yaw
-        payload_dict['normalized_speed_roll_score'] = speed_roll
-        payload_dict['speed_score'] = speed_score
+        payload_dict["normalized_speed_pitch_score"] = speed_pitch
+        payload_dict["normalized_speed_yaw_score"] = speed_yaw
+        payload_dict["normalized_speed_roll_score"] = speed_roll
+        payload_dict["speed_score"] = speed_score
         #
-        payload_dict['posture_pitch_score'] = posture_pitch
-        payload_dict['posture_yaw_score'] = posture_yaw
-        payload_dict['posture_roll_score'] = posture_roll
-        payload_dict['posture_score'] = posture_score
+        payload_dict["posture_pitch_score"] = posture_pitch
+        payload_dict["posture_yaw_score"] = posture_yaw
+        payload_dict["posture_roll_score"] = posture_roll
+        payload_dict["posture_score"] = posture_score
         #
-        payload_dict['safety_score'] = speed_pitch
+        payload_dict["safety_score"] = speed_pitch
 
-        if not combine_across_time == 'keep-separate':
+        if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
-            payload_dict['strain_pitch_score'] = max(0, posture_pitch - np.random.uniform(0, 1))
-            payload_dict['strain_yaw_score'] = max(0, posture_yaw - np.random.uniform(0, 1))
-            payload_dict['strain_roll_score'] = max(0, posture_roll - np.random.uniform(0, 1))
-            payload_dict['strain_score'] = np.max(posture)
+            payload_dict["strain_pitch_score"] = max(0, posture_pitch - np.random.uniform(0, 1))
+            payload_dict["strain_yaw_score"] = max(0, posture_yaw - np.random.uniform(0, 1))
+            payload_dict["strain_roll_score"] = max(0, posture_roll - np.random.uniform(0, 1))
+            payload_dict["strain_score"] = np.max(posture)
 
-        payload_dict['start_time'] = str(start_time)
-        payload_dict['end_time'] = str(end_time)
+        payload_dict["start_time"] = str(start_time)
+        payload_dict["end_time"] = str(end_time)
 
         # when was this run?
         analyzed_at_time = datetime.now().utcnow().isoformat()
-        payload_dict['analyzed_at'] = str(analyzed_at_time)
+        payload_dict["analyzed_at"] = str(analyzed_at_time)
 
-        payload_dict['first_data_index'] = first_data_index
-        payload_dict['last_data_index'] = last_data_index
+        payload_dict["first_data_index"] = first_data_index
+        payload_dict["last_data_index"] = last_data_index
 
         logger.info("Payload dict = {}".format(payload_dict))
 
@@ -198,15 +204,16 @@ class ErgoReport(object):
         logger.exception(msg)
         raise NotImplementedError(msg)
 
-    def to_json(self, combine_across_parameter='average', combine_across_time='max'):
+    def to_json(self, combine_across_parameter="average", combine_across_time="max"):
         """Report out in a JSON format."""
-        payload_json = self._construct_payload(combine_across_parameter=combine_across_parameter,
-                                               combine_across_time=combine_across_time)
-        self._response = 'success'
+        payload_json = self._construct_payload(
+            combine_across_parameter=combine_across_parameter, combine_across_time=combine_across_time
+        )
+        self._response = "success"
         return payload_json
 
-    def to_string(self, combine_across_parameter='average'):
+    def to_string(self, combine_across_parameter="average"):
         """Report out as a string."""
         payload = self._construct_payload(combine_across_parameter=combine_across_parameter)
-        self._response = 'success'
+        self._response = "success"
         return json.dumps(payload)

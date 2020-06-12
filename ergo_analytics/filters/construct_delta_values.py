@@ -51,44 +51,40 @@ class ConstructDeltaValues(BaseTransformation):
         super().apply(data=data, **kwargs)
 
         params = self._params
-        if params['data_format_code'] in {'1', '2', '5'}:
+        if params["data_format_code"] in {"1", "2", "5"}:
             # construct delta angles between the two boards;
             # leverage rotation matrices to account for the two different
             # co-ordinate systems:
-            wrist_board = Rotation.from_euler('ZYX',
-                                data[['Yaw[0](deg)', 'Pitch[0](deg)',
-                                      'Roll[0](deg)']].values * np.pi / 180)
-            hand_board = Rotation.from_euler('ZYX',
-                                             data[['Yaw[1](deg)', 'Pitch[1](deg)',
-                                                   'Roll[1](deg)']].values * np.pi / 180)
+            wrist_board = Rotation.from_euler(
+                "ZYX", data[["Yaw[0](deg)", "Pitch[0](deg)", "Roll[0](deg)"]].values * np.pi / 180,
+            )
+            hand_board = Rotation.from_euler(
+                "ZYX", data[["Yaw[1](deg)", "Pitch[1](deg)", "Roll[1](deg)"]].values * np.pi / 180,
+            )
             wrist_board_mat = wrist_board.as_matrix()
             hand_board_mat = hand_board.as_matrix()
 
             delta_angles = []
-            for wrist_board_mat_tmp, hand_board_mat_tmp in \
-                    zip(wrist_board_mat, hand_board_mat):
-                delta_angle_tmp_mat = np.dot(wrist_board_mat_tmp,
-                                             hand_board_mat_tmp.T)
+            for wrist_board_mat_tmp, hand_board_mat_tmp in zip(wrist_board_mat, hand_board_mat):
+                delta_angle_tmp_mat = np.dot(wrist_board_mat_tmp, hand_board_mat_tmp.T)
                 # for each point, construct the delta angles:
-                delta_angle_tmp = Rotation.from_matrix(delta_angle_tmp_mat).as_euler('ZYX') * 180 / np.pi
+                delta_angle_tmp = Rotation.from_matrix(delta_angle_tmp_mat).as_euler("ZYX") * 180 / np.pi
                 delta_angles.append(delta_angle_tmp)
 
             delta_angles = np.asarray(delta_angles)
 
-            data.loc[:, 'DeltaYaw'] = delta_angles[:, 0]
-            data.loc[:, 'DeltaPitch'] = delta_angles[:, 1]
-            data.loc[:, 'DeltaRoll'] = delta_angles[:, 2]
+            data.loc[:, "DeltaYaw"] = delta_angles[:, 0]
+            data.loc[:, "DeltaPitch"] = delta_angles[:, 1]
+            data.loc[:, "DeltaRoll"] = delta_angles[:, 2]
 
-        elif params['data_format_code'] == '4':
+        elif params["data_format_code"] == "4":
             # already in delta-angle format
             pass
         else:
             raise Exception("Implement me!")
 
-        data_to_return = self._update_data(data_transformed=data,
-                                           columns_operated_on=['DeltaYaw',
-                                                                'DeltaPitch',
-                                                                'DeltaRoll'])
+        data_to_return = self._update_data(
+            data_transformed=data, columns_operated_on=["DeltaYaw", "DeltaPitch", "DeltaRoll"],
+        )
 
-        return data_to_return, \
-               {'added': ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']}
+        return data_to_return, {"added": ["DeltaYaw", "DeltaPitch", "DeltaRoll"]}

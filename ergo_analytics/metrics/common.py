@@ -18,7 +18,7 @@ __version__ = "Alpha"
 logger = logging.getLogger()
 
 
-def compute_binned_score(bins=None, values=None, weighing_method='linear'):
+def compute_binned_score(bins=None, values=None, weighing_method="linear"):
     """Computes the binned score given the bins and the values to populate
     the bins with."""
 
@@ -53,8 +53,7 @@ def compute_binned_score(bins=None, values=None, weighing_method='linear'):
 
     # the following sum is a way to take the bins and condense into a single
     # metric representing the scores:
-    raw_score_yaw = custom_weighted_sum(list_of_bins=bins_filled,
-                                         weighing_method=weighing_method)
+    raw_score_yaw = custom_weighted_sum(list_of_bins=bins_filled, weighing_method=weighing_method)
 
     return raw_score_yaw
 
@@ -90,16 +89,15 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
         weight_fraction_this_bin = weights_fraction_time[bin_ix]
 
         # now we apply a weight-modifier on top of the pure "fraction weight":
-        if weighing_method == 'constant':
+        if weighing_method == "constant":
             # only apply weights to bins not the first one:
-            weight_custom = 1.
-        elif weighing_method == 'linear':
-            weight_custom = (bin_ix + 1)
-        elif weighing_method == 'quadratic':
+            weight_custom = 1.0
+        elif weighing_method == "linear":
+            weight_custom = bin_ix + 1
+        elif weighing_method == "quadratic":
             weight_custom = (bin_ix + 1) ** 2
         else:
-            raise Exception(f"Weighing function '{weighing_method}' "
-                            f"not implemented!")
+            raise Exception(f"Weighing function '{weighing_method}' " f"not implemented!")
 
         combined_weight = weight_fraction_this_bin * weight_custom
         this_score = bin_ix  # better name for increased understanding below
@@ -117,8 +115,7 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
     return effective_score
 
 
-def normalize_to_scale(values=None, old_lo=None, old_hi=None, new_lo=None,
-                       new_hi=None):
+def normalize_to_scale(values=None, old_lo=None, old_hi=None, new_lo=None, new_hi=None):
     """Converts a set of values from an old scale in range [old_lo, old_hi]
     to a new scale [new_lo, new_hi].
 

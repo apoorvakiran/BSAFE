@@ -28,9 +28,9 @@ class ZeroShiftFilter(BaseTransformation):
 
     def _initialize_params(self):
         super()._initialize_params()
-        self._params['initial_zero_line'] = None
-        self._params['final_zero_line'] = None
-        self._params['do_initial_shift'] = True
+        self._params["initial_zero_line"] = None
+        self._params["final_zero_line"] = None
+        self._params["do_initial_shift"] = True
 
     def apply(self, data=None, **kwargs):
         """
@@ -42,16 +42,16 @@ class ZeroShiftFilter(BaseTransformation):
         """
         super().apply(data=data, **kwargs)
 
-        delta_columns = ['DeltaYaw', 'DeltaPitch', 'DeltaRoll']
+        delta_columns = ["DeltaYaw", "DeltaPitch", "DeltaRoll"]
 
         data_transformed = data
         for col in delta_columns:
-            data_transformed.loc[:, col] = \
-                self._adjust_for_zero_line(data=data_transformed.loc[:, col])
+            data_transformed.loc[:, col] = self._adjust_for_zero_line(data=data_transformed.loc[:, col])
 
-        return self._update_data(data_transformed=data_transformed,
-                                 columns_operated_on=delta_columns), \
-               {'updated': delta_columns}
+        return (
+            self._update_data(data_transformed=data_transformed, columns_operated_on=delta_columns),
+            {"updated": delta_columns},
+        )
 
     def _adjust_for_zero_line(self, data=None):
         """Adjust the data by zero lines."""
@@ -69,9 +69,7 @@ class ZeroShiftFilter(BaseTransformation):
             q += 1  # 1 percentage-point at a time
             percentile_to_use = np.abs(np.percentile(gradient, q=q))
 
-
-        logger.debug(f"Using the {q}th percentile to shift "
-                     f"data up by before log.")
+        logger.debug(f"Using the {q}th percentile to shift " f"data up by before log.")
 
         gradient += percentile_to_use  # make sure we can take the log
         gradient = np.log(gradient)
@@ -86,32 +84,30 @@ class ZeroShiftFilter(BaseTransformation):
             return data
 
         # first mean - has to be gotten from calibration:
-        if self._params['initial_zero_line'] is None:
+        if self._params["initial_zero_line"] is None:
             # get from incoming data
             initial_zero_line = data.iloc[0]
         else:
             # get from parameters:
-            initial_zero_line = self._params['initial_zero_line']
+            initial_zero_line = self._params["initial_zero_line"]
 
         msg = f"Using zero line: {initial_zero_line} to shift data."
         print(msg)
         logger.debug(msg)
 
-        if self._params['do_initial_shift']:
+        if self._params["do_initial_shift"]:
             # do initial shift:
-            data.iloc[:shift_indices[0]] -= initial_zero_line
+            data.iloc[: shift_indices[0]] -= initial_zero_line
 
         # TODO(JTK): This can be parallelized
         for j in range(len(shift_indices[1:])):
             the_new_zeroline = data[shift_indices[j]]
-            data.iloc[shift_indices[j]:shift_indices[j + 1]] -= \
-                the_new_zeroline
+            data.iloc[shift_indices[j] : shift_indices[j + 1]] -= the_new_zeroline
 
         # comes also from calibration:
         final_zero_line = data.iloc[-1]
-        data.iloc[shift_indices[-1]:] = \
-            data.iloc[shift_indices[-1]:] - final_zero_line
+        data.iloc[shift_indices[-1] :] = data.iloc[shift_indices[-1] :] - final_zero_line
 
-        self._params['final_zero_line'] = final_zero_line
+        self._params["final_zero_line"] = final_zero_line
 
         return data

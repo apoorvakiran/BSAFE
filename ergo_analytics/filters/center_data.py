@@ -36,15 +36,15 @@ class DataCentering(BaseTransformation):
         super().apply(data=data, **kwargs)
 
         params = self._params
-        if 'center_these_columns' in params:
-            operate_on_columns = params['center_these_columns']
+        if "center_these_columns" in params:
+            operate_on_columns = params["center_these_columns"]
         else:
-            operate_on_columns = \
-                DATA_FORMAT_CODES[params['data_format_code']]['NUMERICS']
+            operate_on_columns = DATA_FORMAT_CODES[params["data_format_code"]]["NUMERICS"]
 
         data_centered = data.loc[:, operate_on_columns]
         data_centered -= data_centered.mean(axis=0)
 
-        return self._update_data(data_transformed=data_centered,
-                                 columns_operated_on=operate_on_columns), \
-               {'updated': operate_on_columns}
+        return (
+            self._update_data(data_transformed=data_centered, columns_operated_on=operate_on_columns),
+            {"updated": operate_on_columns},
+        )

@@ -41,7 +41,7 @@ class ArduinoData(BaseData):
         all_ports = list_ports.comports()
         all_usb_ports = []
         for port in all_ports:
-            if port.device.split('cu.')[1].startswith('usb'):
+            if port.device.split("cu.")[1].startswith("usb"):
                 usb_port = port.device
                 all_usb_ports.append(usb_port)
 
@@ -63,4 +63,3 @@ class ArduinoData(BaseData):
             raise Exception(msg)
 
         return board
-
