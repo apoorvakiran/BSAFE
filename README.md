@@ -34,7 +34,7 @@ In order to run the Flask Application, you can use foreman and the command `fore
 We use pytest to run our tests. Before pushing to the repo please run the tests with ./run_tests.sh.
 This will go through a set of tests in the "tests/" folder in the repo.
 
-## Author (team)
+## Author
 
 + Jesper Kristensen (Data Scientist)
 + Fnu Apoorva (Chief Technology Officer)
