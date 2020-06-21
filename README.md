@@ -1,12 +1,18 @@
 # Behavioral and Safety Analysis for Ergonomics (BSAFE)
 
-This is the core data analytics & Machine Learning platform of Iterate Labs, Inc. It contains code to parse, analyze, and reason about
-data including code for generating results and insights.
+This is the Ergonomics arm of the data analytics & Machine Learning platform of Iterate Labs, Inc. The Data Analytics Platform (DAP) fits into the broader IoT solution (hardware, data transfer, IoT platform, etc.) of Iterate Labs and sits more specifically as part of the IoT platform.
 
-The code is structured in a modern, modular, object oriented way to support rapid development, complex analyzes with
-an easy interface, and straightforward ways to further develop and expand the code for developers.
+DAP has other arms such as productivity and contact tracing - BSAFE is just one of those and contain itself a set of modules specific to ergonomics.
+
+The code, like DAP at large, is structured in a modern, modular, object oriented way to support rapid development, complex analyzes with an easy interface, and straightforward ways to further develop and expand the code for developers.
 
 <img src="data_analytics.jpg" width="450" height="240" />
+
+## Larger Overview
+
+In a larger view, BSAFE is used by the Data Lab which, in turn, uses the Data Store.
++ Link to the Data Lab: https://github.com/iteratelabs/Data_Lab
++ Link to the Data Store: https://github.com/iteratelabs/Data_Store
 
 ## Setup
 Please run "source ./load_env.sh" to get set up with the appropriate BSAFE environment.
