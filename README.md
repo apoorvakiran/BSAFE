@@ -37,8 +37,20 @@ In order to run the flask application you need to do two things
 In order to run the Flask Application, you can use foreman and the command `foreman s` which will run the web server and dramtiq task queue.
 
 ## Test
-We use pytest to run our tests. Before pushing to the repo please run the tests with ./run_tests.sh.
-This will go through a set of tests in the "tests/" folder in the repo.
+We use pytest to run our tests and to make sure the BSAFE code does not regress as we build it out. The tests are part of our CI/CD integration (we use Circle CI) and run each time we push changes. The tests act as gate keepers for the deployment; we only deploy if the tests all pass. Before pushing to the repo please run the tests with `./run_tests_local.sh`.
+This will go through a series of tests in the "tests/" folder in the repo. Ask the Data Science team if you have questions
+
+## I found an Issue - How do I Report it?
+
+Great! Thanks for checking and for helping us be even more pro-active so we can fix things before they break. Please raise an issue here and describe in as much detail as possible what you find needs more attention - or what you find should be improved or even developed as a new feature. Just tag a Data Science team member and we will be in touch. Thanks for helping us improve BSAFE!
+
+## How to Contribute to the Code Base
+
+Feel free to pull this code, make changes, make sure the tests pass and then raise a pull request on Github and a team member from the Data Science team will review. Please review this if you're unsure of this process flow: https://iteratelabs.atlassian.net/wiki/spaces/CP/pages/36077642/Typical+Git+workflow
+
+## Owning Team
+
+The Data Science team at Iterate Labs owns BSAFE. Please reach out to the data science team at jesper.kristensen@iteratelabs.co for questions/comments/suggestions.
 
 ## Authors
 
