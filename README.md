@@ -37,8 +37,10 @@ This will go through a set of tests in the "tests/" folder in the repo.
 ## Author (team)
 
 + Jesper Kristensen (Data Scientist)
-+ James Russo (Software Engineer)
 + Fnu Apoorva (Chief Technology Officer)
 + Jason Guss (Chief Executive Officer)
+
+## BSAFE Alumni
++ James Russo (Software Engineer)
 
 Iterate Labs Inc. - All Rights Reserved - Copyright 2018-2019 - Patent Pending
