@@ -16,6 +16,8 @@ import numpy as np
 import pandas as pd
 import logging
 from .data_structured import StructuredData
+from ergo_analytics.metrics import PostureScore
+from ergo_analytics.metrics import AngularActivityScore
 
 logger = logging.getLogger()
 
@@ -58,8 +60,9 @@ class ErgoMetrics(object):
         """Which metrics do we have."""
         return list(self._metrics_to_use.keys())
 
-    def add(self, metric=None, name=None):
+    def add(self, metric=None):
         """Adds a metric to this object to be computed."""
+        name = "{}".format(metric.__name__)
         self._metrics_to_use[name] = metric
 
     def remove(self, name=None):
@@ -68,7 +71,9 @@ class ErgoMetrics(object):
         if name in self._metrics_to_use:
             del [self._metrics_to_use[name]]
         else:
-            raise ValueError(f"Invalid metric; options " f"are: {list(self._metrics_to_use.keys())}")
+            raise ValueError(
+                f"Invalid metric; options " f"are: {list(self._metrics_to_use.keys())}"
+            )
 
     @property
     def earliest_time(self):
@@ -154,7 +159,9 @@ class ErgoMetrics(object):
     def number_of_data_chunks(self):
         return self._number_of_data_chunks
 
-    def compute(self, debug=False, store_plots_here=None, metrics_parameters=None, **kwargs):
+    def compute(
+        self, debug=False, store_plots_here=None, metrics_parameters=None, **kwargs
+    ):
         """Compute the ergo metric scores called "ergoMetrics" or "ergoScores".
 
         For each metric added to this object, the score value of that metric is
@@ -174,18 +181,21 @@ class ErgoMetrics(object):
 
             self._scores[chunk_index] = dict()
 
-            if self._data_chunks[chunk_index] is None or isinstance(self._data_chunks[chunk_index], list):
+            if self._data_chunks[chunk_index] is None or isinstance(
+                self._data_chunks[chunk_index], list
+            ):
                 if self._data_chunks[chunk_index] is not None:
                     assert len(self._data_chunks[chunk_index]) == 0
                 continue
 
             # compute each metric:
+            global metric
+            metric = None
             for metric_name in self._metrics_to_use:
 
                 these_params = metrics_parameters.get(metric_name, dict())
 
-                metric = self._metrics_to_use[metric_name]
-                metric = metric()
+                exec("global metric; metric = {}()".format(metric_name))
                 this_score = metric.compute(
                     delta_pitch=self._delta_pitch(chunk_index=chunk_index),
                     delta_yaw=self._delta_yaw(chunk_index=chunk_index),
@@ -202,24 +212,30 @@ class ErgoMetrics(object):
                 self._scores[chunk_index][metric_name]["score"] = this_score
                 # self._scores[chunk_index][metric_name]['params_used'] = params_used
                 self._scores[chunk_index][metric_name]["index"] = chunk_index
-                self._scores[chunk_index][metric_name]["data_index_from"] = self._data_chunks[
-                    chunk_index
-                ].get_first_index()
-                self._scores[chunk_index][metric_name]["data_index_till"] = self._data_chunks[
-                    chunk_index
-                ].get_last_index()
+                self._scores[chunk_index][metric_name][
+                    "data_index_from"
+                ] = self._data_chunks[chunk_index].get_first_index()
+                self._scores[chunk_index][metric_name][
+                    "data_index_till"
+                ] = self._data_chunks[chunk_index].get_last_index()
 
                 this_data_chunk = self._data_chunks[chunk_index]
 
-                if this_data_chunk is not None and isinstance(this_data_chunk, StructuredData):
+                if this_data_chunk is not None and isinstance(
+                    this_data_chunk, StructuredData
+                ):
                     data_index_from = this_data_chunk.get_first_index()
                     data_index_till = this_data_chunk.get_last_index()
                 else:
                     data_index_from = None
                     data_index_till = None
 
-                self._scores[chunk_index][metric_name]["data_index_from"] = data_index_from
-                self._scores[chunk_index][metric_name]["data_index_till"] = data_index_till
+                self._scores[chunk_index][metric_name][
+                    "data_index_from"
+                ] = data_index_from
+                self._scores[chunk_index][metric_name][
+                    "data_index_till"
+                ] = data_index_till
 
             num_good_chunks += 1
 
@@ -229,7 +245,9 @@ class ErgoMetrics(object):
 
         logger.debug("Done!")
 
-    def get_score(self, name=None, combine_across_parameter="median", chunk_index=0, **kwargs):
+    def get_score(
+        self, name=None, combine_across_parameter="median", chunk_index=0, **kwargs
+    ):
         """Returns the score of metric with name "name".
 
         Combine can be one of {"average", "max", None}
@@ -245,13 +263,18 @@ class ErgoMetrics(object):
             raise ValueError(f"Name is invalid; options " f"are: {options}")
 
         if len(self._scores) == 0:
-            msg = "Please compute the Ergo Metrics scores first!\n" "Do this by calling the .compute() method."
+            msg = (
+                "Please compute the Ergo Metrics scores first!\n"
+                "Do this by calling the .compute() method."
+            )
             logger.exception(msg)
             raise Exception(msg)
 
         all_scores = []
         for chunk_index in self._scores:
-            this_score = self._get_score_single_chunk(name=name, chunk_index=chunk_index)
+            this_score = self._get_score_single_chunk(
+                name=name, chunk_index=chunk_index
+            )
             all_scores.append(this_score)
 
         if callable(combine_across_parameter):

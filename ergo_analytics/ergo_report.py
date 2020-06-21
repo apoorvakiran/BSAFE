@@ -73,11 +73,14 @@ class ErgoReport(object):
         """
 
         payload = self._construct_payload(
-            combine_across_parameter=combine_across_parameter, combine_across_time=combine_across_time
+            combine_across_parameter=combine_across_parameter,
+            combine_across_time=combine_across_time,
         )
 
         if just_return_payload:
-            logger.debug("Just returning the payload from to_http (not sending to endpoint!).")
+            logger.debug(
+                "Just returning the payload from to_http (not sending to endpoint!)."
+            )
             return payload
 
         # put information about device in the payload:
@@ -92,12 +95,13 @@ class ErgoReport(object):
         except Exception:
             logger.error("Failure to send request", exc_info=True)
 
-    def _construct_payload(self, combine_across_parameter="average", combine_across_time="max"):
-        """Constructs the payload to report out.
+    def _construct_payload(
+        self, combine_across_parameter="average", combine_across_time="max"
+    ):
+        """Construct the payload to report out.
 
         :return: dict representing the payload.
         """
-
         ergo_metrics = self._ergo_metrics
         get_score = ergo_metrics.get_score
 
@@ -106,14 +110,13 @@ class ErgoReport(object):
         start_time = ergo_metrics.earliest_time
         end_time = ergo_metrics.latest_time
 
-        # # which metrics do we have?
-        # for metric_name in ergo_metrics.metrics:
-        #     payload_dict[metric_name] = \
-        #         ergo_metrics.get_score(name=metric_name,
-        #                                combine_across_data_chunks=combine_across_data_chunks)
-
-        speed = get_score(name="activity", combine_across_parameter=combine_across_parameter)
-        posture = get_score(name="posture", combine_across_parameter=combine_across_parameter)
+        speed = get_score(
+            name="AngularActivityScore",
+            combine_across_parameter=combine_across_parameter,
+        )
+        posture = get_score(
+            name="PostureScore", combine_across_parameter=combine_across_parameter
+        )
 
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
@@ -151,8 +154,12 @@ class ErgoReport(object):
             from_indices = []
             till_indices = []
             for chunk_index in range(ergo_metrics.number_of_data_chunks):
-                this_first_data_index = self._ergo_metrics.get_first_data_index(chunk_index=chunk_index)
-                this_last_data_index = self._ergo_metrics.get_last_data_index(chunk_index=chunk_index)
+                this_first_data_index = self._ergo_metrics.get_first_data_index(
+                    chunk_index=chunk_index
+                )
+                this_last_data_index = self._ergo_metrics.get_last_data_index(
+                    chunk_index=chunk_index
+                )
 
                 from_indices.append(this_first_data_index)
                 till_indices.append(this_last_data_index)
@@ -179,9 +186,15 @@ class ErgoReport(object):
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
-            payload_dict["strain_pitch_score"] = max(0, posture_pitch - np.random.uniform(0, 1))
-            payload_dict["strain_yaw_score"] = max(0, posture_yaw - np.random.uniform(0, 1))
-            payload_dict["strain_roll_score"] = max(0, posture_roll - np.random.uniform(0, 1))
+            payload_dict["strain_pitch_score"] = max(
+                0, posture_pitch - np.random.uniform(0, 1)
+            )
+            payload_dict["strain_yaw_score"] = max(
+                0, posture_yaw - np.random.uniform(0, 1)
+            )
+            payload_dict["strain_roll_score"] = max(
+                0, posture_roll - np.random.uniform(0, 1)
+            )
             payload_dict["strain_score"] = np.max(posture)
 
         payload_dict["start_time"] = str(start_time)
@@ -207,13 +220,16 @@ class ErgoReport(object):
     def to_json(self, combine_across_parameter="average", combine_across_time="max"):
         """Report out in a JSON format."""
         payload_json = self._construct_payload(
-            combine_across_parameter=combine_across_parameter, combine_across_time=combine_across_time
+            combine_across_parameter=combine_across_parameter,
+            combine_across_time=combine_across_time,
         )
         self._response = "success"
         return payload_json
 
     def to_string(self, combine_across_parameter="average"):
         """Report out as a string."""
-        payload = self._construct_payload(combine_across_parameter=combine_across_parameter)
+        payload = self._construct_payload(
+            combine_across_parameter=combine_across_parameter
+        )
         self._response = "success"
         return json.dumps(payload)

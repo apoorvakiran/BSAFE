@@ -44,7 +44,7 @@ echo "[completed] (results in pytest.log)"
 # Run pylama as a linter / code checker - make sure our code looks good:
 #echo
 #echo "Now making sure code quality is OK."
-# pipenv run python -m pytest --pylama -n 4 ergo_analytics/
+# pipenv run python -m pytest --pylama -n 4 ergo_analytics/ --pdb
 #echo "[completed]"
 
 echo
