@@ -207,13 +207,17 @@ class DataFilterPipeline(object):
             kwargs,
         )
 
-        pipeline_run_found, results, pipestore_hash = self.check_pipestore(data=raw_data, options=options)
+        pipeline_run_found, results, pipestore_hash = self.check_pipestore(
+            data=raw_data, options=options
+        )
 
         self._most_recent_pipestore_hash = pipestore_hash
         self._found_in_pipestore = pipeline_run_found
 
         if pipeline_run_found:
-            logger.debug("Previous pipeline results found in pipestore, returning those")
+            msg = "Previous pipeline results found in pipestore, returning those"
+            print(msg)
+            logger.debug(msg)
             return results
 
         logger.info(f"Anchor data chunks in time?: {anchor_data_vs_time}.")
@@ -315,7 +319,8 @@ class DataFilterPipeline(object):
         logger.debug("Raw data successfully converted to structured data!")
         # always create structured data at the end of the pipeline:
         all_structured_data = DataFilterPipeline._create_structured_data(
-            list_of_transformed_data_chunks=list_of_transformed_data_chunks, data_format_code=with_format_code
+            list_of_transformed_data_chunks=list_of_transformed_data_chunks,
+            data_format_code=with_format_code,
         )
 
         if debug:
@@ -335,7 +340,14 @@ class DataFilterPipeline(object):
         pst = Pipestore()
         pst.upload_data(hash=hash, data=data, metadata=None)
 
-    def _run_chunk(self, with_format_code="5", on_raw_data_chunk=None, parameters=None, is_sorted=True, debug=False):
+    def _run_chunk(
+        self,
+        with_format_code="5",
+        on_raw_data_chunk=None,
+        parameters=None,
+        is_sorted=True,
+        debug=False,
+    ):
         """Run the pipeline on incoming raw data.
 
         :return: structured data.
@@ -377,7 +389,9 @@ class DataFilterPipeline(object):
                 parameters[filter_name] = dict()
 
             self._results[filter] = dict()
-            current_data, changes = filter.apply(data=current_data, parameters=parameters[filter_name])
+            current_data, changes = filter.apply(
+                data=current_data, parameters=parameters[filter_name]
+            )
             self._results[filter]["data"] = current_data
             self._results[filter]["changes"] = changes
 
@@ -408,7 +422,10 @@ class DataFilterPipeline(object):
                 # were there:
                 try:
                     columns_to_plot = filter.columns_operated_on
-                    if columns_to_plot is not None and "Date-Time" not in columns_to_plot:
+                    if (
+                        columns_to_plot is not None
+                        and "Date-Time" not in columns_to_plot
+                    ):
                         data_in_plot = data_in_before_filter.loc[:, columns_to_plot]
                         data_in_plot.plot()
                         plt.savefig("data_in_only_affected_columns.png")
@@ -419,11 +436,15 @@ class DataFilterPipeline(object):
                 plt.close()
 
         all_added_columns = [item for sublist in all_added_columns for item in sublist]
-        all_removed_columns = [item for sublist in all_removed_columns for item in sublist]
+        all_removed_columns = [
+            item for sublist in all_removed_columns for item in sublist
+        ]
 
         assert len(all_removed_columns) == 0  # NEEDS implementation if >0
 
-        assert current_data.shape[1] == len(list(np.unique(list(on_raw_data_chunk.columns) + all_added_columns)))
+        assert current_data.shape[1] == len(
+            list(np.unique(list(on_raw_data_chunk.columns) + all_added_columns))
+        )
 
         # now what data remains?
         # first get the indices
@@ -435,14 +456,23 @@ class DataFilterPipeline(object):
             data_post_pipeline[col] = current_data[col]
 
         # sort, drop duplicates, and reset index:
-        logger.debug("Dropping duplicate data " "points - currently we have " "{} pts.".format(len(data_post_pipeline)))
+        logger.debug(
+            "Dropping duplicate data "
+            "points - currently we have "
+            "{} pts.".format(len(data_post_pipeline))
+        )
 
         # TODO(JTK): these should be filters too (sorting etc.)
         if not is_sorted:
-            data_post_pipeline.sort_values(by=["Date-Time"], ascending=True, inplace=True)
+            data_post_pipeline.sort_values(
+                by=["Date-Time"], ascending=True, inplace=True
+            )
         data_post_pipeline.drop_duplicates(subset=["Date-Time"], inplace=True)
 
-        logger.debug("After dropping duplicates we have " "{} pts.".format(len(data_post_pipeline)))
+        logger.debug(
+            "After dropping duplicates we have "
+            "{} pts.".format(len(data_post_pipeline))
+        )
 
         if debug:
             plt.close()
@@ -465,7 +495,9 @@ class DataFilterPipeline(object):
         return structure
 
     @staticmethod
-    def _create_structured_data(list_of_transformed_data_chunks=None, data_format_code="5"):
+    def _create_structured_data(
+        list_of_transformed_data_chunks=None, data_format_code="5"
+    ):
         """Taking in a list of transformed data chunks (i.e., each element in
         the list is a transformed data element - it has gone through
         the ETL pipeline) this method returns a list of same length where
