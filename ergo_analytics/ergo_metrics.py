@@ -60,8 +60,9 @@ class ErgoMetrics(object):
         """Which metrics do we have."""
         return list(self._metrics_to_use.keys())
 
-    def add(self, metric=None, name=None):
+    def add(self, metric=None):
         """Adds a metric to this object to be computed."""
+        name = "{}".format(metric.__name__)
         self._metrics_to_use[name] = metric
 
     def remove(self, name=None):
