@@ -4,7 +4,7 @@ through reporting.
 
 @ author James Russo, Jesper Kristensen
 Copyright Iterate Labs Inc. 2018-
-All Rights Reserbed.
+All Rights Reserved.
 """
 
 __author__ = "James Russo, Jesper Kristensen"
@@ -16,7 +16,7 @@ import os
 import datetime
 from numpy import ceil
 from urllib.error import HTTPError
-from periodiq import PeriodiqMiddleware, cron
+from periodiq import cron
 from app.api_client import ApiClient
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import DataFilterPipeline
@@ -30,12 +30,84 @@ from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
 from ergo_analytics.metrics import AngularActivityScore
 from ergo_analytics.metrics import PostureScore
-from constants import DATA_FORMAT_CODES
 
 from .extensions import dramatiq
 
 logger = logging.getLogger()
 api_client = ApiClient()
+
+
+def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
+    """Given raw data run BSAFE on the data.
+
+    Run BSAFE on incoming raw_data.
+    """
+
+    if raw_data is None:
+        logger.info(f"Found no elements in the ES database for {mac_address}.")
+        return
+
+    logger.info(
+        f"Found {len(raw_data)} elements in " f"the ES database for {mac_address}."
+    )
+    logger.info(raw_data.head(10))
+
+    num_data = len(raw_data)
+    # take 10% as subsampling but not below 1 minute:
+    subsample_size_index = ceil(max(num_data * 0.1, 600))
+    logger.debug(f"Using {subsample_size_index} indices per subsample!")
+
+    # now pass the raw data through our data filter pipeline:
+    pipeline = DataFilterPipeline()
+    # instantiate the filters:
+    pipeline.add_filter(name="fix_osc", filter=FixDateOscillations())
+    # pipeline.add_filter(name='centering1', filter=DataCentering())
+    pipeline.add_filter(name="delta_values", filter=ConstructDeltaValues())
+    pipeline.add_filter(name="centering2", filter=DataCentering())
+    pipeline.add_filter(name="window", filter=WindowOfRelevantDataFilter())
+    pipeline.add_filter(name="impute", filter=DataImputationFilter())
+    pipeline.add_filter(name="quadrant_fix", filter=QuadrantFilter())
+    # run the pipeline!
+
+    if run_as_test:
+        raw_data.to_csv("log.csv", index=False)
+
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data, **kwargs,)
+
+    em = None
+    logger.info(f"Retrieved all data for {mac_address}")
+    if len(list_of_structured_data_chunks) > 0:
+        logger.info(f"Has data to run analysis on for {mac_address}")
+        em = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+        # add metrics to compute:
+        metrics = {"activity": AngularActivityScore, "posture": PostureScore}
+        for m_name in metrics:
+            em.add(metric=metrics[m_name])
+        em.compute()
+        logger.info(f"Metrics generated for {mac_address}")
+        # the report is set up in the context of a device and its
+        # corresponding ergoMetrics data:
+
+        report = ErgoReport(ergo_metrics=em)
+        # now we can report to any format we want - here HTTP:
+
+        report.to_http(
+            api_client=api_client,
+            mac_address=mac_address,
+            run_as_test=run_as_test,
+            **kwargs,
+        )
+        logger.info(report.response)
+        logger.info(f"{report.response.status_code} " f"{report.response.text}")
+        logger.info(f"Created safety_score for {mac_address}")
+
+        logger.info("JSON = {}".format(report.to_json()))
+    else:
+        logger.info(f"No values to analyze for {mac_address}")
+
+    if run_as_test:
+        if em is not None:
+            return em.get_score("safety_score")
 
 
 @dramatiq.actor(periodic=cron("*/15 * * * *"))
@@ -61,7 +133,7 @@ def automated_analysis():
 
 
 @dramatiq.actor(max_retries=3)
-def safety_score_analysis(mac_address, start_time, end_time):
+def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
     logger.info(f"Getting safety score for {mac_address}")
     index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
     host = os.getenv("ELASTIC_SEARCH_HOST")
@@ -82,70 +154,60 @@ def safety_score_analysis(mac_address, start_time, end_time):
         host=host,
         index=index,
         data_format_code=data_format_code,
+        limit=None,
     )
+
+    options = {
+        "with_format_code": data_format_code,
+        "use_subsampling": use_subsampling,
+        "randomize_subsampling": randomize_subsampling,
+        "number_of_subsamples": number_of_subsamples,
+        "combine_across_parameter": how_to_combine_across_parameter,
+    }
+    run_BSAFE(
+        raw_data=raw_data, mac_address=mac_address, run_as_test=run_as_test, **options
+    )
+
+
+@dramatiq.actor(max_retries=3)
+def status():
+    """Health check: Check that the BSAFE code is functioning properly.
+
+    Used in K8S health check.
+
+    Returns:
+        200 (int) if BSAFE works as expected.
+        500 (int) if there are issues with BSAFE or the Elastic Search Database.
+    """
+    data_format_code = "5"  # determined automatically in the data loader if incorrect
+
+    data_loader = LoadElasticSearch()
+    mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data()
 
     if raw_data is None:
-        logger.info(f"Found no elements in the ES database for {mac_address}.")
-        return
-    logger.info(
-        f"Found {len(raw_data)} elements in " f"the ES database for {mac_address}."
-    )
-    logger.info(raw_data.head(10))
-
-    num_data = len(raw_data)
-    # take 10% as subsampling but not below 1 minute:
-    subsample_size_index = ceil(max(num_data * 0.1, 600))
-    logger.debug(f"Using {subsample_size_index} indices per subsample!")
-
-    # now pass the raw data through our data filter pipeline:
-    pipeline = DataFilterPipeline()
-    # instantiate the filters:
-    pipeline.add_filter(name="fix_osc", filter=FixDateOscillations())
-    # pipeline.add_filter(name='centering1', filter=DataCentering())
-    pipeline.add_filter(name="delta_values", filter=ConstructDeltaValues())
-    pipeline.add_filter(name="centering2", filter=DataCentering())
-    pipeline.add_filter(name="window", filter=WindowOfRelevantDataFilter())
-    pipeline.add_filter(name="impute", filter=DataImputationFilter())
-    pipeline.add_filter(name="quadrant_fix", filter=QuadrantFilter())
-    # run the pipeline!
-
-    raw_data.to_csv("log.csv", index=False)
-    print("Stored!")
-
-    list_of_structured_data_chunks = pipeline.run(
-        on_raw_data=raw_data,
-        with_format_code=data_format_code,
-        use_subsampling=use_subsampling,
-        randomize_subsampling=randomize_subsampling,
-        subsample_size_index=subsample_size_index,
-        number_of_subsamples=number_of_subsamples,
-    )
-
-    logger.info(f"Retrieved all data for {mac_address}")
-    if len(list_of_structured_data_chunks) > 0:
-        logger.info(f"Has data to run analysis on for {mac_address}")
-        em = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
-        # add metrics to compute:
-        metrics = {"activity": AngularActivityScore, "posture": PostureScore}
-        for m_name in metrics:
-            em.add(metric=metrics[m_name])
-        em.compute()
-        logger.info(f"Metrics generated for {mac_address}")
-        # the report is set up in the context of a device and its
-        # corresponding ergoMetrics data:
-
-        report = ErgoReport(ergo_metrics=em)
-        # now we can report to any format we want - here HTTP:
-
-        report.to_http(
-            api_client=api_client,
-            combine_across_parameter=how_to_combine_across_parameter,
-            mac_address=mac_address,
+        logger.warning(
+            f"/STATUS: Found no elements in the ES database for '{mac_address}' during status check."
         )
-        logger.info(report.response)
-        logger.info(f"{report.response.status_code} " f"{report.response.text}")
-        logger.info(f"Created safety_score for {mac_address}")
+        return 500
 
-        logger.info("JSON = {}".format(report.to_json()))
-    else:
-        logger.info(f"No values to analyze for {mac_address}")
+    # subsampling of the data:
+    how_to_combine_across_parameter = "average"  # note: cannot be "keep separate"
+    number_of_subsamples = 10
+    randomize_subsampling = False
+    use_subsampling = False
+
+    options = {
+        "with_format_code": data_format_code,
+        "use_subsampling": use_subsampling,
+        "randomize_subsampling": randomize_subsampling,
+        "number_of_subsamples": number_of_subsamples,
+        "combine_across_parameter": how_to_combine_across_parameter,
+    }
+    score = run_BSAFE(
+        raw_data=raw_data, mac_address=mac_address, run_as_test=True, **options
+    )
+
+    if score is None:
+        logger.warning("Score could not be computed by BSAFE!")
+
+    return 200 if score is not None else 500
