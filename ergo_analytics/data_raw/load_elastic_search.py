@@ -9,6 +9,7 @@ __all__ = ["LoadElasticSearch"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import datetime
 import os
 import logging
 import numpy as np
@@ -18,7 +19,7 @@ from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
 from constants import *
-from . import BaseData
+from ergo_analytics.data_raw import BaseData
 
 logger = logging.getLogger()
 
@@ -39,6 +40,96 @@ class LoadElasticSearch(BaseData):
 
         logger.info("Data loading with Elastic Search object created!")
 
+    def retrieve_any_macaddress_with_data(self):
+        """Used initially for /status endpoint: Get _any_ mac address with data for testing BSAFE.
+
+        The mac address can then be used in a later query to retrieve data for testing.
+
+        Returns:
+            Wearable mac address (string): Some device mac address (any with data).
+            Data (pd DataFrame): Data of the corresponding mac address.
+        """
+
+        host = os.getenv("ELASTIC_SEARCH_HOST")
+        index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
+        awsauth = AWS4Auth(
+            os.getenv("AWS_ACCESS_KEY"),
+            os.getenv("AWS_SECRET_KEY"),
+            os.getenv("AWS_REGION"),
+            "es",
+        )
+        es = Elasticsearch(
+            hosts=[{"host": host, "port": 443}],
+            http_auth=awsauth,
+            use_ssl=True,
+            verify_certs=True,
+            connection_class=RequestsHttpConnection,
+        )
+
+        current_time = datetime.datetime.utcnow()
+
+        end_time = datetime.datetime.utcnow().isoformat()
+
+        delta_days = 1  # start with one day ago
+        go_back_this_much = 2  # go back 2 days at a time
+        macs_tried = set()
+        while True:
+
+            delta_time = datetime.timedelta(days=delta_days)
+            start_time = (current_time - delta_time).isoformat()
+
+            try:
+                search = Search(using=es, index=index).query(
+                    "range",
+                    **{"received_timestamp": {"gte": start_time, "lte": end_time}},
+                )
+                search.count()  # used to test connection
+            except elasticsearch.exceptions.ConnectionError as e:
+                # we need to be able to at least connect to ES!
+                msg = "Elastic Search Connection Issue!"
+                msg += (
+                    "\nCommon Cause: Have you started the Elasticnet database server?\n"
+                )
+                msg += "The error was: '{}'".format(e)
+                logger.exception(msg)
+                return None, None
+
+            this_mac = None
+            for hit in search.params(preserve_order=False).scan():
+                this_mac = hit["device"]
+                if this_mac not in macs_tried:
+                    macs_tried.add(this_mac)
+                    break
+
+            if this_mac is None:
+                # no mac address found, keep looking
+                delta_days += (
+                    go_back_this_much  # keep going back in time until we find something
+                )
+                continue
+
+            # do we have some data for this mac address?
+            data = self.retrieve_data(
+                mac_address=this_mac,
+                start_time=start_time,
+                end_time=end_time,
+                host=host,
+                index=index,
+                limit=100,
+            )
+
+            if data is not None and len(data) > 0:
+                # we got it
+                return this_mac, data
+
+            delta_days += (
+                go_back_this_much  # keep going back in time until we find something
+            )
+
+            if delta_days > 200:
+                # no data for the past half year? Something is off
+                return None, None
+
     def retrieve_data(
         self,
         mac_address=None,
@@ -46,7 +137,8 @@ class LoadElasticSearch(BaseData):
         end_time=None,
         host=None,
         index=None,
-        data_format_code="3",
+        data_format_code="5",
+        limit=None,
     ):
         """
         Retrieves the data from the Elastic Search database specified
@@ -62,6 +154,7 @@ class LoadElasticSearch(BaseData):
         :param host:
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
+        :param limit: should the number of returned data points be ceiled at limit?
         :return:
         """
 
@@ -106,8 +199,9 @@ class LoadElasticSearch(BaseData):
             )
             search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError as e:
-            msg = "\nCommon Cause: Have you started the Elasticnet database server?\n"
-            msg += "The error was: {}".format(e)
+            msg = "Elastic Search Connection Issue!"
+            msg += "\nCommon Cause: Have you started the Elasticnet database server?\n"
+            msg += "The error was: '{}'".format(e)
             logger.exception(msg)
             raise Exception(msg)
 
@@ -160,16 +254,18 @@ class LoadElasticSearch(BaseData):
 
             all_data = []
             data = pd.concat(data_all_devices, axis=0)["value"].values
-            for datum in data:
-
-                datapoint = self._load_datum(
+            for ix, datum in enumerate(data):
+                datapoint, data_format_code = self._load_datum(
                     datum=datum, data_format_code=data_format_code
                 )
 
                 if datapoint is None:
-                    continue
+                    continue  # skip
 
                 all_data.append(datapoint)
+
+                if limit is not None and ix >= limit:
+                    break
 
             all_data = pd.concat(all_data)
 
@@ -181,12 +277,12 @@ class LoadElasticSearch(BaseData):
             return all_data
 
     @staticmethod
-    def _load_datum(datum=None, data_format_code=None):
+    def _load_datum(datum=None, data_format_code="5"):
         """
         Loads a datum sent from the wearable.
 
         :param datum: The datum to load from the device.
-        :return: date, numeric values, flag_load_ok
+        :return: data and the data format code (can change if incoming is incorrect).
         """
         names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
         try:
@@ -196,7 +292,43 @@ class LoadElasticSearch(BaseData):
             data = pd.DataFrame(
                 data=np.atleast_2d(datum).reshape(1, len(names)), columns=names
             )
-        except Exception:
-            return None
+        except ValueError as vale:
+            logger.warning(
+                "When loading the data from ES, this error was raised: {}".format(vale)
+            )
+            logger.info("Trying to guess the data format code now!")
 
-        return data
+            # try finding the right data format code:
+            data = None
+            for new_data_format_code in DATA_FORMAT_CODES:
+                new_names = DATA_FORMAT_CODES[new_data_format_code]["NAMES"]
+                try:
+                    data = pd.DataFrame(
+                        data=np.atleast_2d(datum).reshape(1, len(new_names)),
+                        columns=new_names,
+                    )
+                    break  # we found it, stop on first hit (assumption)
+                except ValueError as vale:
+                    logger.warning("Tried '{}' but not correct.".format(vale))
+                    pass
+
+            if data is None:
+                return None, "Please provide the correct Data Format Code!"
+
+            logger.info(
+                "Found the data format code to be: {}".format(new_data_format_code)
+            )
+            return data, new_data_format_code
+
+        except Exception as e:
+            logger.warning("Error loading data! The error is: '{}'".format(e))
+            return None, None
+
+        return data, data_format_code
+
+
+if __name__ == "__main__":
+    es = LoadElasticSearch()
+    mac, data = es.retrieve_any_macaddress_with_data()
+    print(mac)
+    print(data)

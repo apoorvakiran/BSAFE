@@ -25,13 +25,16 @@ You can use the commands `pipenv install --dev` to install all of your developme
 Note: If you are getting errors with pipenv that it won't update and install
 packages you can start fresh as follows:
 + `pipenv --rm` <-- deletes the pipenv virtual environment
-+ `pipenv install --python=<path to the python exe you want to use>`
++ `pipenv install --python=<path to the python binary you want to use>`
 
 ## Setup for the Flask application
 In order to run the flask application you need to do two things
-1. First install and run redis, this can be accomplished on a mac using homebrew
-2. Install foreman, this can be done through ruby using the command `gem install ruby`. If you do not have ruby installed on your computer first install the programming language ruby.
-3. Finally make sure to get a copy of the `.env` file so that you can run everything locally. Once you have created a `.env` file make sure to run `source .env` so that you have access to the values in the environment.
+1. First install and run redis `brew install redis`, this can be accomplished on a mac using homebrew
+2. Install ruby `brew install ruby`.
+3. Install foreman, this can be done through ruby using the command `gem install ruby` (might need `sudo`).
+4. Finally make sure to get a copy of the `.env` file so that you can run everything locally.
+5. Follow the instructions for infinity-gauntlet and
+Once you have created a `.env` file make sure to run `source .env` so that you have access to the values in the environment.
 
 ## Running the Flask Application
 In order to run the Flask Application, you can use foreman and the command `foreman s` which will run the web server and dramtiq task queue.
@@ -50,7 +53,8 @@ Feel free to pull this code, make changes, make sure the tests pass and then rai
 
 ## Owning Team
 
-The Data Science team at Iterate Labs owns BSAFE. Please reach out to the data science team at jesper.kristensen@iteratelabs.co for questions/comments/suggestions.
+The Data Science team at Iterate Labs owns BSAFE.
+Please reach out to the data science team at jesper.kristensen@iteratelabs.co for questions/comments/suggestions.
 
 ## Authors
 

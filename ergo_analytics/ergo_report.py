@@ -9,7 +9,6 @@ All Rights Reserved.
 import logging
 from datetime import datetime
 import json
-import requests
 import numpy as np
 import pandas as pd
 
@@ -57,6 +56,8 @@ class ErgoReport(object):
         combine_across_parameter="average",
         mac_address=None,
         just_return_payload=False,
+        run_as_test=False,
+        **kwargs
     ):
         """Reports out to an HTTP endpoint.
 
@@ -87,13 +88,23 @@ class ErgoReport(object):
         payload["mac"] = mac_address
         try:
             logger.info("Sending payload to endpoint /api/v1/safety_scores")
-            self._response = api_client.post_request("api/v1/safety_scores", payload)
-            logger.info("response is = {}".format(self._response))
-            logger.info(self._response.text)
+            if not run_as_test:
+                # not a test - so post the request
+                self._response = api_client.post_request(
+                    "api/v1/safety_scores", payload
+                )
+                logger.info("response is = {}".format(self._response))
+                logger.info(self._response.text)
+                self._response.raise_for_status()
+            else:
+                logger.debug(
+                    "Running in test mode so NOT posting safety scores to API!"
+                )
 
-            self._response.raise_for_status()
         except Exception:
             logger.error("Failure to send request", exc_info=True)
+
+        logger.debug("Success - report with safety scores sent!")
 
     def _construct_payload(
         self, combine_across_parameter="average", combine_across_time="max"
