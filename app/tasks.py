@@ -135,6 +135,7 @@ def automated_analysis():
 @dramatiq.actor(max_retries=3)
 def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
     logger.info(f"Getting safety score for {mac_address}")
+
     index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
     host = os.getenv("ELASTIC_SEARCH_HOST")
 
@@ -184,6 +185,8 @@ def status():
     data_loader = LoadElasticSearch()
     mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data()
 
+    logger.debug("Mac address found is: {}".format(mac_address))
+
     if raw_data is None:
         logger.warning(
             f"/STATUS: Found no elements in the ES database for '{mac_address}' during status check."
@@ -203,6 +206,7 @@ def status():
         "number_of_subsamples": number_of_subsamples,
         "combine_across_parameter": how_to_combine_across_parameter,
     }
+    logger.debug("Running BSAFE on data!")
     score = run_BSAFE(
         raw_data=raw_data, mac_address=mac_address, run_as_test=True, **options
     )
@@ -211,3 +215,8 @@ def status():
         logger.warning("Score could not be computed by BSAFE!")
 
     return 200 if score is not None else 500
+
+
+if __name__ == "__main__":
+    status = status()
+    print("STATUS IS: {}".format(status))
