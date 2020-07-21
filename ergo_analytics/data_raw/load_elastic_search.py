@@ -9,7 +9,6 @@ __all__ = ["LoadElasticSearch"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
-import datetime
 import os
 import logging
 import numpy as np
@@ -18,10 +17,17 @@ import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+import yaml
 from constants import *
 from ergo_analytics.data_raw import BaseData
 
 logger = logging.getLogger()
+try:
+    with open("settings.yml", "r") as fd:
+        config = yaml.load(fd)
+except FileNotFoundError:
+    logger.warning("Could not find the 'settings.yml' file in the repo root!")
+    config = dict()
 
 
 class LoadElasticSearch(BaseData):
@@ -39,96 +45,6 @@ class LoadElasticSearch(BaseData):
         super().__init__()
 
         logger.info("Data loading with Elastic Search object created!")
-
-    def retrieve_any_macaddress_with_data(self):
-        """Used initially for /status endpoint: Get _any_ mac address with data for testing BSAFE.
-
-        The mac address can then be used in a later query to retrieve data for testing.
-
-        Returns:
-            Wearable mac address (string): Some device mac address (any with data).
-            Data (pd DataFrame): Data of the corresponding mac address.
-        """
-
-        host = os.getenv("ELASTIC_SEARCH_HOST")
-        index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
-        awsauth = AWS4Auth(
-            os.getenv("AWS_ACCESS_KEY"),
-            os.getenv("AWS_SECRET_KEY"),
-            os.getenv("AWS_REGION"),
-            "es",
-        )
-        es = Elasticsearch(
-            hosts=[{"host": host, "port": 443}],
-            http_auth=awsauth,
-            use_ssl=True,
-            verify_certs=True,
-            connection_class=RequestsHttpConnection,
-        )
-
-        current_time = datetime.datetime.utcnow()
-
-        end_time = datetime.datetime.utcnow().isoformat()
-
-        delta_days = 1  # start with one day ago
-        go_back_this_much = 2  # go back 2 days at a time
-        macs_tried = set()
-        while True:
-
-            delta_time = datetime.timedelta(days=delta_days)
-            start_time = (current_time - delta_time).isoformat()
-
-            try:
-                search = Search(using=es, index=index).query(
-                    "range",
-                    **{"received_timestamp": {"gte": start_time, "lte": end_time}},
-                )
-                search.count()  # used to test connection
-            except elasticsearch.exceptions.ConnectionError as e:
-                # we need to be able to at least connect to ES!
-                msg = "Elastic Search Connection Issue!"
-                msg += (
-                    "\nCommon Cause: Have you started the Elasticnet database server?\n"
-                )
-                msg += "The error was: '{}'".format(e)
-                logger.exception(msg)
-                return None, None
-
-            this_mac = None
-            for hit in search.params(preserve_order=False).scan():
-                this_mac = hit["device"]
-                if this_mac not in macs_tried:
-                    macs_tried.add(this_mac)
-                    break
-
-            if this_mac is None:
-                # no mac address found, keep looking
-                delta_days += (
-                    go_back_this_much  # keep going back in time until we find something
-                )
-                continue
-
-            # do we have some data for this mac address?
-            data = self.retrieve_data(
-                mac_address=this_mac,
-                start_time=start_time,
-                end_time=end_time,
-                host=host,
-                index=index,
-                limit=100,
-            )
-
-            if data is not None and len(data) > 0:
-                # we got it
-                return this_mac, data
-
-            delta_days += (
-                go_back_this_much  # keep going back in time until we find something
-            )
-
-            if delta_days > 200:
-                # no data for the past half year? Something is off
-                return None, None
 
     def retrieve_data(
         self,
