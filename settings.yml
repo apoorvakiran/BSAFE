@@ -1,0 +1,6 @@
+---
+wearable_data_s3: cassia-data
+athena_query_dir: il-athena-queries
+athena_database_name: db_rawwearabledata
+athena_table_name: "07"
+athena_workgroup: BSAFE

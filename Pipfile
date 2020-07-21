@@ -40,6 +40,10 @@ gsheets = "*"
 click = "*"
 pytest = "*"
 ipython = "*"
+s3fs = "*"
+pyarrow = "*"
+pyyaml = "*"
+pyathena = "*"
 
 [requires]
 python_version = "3.7"

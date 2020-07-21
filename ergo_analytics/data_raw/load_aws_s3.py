@@ -1,142 +1,133 @@
 # -*- coding: utf-8 -*-
 """
-This file is to demonstrate how to download and upload data
-from the AWS S3 buckets.
-
-To run open a terminal and type:
-    >> python test_aws.py
-
-============================================================
-Here are instructions on how to create and download the
-correct credentials to access the S3 bucket:
-============================================================
-First, you need to make sure your credentials are correct. These credentials are
-like your own set of keys to access the bucket. So each member need their own set of keys.
-
-This is done by creating a folder ".aws" in your home directory. Open your terminal and
-type this command (or alternatively, use the "aws configure" command):
-    >> mkdir ~/.aws
-
-Then also create the file "credentials" (note: no extension needed):
-    >> vim ~/.aws/credentials
-
-This opens up VI (use whatever other editor you want - I like VIM).
-In the file, please put the following three lines:
-[default]
-aws_access_key_id = <your access key - get this from AWS>
-aws_secret_access_key = <your secret key - get this from AWS>
-
-Note the stuff inside the "<>" brackets: These are keys you need to obtain from AWS and they are
-personal to you. To get them sign in to your AWS console then go to the top right under "security credentials".
-Look under "Access keys for CLI, SDK, & API access" where you will be able to create and download your keys.
-
-So an example of the three lines is:
-[default]
-aws_access_key_id = ga3kadlgjrhap495
-aws_secret_access_key = dWaFiwaiawFgpa391295D8
-
-In conclusion, this script shows us how the data goes from the glove to AWS and now to SAFE!
-Questions? Contact Jesper Kristensen or James Russo.
 
 @ author Jesper Kristensen
 Copyright IterateLabs.co 2018-
 """
 
-__all__ = [
-    "create_s3_bucket",
-    "get_existing_bucket_names",
-    "upload_data_to_aws_s3",
-    "download_from_aws_s3",
-]
+__all__ = ["LoadS3"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
 import logging
-import boto3
-import botocore
-from boto3.exceptions import S3UploadFailedError
+import datetime
+import os
+import pandas as pd
+import s3fs
+from ergo_analytics.data_raw import BaseData
 
 logger = logging.getLogger()
 
+fs = s3fs.S3FileSystem(
+    anon=False,
+    key=os.getenv("BSAFE_AWS_ACCESS_KEY"),
+    secret=os.getenv("BSAFE_AWS_SECRET_KEY"),
+)
 
-def _get_s3_client():
+
+class LoadS3(BaseData):
     """
-    Common code for retrieving the S3 client associated
-    with your AWS account.
+    Load data from S3.
     """
-    client = boto3.client("s3")
-    return client
 
+    def __init__(self):
+        """
+        Construct the data loader.
+        """
+        super().__init__()
 
-def create_s3_bucket(bucketname=None):
-    """
-    Creates a new S3 bucket.
-    """
-    s3 = _get_s3_client()
-    s3.create_bucket(Bucket=bucketname)
-    logger.debug(f"Bucket '{bucketname}' created successfully!")
+        logger.info("Data loading with Elastic Search object created!")
 
+    def return_folder_given_time(self, timestamp=None):
+        """Given timestamp, return folder prefix on S3."""
+        # get year:
+        year = timestamp.strftime("%Y")
 
-def get_existing_bucket_names():
-    """
-    Retrieve a list of existing bucket names
-    from the AWS account.
-    """
-    # Retrieve the list of existing buckets
-    s3 = _get_s3_client()
-    response = s3.list_buckets()
+        # get month:
+        month = timestamp.strftime("%m")
 
-    # Output the bucket names
-    bucket_names = response["Buckets"]
-    logger.debug("Existing buckets on S3:")
-    logger.debug(bucket_names)
+        # get day:
+        day = timestamp.strftime("%d")
 
-    return response["Buckets"]
+        # get hour:
+        hour = timestamp.strftime("%H")
 
+        return "cassia-data/es-backup{}/{}/{}/{}".format(year, month, day, hour)
 
-def upload_data_to_aws_s3(bucketname=None, name_on_s3=None, local_filename=None):
-    """
-    Uploads the given file using a managed uploader, which will split up large
-    files automatically and upload parts in parallel.
+    def retrieve_data(
+        self, mac_address=None, start_time=None, end_time=None, limit=None,
+    ):
+        """Retrieve wearable data from S3.
 
-    :param bucketname:
-    :param filename:
-    :return:
-    """
-    # Create an S3 client
-    s3 = _get_s3_client()
+        :param mac_address:
+        :param start_time:
+        :param end_time:
+        :param limit: should the number of returned data points be ceiled at limit?
+        :return:
+        """
 
-    try:
-        s3.upload_file(local_filename, bucketname, name_on_s3)
-    except S3UploadFailedError as e:
-        # something did not work!
-        msg = (
-            "There was an error uploading the file to the S3 bucket!\n"
-            "The error is: {}\nDo you have the latest up-to-date\n"
-            "local ~/.aws/credentials file?".format(e)
+        if not start_time or not end_time:
+            raise Exception(
+                "Please provide both the start_time and the end_time parameters!"
+            )
+
+        prev_hour = starttime - datetime.timedelta(hours=1)
+        next_hour = starttime + datetime.timedelta(hours=1)
+
+        # get current time +/- 1 hour:
+        prev_folder = self.return_folder_given_time(timestamp=prev_hour)
+        curr_folder = self.return_folder_given_time(timestamp=starttime)
+        next_folder = self.return_folder_given_time(timestamp=next_hour)
+
+        # So only read files from those three prefixes
+        # Then use pyarrow to get all that data:
+        """
+        # Read in user specified partitions of a partitioned parquet file
+
+        import s3fs
+        import pyarrow.parquet as pq
+        s3 = s3fs.S3FileSystem()
+
+        keys = ['keyname/blah_blah/part-00000-cc2c2113-3985-46ac-9b50-987e9463390e-c000.snappy.parquet'\
+                 ,'keyname/blah_blah/part-00001-cc2c2113-3985-46ac-9b50-987e9463390e-c000.snappy.parquet'\
+                 ,'keyname/blah_blah/part-00002-cc2c2113-3985-46ac-9b50-987e9463390e-c000.snappy.parquet'\
+                 ,'keyname/blah_blah/part-00003-cc2c2113-3985-46ac-9b50-987e9463390e-c000.snappy.parquet']
+
+        bucket = 'bucket_yada_yada_yada'
+
+        # Add s3 prefix and bucket name to all keys in list
+        parq_list=[]
+        for key in keys:
+            parq_list.append('s3://'+bucket+'/'+key)
+
+        # Create your dataframe
+        df = pq.ParquetDataset(parq_list, filesystem=s3).read_pandas(columns=['Var1','Var2','Var3']).to_pandas()
+"""
+
+        # narrow in: find the files of interest now
+        # do a lookup function that takes in the exact time to the minute
+        # and returns the file for that +/- 15 min (which may include looking in next/prev folders).
+        # We could combine all files together in one list, then just extract the minute marker
+        # then bisect on that (since we will have the full file paths its fine to combine)
+        files = self.return_files_given_time(
+            prev_folder=prev_folder,
+            curr_folder=curr_folder,
+            next_folder=next_folder,
+            start_time=start_time,
+            end_time=end_time,
         )
-        logger.exception(msg)
-        raise Exception(msg)
+
+        # finally, extract content from files:
+
+        import pdb
+
+        pdb.set_trace()
 
 
-def download_from_aws_s3(bucketname=None, s3_name=None, local_filename=None):
-    """
-    Downloads a file from AWS S3 to local disk.
-    """
-
-    if not local_filename:
-        local_filename = s3_name
-
-    s3 = _get_s3_client()
-
-    try:
-        s3.download_file(bucketname, s3_name, local_filename)
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "404":
-            print("The object does not exist in the AWS S3 bucket.")
-        else:
-            # something did not work!
-            print("There was an error downloading the file to the S3 bucket!")
-            print("The error is: {}".format(e))
-            print("Did you update your local ~/.aws/credentials file?")
-            raise
+if __name__ == "__main__":
+    ls = LoadS3()
+    endtime = pd.to_datetime("2020-07-15 03:00:00")
+    starttime = endtime - datetime.timedelta(minutes=15)
+    ls.retrieve_data(
+        mac_address="F9:E2:82:9A:55:61", start_time=starttime, end_time=endtime
+    )

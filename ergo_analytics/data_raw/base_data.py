@@ -12,11 +12,23 @@ __all__ = ["BaseData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import os
+import s3fs
+from pyathena import connect
+import yaml
+import numpy as np
 import pandas as pd
+from constants import *
 from constants import DATA_FORMAT_CODES
 import logging
 
 logger = logging.getLogger()
+try:
+    with open("settings.yml", "r") as fd:
+        config = yaml.load(fd, yaml.SafeLoader)
+except FileNotFoundError:
+    logger.warning("Could not find the 'settings.yml' file in the repo root!")
+    config = dict()
 
 
 class BaseData(object):
@@ -88,3 +100,89 @@ class BaseData(object):
         self._number_of_points = len(all_data)
 
         return all_data
+
+    def retrieve_any_macaddress_with_data(self, at_least_this_much_data=50):
+        """Used initially for /status endpoint: Get _any_ mac address with data for testing BSAFE.
+
+        The mac address can then be used in a later query to retrieve data for testing.
+
+        Returns:
+            Wearable mac address (string): Some device mac address (any with data).
+            Data (pd DataFrame): Data of the corresponding mac address.
+        """
+        # Start by just reading from S3 (no more than 1 month old data there due to lifecyclke policy)
+        s3_query_bucket = config["athena_query_dir"]
+
+        fs = s3fs.S3FileSystem(
+            key=os.getenv("BSAFE_AWS_ACCESS_KEY"),
+            secret=os.getenv("BSAFE_AWS_SECRET_KEY"),
+        )
+        _file = None
+        for _file in fs.ls(s3_query_bucket):
+            if _file.endswith(".csv"):
+                break
+        need_cache_bust = _file is None
+
+        if not need_cache_bust:
+            logger.debug("Cache hit on Athena query")
+            # cache hit
+            with fs.open(_file, "r") as fd:
+                df = pd.read_csv(fd)
+        else:
+            logger.debug("Re-generating Athena query")
+            # re-query Athena (should happen once per month)
+            # Get all data from a/any device with more than 50 data point
+
+            athena_database_name = config.get("athena_database_name")
+            athena_table_name = config.get("athena_table_name")
+            conn = connect(
+                aws_access_key_id=os.getenv("BSAFE_AWS_ACCESS_KEY"),
+                aws_secret_access_key=os.getenv("BSAFE_AWS_SECRET_KEY"),
+                s3_staging_dir="s3://" + config["athena_query_dir"] + "/",
+                region_name="us-east-1",
+                work_group=config["athena_workgroup"],
+            )
+            df = pd.read_sql(
+                """SELECT *
+                              FROM "{}"."{}"
+                              WHERE device = (SELECT device
+                                              FROM "{}"."{}"
+                                              GROUP BY device
+                                              HAVING count(*) > {}
+                                              LIMIT 1)
+                              LIMIT 50;""".format(
+                    athena_database_name,
+                    athena_table_name,
+                    athena_database_name,
+                    athena_table_name,
+                    at_least_this_much_data,
+                ),
+                conn,
+            )
+
+        format_code_found = False
+        names = None  # will be set first iteration
+        all_data = []
+        for row in df.itertuples():
+            this_data = np.r_[
+                pd.to_datetime(row.wearable_timestamp), row.value.split(",")
+            ]
+
+            if not format_code_found:
+                the_code = None
+                for code in DATA_FORMAT_CODES:
+                    names = DATA_FORMAT_CODES[code]["NAMES"]
+                    if len(names) == len(this_data):
+                        the_code = code
+                        break
+                if the_code is None:
+                    raise Exception("Data is in unknown format!")
+                format_code_found = True
+
+            this_df = pd.DataFrame(data=[this_data], columns=names)
+            all_data.append(this_df)
+
+        this_mac = df.iloc[0].device
+        raw_data = pd.concat(all_data)
+
+        return this_mac, raw_data
