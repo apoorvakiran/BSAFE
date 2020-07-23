@@ -331,7 +331,10 @@ class DataFilterPipeline(object):
         data_to_upload = pickle.dumps(all_structured_data)
 
         logger.debug("Uploading results to the pipestore.")
-        self._upload_to_pipestore(hash=pipestore_hash, data=data_to_upload)
+        try:
+            self._upload_to_pipestore(hash=pipestore_hash, data=data_to_upload)
+        except Exception as e:
+            print("Upload to data store failed with '{}', continuing.".format(e))
 
         return all_structured_data
 

@@ -10,6 +10,7 @@ __all__ = ["StructuredData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import numpy as np
 import pandas as pd
 
 from . import BaseStructuredData
@@ -47,7 +48,10 @@ class StructuredData(BaseStructuredData):
 
         self._data_format_code = data_format_code
 
-        self._time = pd.to_datetime(data["Date-Time"])
+        try:
+            self._time = pd.to_datetime(data["Date-Time"])
+        except Exception:
+            self._time = np.arange(len(data))
 
         self._yaw = dict()
         self._yaw["delta"] = data["DeltaYaw"]
@@ -72,8 +76,15 @@ class StructuredData(BaseStructuredData):
         """
         Checks that the incoming data is in the format of the Structured data.
         """
-        if "DeltaYaw" not in data or "DeltaPitch" not in data or "DeltaRoll" not in data:
-            msg = "The incoming data is not in expected format!\n" "Please make sure to create all delta angles!"
+        if (
+            "DeltaYaw" not in data
+            or "DeltaPitch" not in data
+            or "DeltaRoll" not in data
+        ):
+            msg = (
+                "The incoming data is not in expected format!\n"
+                "Please make sure to create all delta angles!"
+            )
             raise Exception(msg)
 
     @property
