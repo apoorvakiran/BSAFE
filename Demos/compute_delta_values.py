@@ -15,9 +15,21 @@ pipeline = DataFilterPipeline(verify_pipeline=False)
 pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
 with_format_code = "5"
 
-path_to_data = "/Users/jesper/Downloads/Wearable/worker_1_left.csv"
-df = pd.read_csv(path_to_data)
+paths = (
+    "/Users/jesper/Downloads/Wearable/worker_1_left",
+    "/Users/jesper/Downloads/Wearable/worker_1_right",
+    "/Users/jesper/Downloads/Wearable/worker_2_left",
+    "/Users/jesper/Downloads/Wearable/worker_2_right",
+    "/Users/jesper/Downloads/Wearable/worker_3_left",
+    "/Users/jesper/Downloads/Wearable/worker_3_right",
+)
 
-df_transformed = pipeline.run(
-    on_raw_data=df, with_format_code=with_format_code, use_subsampling=False
-)[0].data_matrix
+
+for path in paths:
+    df = pd.read_csv(path + ".csv")
+
+    df_transformed = pipeline.run(
+        on_raw_data=df, with_format_code=with_format_code, use_subsampling=False
+    )[0].data_matrix
+
+    df_transformed.to_csv(path + "_trans.csv", index=False)

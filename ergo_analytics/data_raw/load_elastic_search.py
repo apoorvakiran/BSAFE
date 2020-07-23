@@ -40,7 +40,13 @@ class LoadElasticSearch(BaseData):
         logger.info("Data loading with Elastic Search object created!")
 
     def retrieve_data(
-        self, mac_address=None, start_time=None, end_time=None, host=None, index=None, data_format_code="3"
+        self,
+        mac_address=None,
+        start_time=None,
+        end_time=None,
+        host=None,
+        index=None,
+        data_format_code="3",
     ):
         """
         Retrieves the data from the Elastic Search database specified
@@ -60,7 +66,9 @@ class LoadElasticSearch(BaseData):
         """
 
         if not start_time or not end_time:
-            raise Exception("Please provide both the start_time and the " "end_time parameters!")
+            raise Exception(
+                "Please provide both the start_time and the " "end_time parameters!"
+            )
 
         if host is None:
             # used locally
@@ -69,7 +77,12 @@ class LoadElasticSearch(BaseData):
         else:
             # used in staging and production on AWS to connect to ES
             # cluster on AWS:
-            awsauth = AWS4Auth(os.getenv("AWS_ACCESS_KEY"), os.getenv("AWS_SECRET_KEY"), os.getenv("AWS_REGION"), "es")
+            awsauth = AWS4Auth(
+                os.getenv("BSAFE_AWS_ACCESS_KEY"),
+                os.getenv("BSAFE)AWS_SECRET_KEY"),
+                os.getenv("BSAFE_AWS_REGION"),
+                "es",
+            )
             es = Elasticsearch(
                 hosts=[{"host": host, "port": 443}],
                 http_auth=awsauth,
@@ -85,7 +98,10 @@ class LoadElasticSearch(BaseData):
             search = (
                 Search(using=es, index=index)
                 .query("match", device__keyword=mac_address)
-                .query("range", **{"received_timestamp": {"gte": start_time, "lte": end_time}})
+                .query(
+                    "range",
+                    **{"received_timestamp": {"gte": start_time, "lte": end_time}},
+                )
                 .sort("received_timestamp")
             )
             search.count()  # used to test connection
@@ -121,8 +137,15 @@ class LoadElasticSearch(BaseData):
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
-        device_df.columns = ["value", "device", "received_timestamp", "wearable_timestamp"]
-        logger.info("{} documents found for this device.".format(len(device_df), mac_address))
+        device_df.columns = [
+            "value",
+            "device",
+            "received_timestamp",
+            "wearable_timestamp",
+        ]
+        logger.info(
+            "{} documents found for this device.".format(len(device_df), mac_address)
+        )
         data_all_devices.append(device_df)
 
         logger.info(device_df.head(10))
@@ -139,7 +162,9 @@ class LoadElasticSearch(BaseData):
             data = pd.concat(data_all_devices, axis=0)["value"].values
             for datum in data:
 
-                datapoint = self._load_datum(datum=datum, data_format_code=data_format_code)
+                datapoint = self._load_datum(
+                    datum=datum, data_format_code=data_format_code
+                )
 
                 if datapoint is None:
                     continue
@@ -149,7 +174,9 @@ class LoadElasticSearch(BaseData):
             all_data = pd.concat(all_data)
 
             # cast data types once:
-            all_data = self._cast_to_correct_types(all_data=all_data, data_format_code=data_format_code)
+            all_data = self._cast_to_correct_types(
+                all_data=all_data, data_format_code=data_format_code
+            )
 
             return all_data
 
@@ -166,7 +193,9 @@ class LoadElasticSearch(BaseData):
             datum = datum.rstrip("\n").rstrip("\r").rstrip("\r").rstrip("\n")
             datum = np.asarray(datum.split(","))
 
-            data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1, len(names)), columns=names)
+            data = pd.DataFrame(
+                data=np.atleast_2d(datum).reshape(1, len(names)), columns=names
+            )
         except Exception:
             return None
 
