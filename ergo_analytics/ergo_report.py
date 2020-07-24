@@ -147,8 +147,8 @@ class ErgoReport(object):
             posture_pitch = posture.iloc[:, 1].tolist()
             posture_roll = posture.iloc[:, 2].tolist()
 
-            speed_score = np.max(speed, axis=0).tolist()
-            posture_score = np.max(posture, axis=0).tolist()
+            speed_score = np.max(speed, axis=1).tolist()
+            posture_score = np.max(posture, axis=1).tolist()
 
             # in this case, we have the score vs time, so create the list of indices:
             from_indices = []
@@ -163,6 +163,7 @@ class ErgoReport(object):
 
                 from_indices.append(this_first_data_index)
                 till_indices.append(this_last_data_index)
+
             first_data_index = from_indices
             last_data_index = till_indices
         else:
