@@ -32,9 +32,9 @@ for n, line in enumerate(reader.readlines()[0:60000]):
     data = splitup[1]
     datapoints = ",".join(splitup[1:])
     awsauth = AWS4Auth(
-        os.getenv("BSAFE_AWS_ACCESS_KEY"),
-        os.getenv("BSAFE_AWS_SECRET_KEY"),
-        os.getenv("BSAFE_AWS_REGION"),
+        os.getenv("AWS_ACCESS_KEY"),
+        os.getenv("AWS_SECRET_KEY"),
+        os.getenv("AWS_REGION"),
         "es",
     )
 

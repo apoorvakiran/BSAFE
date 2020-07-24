@@ -78,9 +78,9 @@ class LoadElasticSearch(BaseData):
             # used in staging and production on AWS to connect to ES
             # cluster on AWS:
             awsauth = AWS4Auth(
-                os.getenv("BSAFE_AWS_ACCESS_KEY"),
-                os.getenv("BSAFE)AWS_SECRET_KEY"),
-                os.getenv("BSAFE_AWS_REGION"),
+                os.getenv("AWS_ACCESS_KEY"),
+                os.getenv("AWS_SECRET_KEY"),
+                os.getenv("AWS_REGION"),
                 "es",
             )
             es = Elasticsearch(

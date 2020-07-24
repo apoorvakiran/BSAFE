@@ -61,6 +61,7 @@ class DataFilterPipeline(object):
         Updates each filter in the pipeline with the incoming parameters.
         This is usefu if there are common parameters between all filters.
         """
+
         for filter_name in self._pipeline.keys():
             # TODO: We should index into the filter here?!
             self._pipeline[filter_name].update(new_params=new_params)
@@ -297,7 +298,6 @@ class DataFilterPipeline(object):
                 on_raw_data_chunk=this_chunk,
                 is_sorted=is_sorted,
                 parameters=parameters,
-                with_format_code=with_format_code,
                 debug=debug,
             )
 
@@ -319,8 +319,7 @@ class DataFilterPipeline(object):
         logger.debug("Raw data successfully converted to structured data!")
         # always create structured data at the end of the pipeline:
         all_structured_data = DataFilterPipeline._create_structured_data(
-            list_of_transformed_data_chunks=list_of_transformed_data_chunks,
-            data_format_code=with_format_code,
+            list_of_transformed_data_chunks=list_of_transformed_data_chunks
         )
 
         if debug:
@@ -344,12 +343,7 @@ class DataFilterPipeline(object):
         pst.upload_data(hash=hash, data=data, metadata=None)
 
     def _run_chunk(
-        self,
-        with_format_code="5",
-        on_raw_data_chunk=None,
-        parameters=None,
-        is_sorted=True,
-        debug=False,
+        self, on_raw_data_chunk=None, parameters=None, is_sorted=True, debug=False,
     ):
         """Run the pipeline on incoming raw data.
 
@@ -357,9 +351,6 @@ class DataFilterPipeline(object):
         """
         # make sure the raw data points have unique indices:
         on_raw_data_chunk.reset_index(drop=True, inplace=True)
-
-        # make sure to update the data format code:
-        self.update_params(new_params=dict(data_format_code=with_format_code))
 
         initial_columns = list(on_raw_data_chunk.columns)
 
@@ -498,9 +489,7 @@ class DataFilterPipeline(object):
         return structure
 
     @staticmethod
-    def _create_structured_data(
-        list_of_transformed_data_chunks=None, data_format_code="5"
-    ):
+    def _create_structured_data(list_of_transformed_data_chunks=None):
         """Taking in a list of transformed data chunks (i.e., each element in
         the list is a transformed data element - it has gone through
         the ETL pipeline) this method returns a list of same length where
@@ -511,7 +500,6 @@ class DataFilterPipeline(object):
         all_chunks_of_structured_data = []
         for data_chunk_transformed in list_of_transformed_data_chunks:
             f_str_data = CreateStructuredData()
-            f_str_data.update(new_params=dict(data_format_code=data_format_code))
             structured_data, _ = f_str_data.apply(data=data_chunk_transformed)
             all_chunks_of_structured_data.append(structured_data)
 
