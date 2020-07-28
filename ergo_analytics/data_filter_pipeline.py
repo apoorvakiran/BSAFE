@@ -163,7 +163,7 @@ class DataFilterPipeline(object):
     def run(
         self,
         on_raw_data=None,
-        with_format_code="5",
+        with_format_code=None,
         is_sorted=True,
         use_subsampling=False,
         number_of_subsamples=10,
@@ -191,11 +191,11 @@ class DataFilterPipeline(object):
         """
         raw_data = on_raw_data.copy()
 
-        # ensure the data has the correct columns
-        with_format_code = str(with_format_code).strip()
+        if with_format_code is not None:
+            # ensure the data has the correct columns
+            with_format_code = str(with_format_code).strip()
 
         options = (
-            with_format_code,
             is_sorted,
             use_subsampling,
             number_of_subsamples,
@@ -299,6 +299,7 @@ class DataFilterPipeline(object):
                 is_sorted=is_sorted,
                 parameters=parameters,
                 debug=debug,
+                data_format_code=with_format_code,
             )
 
             list_of_transformed_data_chunks.append(this_structured_data_chunk)
@@ -343,7 +344,12 @@ class DataFilterPipeline(object):
         pst.upload_data(hash=hash, data=data, metadata=None)
 
     def _run_chunk(
-        self, on_raw_data_chunk=None, parameters=None, is_sorted=True, debug=False,
+        self,
+        on_raw_data_chunk=None,
+        parameters=None,
+        is_sorted=True,
+        debug=False,
+        data_format_code=None,
     ):
         """Run the pipeline on incoming raw data.
 
@@ -381,6 +387,9 @@ class DataFilterPipeline(object):
 
             if filter_name not in parameters:
                 parameters[filter_name] = dict()
+
+            # pass data format code into all filters
+            parameters[filter_name]["data_format_code"] = data_format_code
 
             self._results[filter] = dict()
             current_data, changes = filter.apply(
