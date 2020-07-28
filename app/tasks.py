@@ -38,10 +38,7 @@ api_client = ApiClient()
 
 
 def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
-    """Given raw data run BSAFE on the data.
-
-    Run BSAFE on incoming raw_data.
-    """
+    """Given raw data run BSAFE on the data."""
 
     if raw_data is None:
         logger.info(f"Found no elements in the ES database for {mac_address}.")
