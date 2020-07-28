@@ -53,7 +53,7 @@ class LoadElasticSearch(BaseData):
         end_time=None,
         host=None,
         index=None,
-        data_format_code="5",
+        data_format_code=None,
         limit=None,
     ):
         """

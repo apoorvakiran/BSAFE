@@ -139,8 +139,6 @@ def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
     index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
     host = os.getenv("ELASTIC_SEARCH_HOST")
 
-    data_format_code = "5"  # what format is the data in?
-
     # subsampling of the data:
     how_to_combine_across_parameter = "average"  # note: cannot be "keep separate"
     number_of_subsamples = 10
@@ -154,19 +152,21 @@ def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
         end_time=end_time,
         host=host,
         index=index,
-        data_format_code=data_format_code,
         limit=None,
     )
 
     options = {
-        "with_format_code": data_format_code,
         "use_subsampling": use_subsampling,
         "randomize_subsampling": randomize_subsampling,
         "number_of_subsamples": number_of_subsamples,
         "combine_across_parameter": how_to_combine_across_parameter,
     }
     run_BSAFE(
-        raw_data=raw_data, mac_address=mac_address, run_as_test=run_as_test, **options
+        raw_data=raw_data,
+        mac_address=mac_address,
+        run_as_test=run_as_test,
+        data_format_code=data_loader.data_format_code,
+        **options,
     )
 
 
@@ -180,7 +180,6 @@ def status():
         200 (int) if BSAFE works as expected.
         500 (int) if there are issues with BSAFE or the Elastic Search Database.
     """
-    data_format_code = "5"  # determined automatically in the data loader if incorrect
 
     data_loader = LoadElasticSearch()
     mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data()
@@ -200,7 +199,7 @@ def status():
     use_subsampling = False
 
     options = {
-        "with_format_code": data_format_code,
+        "with_format_code": data_loader.data_format_code,
         "use_subsampling": use_subsampling,
         "randomize_subsampling": randomize_subsampling,
         "number_of_subsamples": number_of_subsamples,
