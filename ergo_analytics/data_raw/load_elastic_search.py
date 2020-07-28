@@ -51,6 +51,8 @@ class LoadElasticSearch(BaseData):
         mac_address=None,
         start_time=None,
         end_time=None,
+        from_alias="cassia-data",
+        alias_search="cassia-staging-*",
         host=None,
         index=None,
         data_format_code=None,
@@ -99,6 +101,32 @@ class LoadElasticSearch(BaseData):
                 verify_certs=True,
                 connection_class=RequestsHttpConnection,
             )
+
+        if from_alias is not None:
+            # we are using alias with elastic search
+            # look for the given alias:
+            if alias_search is None:
+                alias_search = "*"
+            indices = es.indices.get_alias(alias_search)
+            found = False
+            ind = None
+            for ind in indices:
+                if from_alias in indices[ind]["aliases"]:
+                    # we found the index with this alias
+                    found = True
+                    break
+
+            if not found or ind is None:
+                raise Exception(
+                    "Error: The elastic search alias '{}' was not found!".format(
+                        from_alias
+                    )
+                )
+
+            index = ind
+            msg = "Success! Found index via alias as: '{}'".format(index)
+            print(msg)
+            logger.debug(msg)
 
         logger.debug("Established connection to the Elastic Search database.")
 
