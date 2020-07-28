@@ -12,6 +12,7 @@ __all__ = ["BaseData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import pandas as pd
 from constants import DATA_FORMAT_CODES
 import logging
 
@@ -22,9 +23,14 @@ class BaseData(object):
 
     _data_column_names = None  # name of columns in the data
     _number_of_points = None
+    _data_format_code = None
 
     def __init__(self):
         pass
+
+    @property
+    def data_format_code(self):
+        return self._data_format_code
 
     @property
     def data_column_names(self):
@@ -34,7 +40,30 @@ class BaseData(object):
     def number_of_points(self):
         return self._number_of_points
 
-    def _cast_to_correct_types(self, all_data=None, data_format_code="4"):
+    def _find_data_format_code(self, path=None):
+        """Find correct data format codes to load data from path."""
+
+        loaded = False
+        found = False
+        lcols = None
+        dfc = None
+        for dfc in DATA_FORMAT_CODES:
+            these_names = DATA_FORMAT_CODES[dfc]["NAMES"]
+
+            if not loaded:
+                lcols = len(pd.read_csv(path).columns)
+                loaded = True
+
+            if lcols == len(these_names):
+                found = True
+                break
+
+        if not found or dfc is None:
+            raise Exception("The data format code could not found for the data!")
+
+        return dfc
+
+    def _cast_to_correct_types(self, all_data=None, data_format_code=None):
         """
         Makes sure the data is in the format expected from its streaming type.
 
