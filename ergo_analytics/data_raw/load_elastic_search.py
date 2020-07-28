@@ -162,12 +162,6 @@ class LoadElasticSearch(BaseData):
 
         if len(data_all_devices) > 0:
 
-            # get the correct data format code:
-            try:
-                data_format_code = str(data_format_code)
-            except Exception:
-                raise Exception("Please provide a valid data format code!")
-
             all_data = []
             data = pd.concat(data_all_devices, axis=0)["value"].values
             for ix, datum in enumerate(data):
@@ -192,15 +186,21 @@ class LoadElasticSearch(BaseData):
 
             return all_data
 
-    @staticmethod
-    def _load_datum(datum=None, data_format_code="5"):
+    def _load_datum(self, datum=None, data_format_code=None):
         """
         Loads a datum sent from the wearable.
 
         :param datum: The datum to load from the device.
         :return: data and the data format code (can change if incoming is incorrect).
         """
-        names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
+        if data_format_code is not None:
+            names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
+        else:
+            if self._data_column_names is not None:
+                names = self._data_column_names
+            else:
+                names = DATA_FORMAT_CODES["1"]["NAMES"]  # try something at first
+
         try:
             datum = datum.rstrip("\n").rstrip("\r").rstrip("\r").rstrip("\n")
             datum = np.asarray(datum.split(","))
@@ -234,12 +234,14 @@ class LoadElasticSearch(BaseData):
             logger.info(
                 "Found the data format code to be: {}".format(new_data_format_code)
             )
+            self._data_column_names = new_data_format_code
             return data, new_data_format_code
 
         except Exception as e:
             logger.warning("Error loading data! The error is: '{}'".format(e))
             return None, None
 
+        self._data_column_names = data_format_code
         return data, data_format_code
 
 
