@@ -72,7 +72,7 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
     if run_as_test:
         raw_data.to_csv("log.csv", index=False)
 
-    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data, **kwargs,)
+    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data, **kwargs)
 
     em = None
     logger.info(f"Retrieved all data for {mac_address}")
@@ -98,7 +98,8 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
             **kwargs,
         )
         logger.info(report.response)
-        logger.info(f"{report.response.status_code} " f"{report.response.text}")
+        if not run_as_test:
+            logger.info(f"{report.response.status_code} " f"{report.response.text}")
         logger.info(f"Created safety_score for {mac_address}")
 
         logger.info("JSON = {}".format(report.to_json()))
@@ -107,7 +108,7 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
 
     if run_as_test:
         if em is not None:
-            return em.get_score("safety_score")
+            return max(em.get_score("AngularActivityScore")[0])
 
 
 @dramatiq.actor(periodic=cron("*/15 * * * *"))

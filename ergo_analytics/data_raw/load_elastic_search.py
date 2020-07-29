@@ -234,14 +234,14 @@ class LoadElasticSearch(BaseData):
             logger.info(
                 "Found the data format code to be: {}".format(new_data_format_code)
             )
-            self._data_column_names = new_data_format_code
+            self._data_format_code = new_data_format_code
             return data, new_data_format_code
 
         except Exception as e:
             logger.warning("Error loading data! The error is: '{}'".format(e))
             return None, None
 
-        self._data_column_names = data_format_code
+        self._data_format_code = data_format_code
         return data, data_format_code
 
 
