@@ -10,30 +10,30 @@ from ergo_analytics.data_raw import LoadElasticSearch
 from app.tasks import run_BSAFE
 
 
-index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
-host = os.getenv("ELASTIC_SEARCH_HOST")
-
-start_time = pd.to_datetime("2020-07-14")
-end_time = pd.to_datetime("2020-07-18")
-
-# Put in the wearable address!
-mac_address = "C4:E2:D8:DB:4B:48"
-
-
 def test_run_bsafe_on_staging_data():
     # Perform this end-to-end test to make sure BSAFE runs as expected
 
     # now we download the data:
-
     data_loader = LoadElasticSearch()
-    raw_data = data_loader.retrieve_data(
-        mac_address=mac_address,
-        start_time=start_time,
-        end_time=end_time,
-        host=host,
-        index=index,
-        limit=20,
-    )
+    try:
+        mac_address = "C4:E2:D8:DB:4B:48"
+        index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
+        host = os.getenv("ELASTIC_SEARCH_HOST")
+        start_time = pd.to_datetime("2020-07-14")
+        end_time = pd.to_datetime("2020-07-18")
+
+        raw_data = data_loader.retrieve_data(
+            mac_address=mac_address,
+            start_time=start_time,
+            end_time=end_time,
+            host=host,
+            index=index,
+            limit=20,
+        )
+    except Exception as e:
+        mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
+            at_least_this_much_data=50
+        )
 
     score = run_BSAFE(
         raw_data=raw_data,
