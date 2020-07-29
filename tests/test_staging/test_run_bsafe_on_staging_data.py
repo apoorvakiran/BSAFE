@@ -31,10 +31,9 @@ def test_run_bsafe_on_staging_data():
             limit=20,
         )
     except Exception as _:
-        pass
-    # mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
-    #     at_least_this_much_data=50
-    # )
+        mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
+            at_least_this_much_data=50
+        )
 
     score = run_BSAFE(
         raw_data=raw_data,
