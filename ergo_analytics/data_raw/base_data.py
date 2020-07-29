@@ -91,7 +91,9 @@ class BaseData(object):
         # now convert data based on the types we know:
         data_column_names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
         data_column_types = DATA_FORMAT_CODES[data_format_code]["TYPES"]
-        all_data = all_data.apply(dict(zip(data_column_names, data_column_types)))
+
+        conv = dict(zip(data_column_names, data_column_types))
+        all_data = all_data.apply(conv)
 
         # make sure index is ints (can convert to "float64" if there are
         # some NaNs here and there):
@@ -162,6 +164,7 @@ class BaseData(object):
 
         format_code_found = False
         names = None  # will be set first iteration
+        the_code = None
         all_data = []
         for row in df.itertuples():
             this_data = np.r_[
@@ -184,5 +187,11 @@ class BaseData(object):
 
         this_mac = df.iloc[0].device
         raw_data = pd.concat(all_data)
+
+        self._data_format_code = the_code
+
+        raw_data = self._cast_to_correct_types(
+            all_data=raw_data, data_format_code=self._data_format_code
+        )
 
         return this_mac, raw_data
