@@ -103,7 +103,9 @@ class BaseData(object):
 
         return all_data
 
-    def retrieve_any_macaddress_with_data(self, at_least_this_much_data=50):
+    def retrieve_any_macaddress_with_data(
+        self, at_least_this_much_data_in_total=50, return_max_this_much_data=20
+    ):
         """Used initially for /status endpoint: Get _any_ mac address with data for testing BSAFE.
 
         The mac address can then be used in a later query to retrieve data for testing.
@@ -152,12 +154,13 @@ class BaseData(object):
                                               GROUP BY device
                                               HAVING count(*) > {}
                                               LIMIT 1)
-                              LIMIT 50;""".format(
+                              LIMIT {};""".format(
                     athena_database_name,
                     athena_table_name,
                     athena_database_name,
                     athena_table_name,
-                    at_least_this_much_data,
+                    at_least_this_much_data_in_total,
+                    return_max_this_much_data,
                 ),
                 conn,
             )
@@ -193,5 +196,7 @@ class BaseData(object):
         raw_data = self._cast_to_correct_types(
             all_data=raw_data, data_format_code=self._data_format_code
         )
+
+        raw_data.sort_values("Date-Time", inplace=True)
 
         return this_mac, raw_data

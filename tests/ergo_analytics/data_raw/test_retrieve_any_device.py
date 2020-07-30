@@ -13,7 +13,7 @@ def test_retrieve_any_device():
     """Retrieve any device from S3."""
     data_loader = BaseData()
     mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
-        at_least_this_much_data=50
+        at_least_this_much_data_in_total=50, return_max_this_much_data=50
     )
 
     assert mac_address is not None
