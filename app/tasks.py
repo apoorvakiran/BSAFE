@@ -114,6 +114,14 @@ def automated_analysis():
     current_time = datetime.datetime.utcnow()
     end_time = datetime.datetime.utcnow().isoformat()
     start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
+
+    # here we can decide which alias to search for:
+    from_alias = "cassia-data"  # the specific alias to match across a set (or just 1) of index(es)
+    find_alias_among_indexes = (
+        "cassia-staging-*"  # narrow down search to these index names...
+    )
+    # ...(for example the start could expand into days)
+
     try:
         response = api_client.get_request("api/v1/wearables?automated=true")
         response.raise_for_status()
@@ -122,7 +130,14 @@ def automated_analysis():
         for wearable in wearables:
             mac_address = wearable["attributes"]["mac"]
             logger.info(f"Running analysis for {mac_address}")
-            safety_score_analysis.send(mac_address, start_time, end_time)
+            safety_score_analysis.send(
+                mac_address,
+                start_time,
+                end_time,
+                from_alias=from_alias,
+                find_alias_among_indexes=find_alias_among_indexes,
+                run_as_test=False,
+            )
         logger.info(f"Enqueued all analysis")
     except HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}", exc_info=True)
@@ -131,7 +146,14 @@ def automated_analysis():
 
 
 @dramatiq.actor(max_retries=3)
-def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
+def safety_score_analysis(
+    mac_address,
+    start_time,
+    end_time,
+    from_alias="cassia-data",
+    find_alias_among_indexes="cassia-staging-*",
+    run_as_test=False,
+):
     logger.info(f"Getting safety score for {mac_address}")
 
     index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
@@ -151,6 +173,8 @@ def safety_score_analysis(mac_address, start_time, end_time, run_as_test=False):
         host=host,
         index=index,
         limit=None,
+        from_alias=from_alias,
+        find_alias_among_indexes=find_alias_among_indexes,
     )
 
     options = {
@@ -180,7 +204,9 @@ def status():
     """
 
     data_loader = LoadElasticSearch()
-    mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data()
+    mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
+        return_max_this_much_data=20
+    )
 
     logger.debug("Mac address found is: {}".format(mac_address))
 
@@ -208,10 +234,12 @@ def status():
         raw_data=raw_data, mac_address=mac_address, run_as_test=True, **options
     )
 
-    if score is None:
+    score_error = False
+    if score is None or not 0 <= score <= 7:
         logger.warning("Score could not be computed by BSAFE!")
+        score_error = True
 
-    return 200 if score is not None else 500
+    return 500 if score_error else 200
 
 
 if __name__ == "__main__":

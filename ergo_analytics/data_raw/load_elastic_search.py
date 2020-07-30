@@ -52,7 +52,7 @@ class LoadElasticSearch(BaseData):
         start_time=None,
         end_time=None,
         from_alias="cassia-data",
-        alias_search="cassia-staging-*",
+        find_alias_among_indexes="cassia-staging-*",
         host=None,
         index=None,
         data_format_code=None,
@@ -105,35 +105,35 @@ class LoadElasticSearch(BaseData):
         if from_alias is not None:
             # we are using alias with elastic search
             # look for the given alias:
-            if alias_search is None:
-                alias_search = "*"
-            indices = es.indices.get_alias(alias_search)
-            found = False
-            ind = None
-            for ind in indices:
-                if from_alias in indices[ind]["aliases"]:
-                    # we found the index with this alias
-                    found = True
-                    break
+            if find_alias_among_indexes is None:
+                find_alias_among_indexes = "*"
 
-            if not found or ind is None:
+            search_indices = es.indices.get_alias(find_alias_among_indexes)
+            matching_indices = []
+            for sind in search_indices:
+                if from_alias in search_indices[sind]["aliases"]:
+                    # we found the index with this alias
+                    matching_indices.append(sind)
+
+            if len(matching_indices) == 0:
                 raise Exception(
                     "Error: The elastic search alias '{}' was not found!".format(
                         from_alias
                     )
                 )
 
-            index = ind
-            msg = "Success! Found index via alias as: '{}'".format(index)
+            index = matching_indices
+            msg = "Success! Found index(es) via alias as: '{}'".format(index)
             print(msg)
             logger.debug(msg)
 
         logger.debug("Established connection to the Elastic Search database.")
+        logger.debug("Searching indexes: '{}'".format(index))
 
         data_all_devices = []
         try:
             search = (
-                Search(using=es, index=index)
+                Search(using=es, index=",".join(list(np.atleast_1d(index))))
                 .query("match", device__keyword=mac_address)
                 .query(
                     "range",
@@ -141,7 +141,7 @@ class LoadElasticSearch(BaseData):
                 )
                 .sort("received_timestamp")
             )
-            search.count()  # used to test connection
+            _count = search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError as e:
             msg = "Elastic Search Connection Issue!"
             msg += "\nCommon Cause: Have you started the Elasticnet database server?\n"
@@ -154,7 +154,12 @@ class LoadElasticSearch(BaseData):
             logger.info("No documents found for device {}".format(mac_address))
             return None
 
-        for hit in search.params(preserve_order=True).scan():
+        if _count > 50000:
+            logger.warning("Warning: You are searching a lot of indexes!")
+
+        _search = search.params(preserve_order=True, raise_on_error=False)
+
+        for ix, hit in enumerate(_search.scan()):
 
             # data is stored in the value key on elasticsearch
             # elastic search data never has date in "value":
@@ -202,7 +207,7 @@ class LoadElasticSearch(BaseData):
 
                 all_data.append(datapoint)
 
-                if limit is not None and ix >= limit:
+                if limit is not None and ix >= limit - 1:
                     break
 
             all_data = pd.concat(all_data)

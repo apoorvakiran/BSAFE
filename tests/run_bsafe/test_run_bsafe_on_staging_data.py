@@ -30,9 +30,11 @@ def test_run_bsafe_on_staging_data():
             index=index,
             limit=20,
         )
+        if raw_data is None:
+            raise Exception("No data!")
     except Exception as _:
         mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
-            at_least_this_much_data=50
+            at_least_this_much_data_in_total=50, return_max_this_much_data=20
         )
 
     score = run_BSAFE(
