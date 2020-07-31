@@ -93,10 +93,6 @@ class ConstructDeltaValues(BaseTransformation):
             # already in delta-angle format
             pass
         else:
-
-            import pdb
-
-            pdb.set_trace()
             raise Exception("Implement me!")
 
         data_to_return = self._update_data(
