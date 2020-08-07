@@ -38,11 +38,12 @@ logger = logging.getLogger()
 class AngularActivityScore(BaseScore):
     """Computes a score based on activity - range of angles."""
 
-    def _compute_single_window(self, angles=None, delta_time=None, window_start=None, window_end=None, **kwargs):
+    def _compute_single_window(
+        self, angles=None, delta_time=None, window_start=None, window_end=None, **kwargs
+    ):
         """Computes the activity for a single window."""
 
         angles = angles.copy().iloc[window_start:window_end]
-
         max_angle = angles.max()
         min_angle = angles.min()
         delta_angle = absolute(max_angle - min_angle)
@@ -64,8 +65,12 @@ class AngularActivityScore(BaseScore):
         bins = append(bins, [180])
         m = len(bins) - 1
 
-        activities_binned_raw = compute_binned_score(bins=bins, values=values, weighing_method="constant")
-        activities_binned = normalize_to_scale(activities_binned_raw, old_lo=0, old_hi=m, new_lo=0, new_hi=7)
+        activities_binned_raw = compute_binned_score(
+            bins=bins, values=values, weighing_method="constant"
+        )
+        activities_binned = normalize_to_scale(
+            activities_binned_raw, old_lo=0, old_hi=m, new_lo=0, new_hi=7
+        )
         return float(activities_binned)
 
     @staticmethod
@@ -96,5 +101,8 @@ class AngularActivityScore(BaseScore):
             plt.ylabel("{} angle (width={})".format(angle_name, width))
             plt.tight_layout()
             plt.savefig(
-                os.path.join(store_plots_here, "{}_width_{}_activity_{}.png".format(prepend, width, angle_name))
+                os.path.join(
+                    store_plots_here,
+                    "{}_width_{}_activity_{}.png".format(prepend, width, angle_name),
+                )
             )

@@ -195,6 +195,7 @@ class DataFilterPipeline(object):
             # ensure the data has the correct columns
             with_format_code = str(with_format_code).strip()
 
+        # options that will decide the cache state:
         options = (
             is_sorted,
             use_subsampling,

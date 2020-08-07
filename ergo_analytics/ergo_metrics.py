@@ -155,6 +155,20 @@ class ErgoMetrics(object):
             if isinstance(self._data_chunks[chunk_index], StructuredData):
                 return self._data_chunks[chunk_index].get_last_index()
 
+    def get_first_time(self, chunk_index=None, as_string=False):
+        """Return the first timestamp point of the data for this chunk index."""
+        if chunk_index is not None:
+            if isinstance(self._data_chunks[chunk_index], StructuredData):
+                return self._data_chunks[chunk_index].get_first_time(
+                    as_string=as_string
+                )
+
+    def get_last_time(self, chunk_index=None, as_string=False):
+        """Return the last timestamp of the data for this chunk index."""
+        if chunk_index is not None:
+            if isinstance(self._data_chunks[chunk_index], StructuredData):
+                return self._data_chunks[chunk_index].get_last_time(as_string=as_string)
+
     @property
     def number_of_data_chunks(self):
         return self._number_of_data_chunks
@@ -189,13 +203,13 @@ class ErgoMetrics(object):
                 continue
 
             # compute each metric:
-            global metric
-            metric = None
+            # global metric
+            # metric = None
             for metric_name in self._metrics_to_use:
 
                 these_params = metrics_parameters.get(metric_name, dict())
-
-                exec("global metric; metric = {}()".format(metric_name))
+                # exec("global metric; metric = {}()".format(metric_name))
+                metric = self._metrics_to_use[metric_name]()
                 this_score = metric.compute(
                     delta_pitch=self._delta_pitch(chunk_index=chunk_index),
                     delta_yaw=self._delta_yaw(chunk_index=chunk_index),
@@ -213,29 +227,29 @@ class ErgoMetrics(object):
                 # self._scores[chunk_index][metric_name]['params_used'] = params_used
                 self._scores[chunk_index][metric_name]["index"] = chunk_index
                 self._scores[chunk_index][metric_name][
-                    "data_index_from"
-                ] = self._data_chunks[chunk_index].get_first_index()
+                    "data_time_from"
+                ] = self._data_chunks[chunk_index].get_first_time(as_string=True)
                 self._scores[chunk_index][metric_name][
-                    "data_index_till"
-                ] = self._data_chunks[chunk_index].get_last_index()
+                    "data_time_till"
+                ] = self._data_chunks[chunk_index].get_last_time(as_string=True)
 
                 this_data_chunk = self._data_chunks[chunk_index]
 
                 if this_data_chunk is not None and isinstance(
                     this_data_chunk, StructuredData
                 ):
-                    data_index_from = this_data_chunk.get_first_index()
-                    data_index_till = this_data_chunk.get_last_index()
+                    data_time_from = this_data_chunk.get_first_time(as_string=True)
+                    data_time_till = this_data_chunk.get_last_time(as_string=True)
                 else:
-                    data_index_from = None
-                    data_index_till = None
+                    data_time_from = None
+                    data_time_till = None
 
                 self._scores[chunk_index][metric_name][
-                    "data_index_from"
-                ] = data_index_from
+                    "data_time_from"
+                ] = data_time_from
                 self._scores[chunk_index][metric_name][
-                    "data_index_till"
-                ] = data_index_till
+                    "data_time_till"
+                ] = data_time_till
 
             num_good_chunks += 1
 

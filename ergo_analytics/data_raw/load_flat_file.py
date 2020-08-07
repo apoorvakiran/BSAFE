@@ -17,8 +17,8 @@ __version__ = "Alpha"
 import os
 import numpy as np
 import pandas as pd
-from . import BaseData
-from .. import is_numeric
+from ergo_analytics.data_raw import BaseData
+from ergo_analytics.utilities import is_numeric
 from constants import *
 import logging
 

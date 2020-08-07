@@ -44,6 +44,7 @@ s3fs = "*"
 pyarrow = "*"
 pyyaml = "*"
 pyathena = "*"
+gitpython = "*"
 
 [requires]
 python_version = "3.7"

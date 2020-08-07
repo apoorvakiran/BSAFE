@@ -34,7 +34,9 @@ def test_run_bsafe_on_staging_data():
             raise Exception("No data!")
     except Exception as _:
         mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
-            at_least_this_much_data_in_total=50, return_max_this_much_data=20
+            at_least_this_much_data_in_total=200,
+            return_max_this_much_data=200,
+            force_rerun=True,
         )
 
     score = run_BSAFE(
@@ -42,6 +44,8 @@ def test_run_bsafe_on_staging_data():
         mac_address=mac_address,
         run_as_test=True,
         with_format_code=data_loader.data_format_code,
+        bsafe_setup_filename="bsafe_run_setup_test.yml",
     )
+
     assert score is not None
     assert 0 <= score <= 7

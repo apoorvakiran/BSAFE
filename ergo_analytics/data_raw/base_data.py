@@ -52,7 +52,8 @@ class BaseData(object):
     def number_of_points(self):
         return self._number_of_points
 
-    def _find_data_format_code(self, path=None):
+    @staticmethod
+    def _find_data_format_code(path=None):
         """Find correct data format codes to load data from path."""
 
         loaded = False
@@ -104,7 +105,10 @@ class BaseData(object):
         return all_data
 
     def retrieve_any_macaddress_with_data(
-        self, at_least_this_much_data_in_total=50, return_max_this_much_data=20
+        self,
+        at_least_this_much_data_in_total=50,
+        return_max_this_much_data=20,
+        force_rerun=False,
     ):
         """Used initially for /status endpoint: Get _any_ mac address with data for testing BSAFE.
 
@@ -127,7 +131,7 @@ class BaseData(object):
                 break
         need_cache_bust = _file is None
 
-        if not need_cache_bust:
+        if not need_cache_bust and not force_rerun:
             logger.debug("Cache hit on Athena query")
             # cache hit
             with fs.open(_file, "r") as fd:

@@ -1,0 +1,34 @@
+---
+# Iterate Labs' BSAFE scoring definition file.
+#
+# This file defines the settings used to score a given data file.
+# Test file created June 2020.
+# Iterate Labs, All rights reserved, patent pending
+
+scoring_definition:
+  force_rerun: true
+  data_pipeline:  # define the pipeline with filters
+    filters:
+      - type: Preprocess  # maps to BSAFE filter name
+        params:  # you can change the filter params here
+          force_new_timestamps: false  # in case timestamps are reset or similar, fix them here
+      - type: FixDateOscillations
+      - type: ConstructDeltaValues
+      - type: DataCentering
+      - type: QuadrantFilter
+  use_subsampling: true
+  randomize_subsampling: false
+  consecutive_subsamples: true  # [chunk1, chunk2, ...] process data in order and dont skip chunks
+  subsample_size_index: 50  # for every this many indices (~1 min if 600), create a timepoint for the score
+  combine_across_time: keep-separate  # keep-separate: [score1, score2, ...]; max: single score = max_i score_i; ...
+  exclude_angles:  # dont compute score for these angles
+    - roll
+  anchor_data_vs_time: false  # compute scores from chunk 1 through chunk j (true) or chunk j-1 to chunk j (false)
+  metrics:  # which metrics are we computing?
+    PostureScore:
+      percentile_middle: 50
+      combine_across_parameter: max
+      threshold_angle: 30
+    AngularActivityScore:
+      combine_across_parameter: max
+  widths: [4]  # width of the rolling window, we can try multiple and "combine_across_parameter"

@@ -145,8 +145,12 @@ class ErgoReport(object):
             # in this case, the score is the max over all chunks
             # we the first and last index is the very first data index and
             # the last index is the very last index:
-            first_data_index = self._ergo_metrics.get_first_data_index(chunk_index=0)
-            last_data_index = self._ergo_metrics.get_last_data_index(chunk_index=-1)
+            first_data_times = self._ergo_metrics.get_first_time(
+                chunk_index=0, as_string=True
+            )
+            last_data_times = self._ergo_metrics.get_last_time(
+                chunk_index=-1, as_string=True
+            )
 
         elif combine_across_time == "keep-separate":
 
@@ -162,21 +166,21 @@ class ErgoReport(object):
             posture_score = np.max(posture, axis=1).tolist()
 
             # in this case, we have the score vs time, so create the list of indices:
-            from_indices = []
-            till_indices = []
+            from_times = []
+            till_times = []
             for chunk_index in range(ergo_metrics.number_of_data_chunks):
-                this_first_data_index = self._ergo_metrics.get_first_data_index(
-                    chunk_index=chunk_index
+                this_first_time = self._ergo_metrics.get_first_time(
+                    chunk_index=chunk_index, as_string=True
                 )
-                this_last_data_index = self._ergo_metrics.get_last_data_index(
-                    chunk_index=chunk_index
+                this_last_time = self._ergo_metrics.get_last_time(
+                    chunk_index=chunk_index, as_string=True
                 )
 
-                from_indices.append(this_first_data_index)
-                till_indices.append(this_last_data_index)
+                from_times.append(this_first_time)
+                till_times.append(this_last_time)
 
-            first_data_index = from_indices
-            last_data_index = till_indices
+            first_data_times = from_times
+            last_data_times = till_times
         else:
             raise NotImplementedError("Implement me!")
 
@@ -216,8 +220,8 @@ class ErgoReport(object):
         analyzed_at_time = datetime.now().utcnow().isoformat()
         payload_dict["analyzed_at"] = str(analyzed_at_time)
 
-        payload_dict["first_data_index"] = first_data_index
-        payload_dict["last_data_index"] = last_data_index
+        payload_dict["first_data_times"] = first_data_times
+        payload_dict["last_data_times"] = last_data_times
 
         logger.info("Payload dict = {}".format(payload_dict))
 

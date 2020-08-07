@@ -19,25 +19,28 @@ from urllib.error import HTTPError
 from periodiq import cron
 from app.api_client import ApiClient
 from ergo_analytics import LoadElasticSearch
-from ergo_analytics import DataFilterPipeline
-from ergo_analytics.filters import FixDateOscillations
-from ergo_analytics.filters import DataCentering
-from ergo_analytics.filters import ConstructDeltaValues
-from ergo_analytics.filters import WindowOfRelevantDataFilter
-from ergo_analytics.filters import DataImputationFilter
-from ergo_analytics.filters import QuadrantFilter
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
-from ergo_analytics.metrics import AngularActivityScore
-from ergo_analytics.metrics import PostureScore
-
+from ergo_analytics.setup_utilities import (
+    parse_bsafe_yaml,
+    construct_datafilter_pipeline,
+    construct_metrics,
+)
 from .extensions import dramatiq
 
 logger = logging.getLogger()
 api_client = ApiClient()
 
 
-def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
+def run_BSAFE(
+    raw_data=None,
+    mac_address=None,
+    run_as_test=False,
+    with_format_code=None,
+    scoring_definition=None,
+    scoring_hash=None,
+    bsafe_setup_filename=None,
+):
     """Given raw data run BSAFE on the data."""
 
     if raw_data is None:
@@ -47,29 +50,83 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
     logger.info(
         f"Found {len(raw_data)} elements in " f"the ES database for {mac_address}."
     )
-    logger.info(raw_data.head(10))
+    logger.debug(raw_data.head(10))  # show some elements from the data found
+
+    if scoring_definition is None:
+        if bsafe_setup_filename is None:
+            raise ValueError("Please provide a valid BSAFE setup YAML file!")
+
+        scoring_definition, scoring_hash = parse_bsafe_setup_file(
+            bsafe_setup_filename=bsafe_setup_filename
+        )
+
+    if scoring_definition is None:
+        scoring_definition = dict()
+
+    # Construct Data Filter Pipeline from the YAML definition file:
+    pipeline = construct_datafilter_pipeline(scoring_definition=scoring_definition)
+    # Construct metrics as specified in the YAML definition file:
+    metrics, metrics_parameters = construct_metrics(
+        scoring_definition=scoring_definition
+    )
 
     num_data = len(raw_data)
     # take 10% as subsampling but not below 1 minute:
     subsample_size_index = ceil(max(num_data * 0.1, 600))
     logger.debug(f"Using {subsample_size_index} indices per subsample!")
 
-    # now pass the raw data through our data filter pipeline:
-    pipeline = DataFilterPipeline()
-    # instantiate the filters:
-    pipeline.add_filter(name="fix_osc", filter=FixDateOscillations())
-    # pipeline.add_filter(name='centering1', filter=DataCentering())
-    pipeline.add_filter(name="delta_values", filter=ConstructDeltaValues())
-    pipeline.add_filter(name="centering2", filter=DataCentering())
-    pipeline.add_filter(name="window", filter=WindowOfRelevantDataFilter())
-    pipeline.add_filter(name="impute", filter=DataImputationFilter())
-    pipeline.add_filter(name="quadrant_fix", filter=QuadrantFilter())
-    # run the pipeline!
-
     if run_as_test:
         raw_data.to_csv("log.csv", index=False)
 
-    list_of_structured_data_chunks = pipeline.run(on_raw_data=raw_data, **kwargs)
+    if raw_data is None:
+        raw_data = scoring_definition.get("on_raw_data", None)
+
+    if raw_data is None:
+        raise ValueError("Raw data is None!")
+
+    if with_format_code is None:
+        with_format_code = scoring_definition.get("with_format_code", None)
+
+    is_sorted = scoring_definition.get("is_sorted", True)
+    use_subsampling = scoring_definition.get("use_subsampling", False)
+    number_of_subsamples = scoring_definition.get("number_of_subsamples", 10)
+    randomize_subsampling = scoring_definition.get("randomize_subsampling", False)
+    consecutive_subsamples = scoring_definition.get("consecutive_subsamples", False)
+    subsample_size_index = scoring_definition.get("subsample_size_index", 1000)
+    debug = scoring_definition.get("debug", False)
+    debug_folder_prepend = scoring_definition.get("debug_folder_prepend", None)
+    anchor_data_vs_time = scoring_definition.get("anchor_data_vs_time", False)
+
+    _delete_keys(
+        [
+            "is_sorted",
+            "use_subsampling",
+            "number_of_subsamples",
+            "randomize_subsampling",
+            "consecutive_subsamples",
+            "subsample_size_index",
+            "debug",
+            "debug_folder_prepend",
+            "anchor_data_vs_time",
+            "with_format_code",
+        ],
+        scoring_definition,
+    )
+
+    list_of_structured_data_chunks = pipeline.run(
+        on_raw_data=raw_data,
+        with_format_code=with_format_code,
+        is_sorted=is_sorted,
+        use_subsampling=use_subsampling,
+        number_of_subsamples=number_of_subsamples,
+        randomize_subsampling=randomize_subsampling,
+        consecutive_subsamples=consecutive_subsamples,
+        subsample_size_index=subsample_size_index,
+        debug=debug,
+        debug_folder_prepend=debug_folder_prepend,
+        anchor_data_vs_time=anchor_data_vs_time,
+        **scoring_definition,
+    )
 
     em = None
     logger.info(f"Retrieved all data for {mac_address}")
@@ -77,10 +134,11 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
         logger.info(f"Has data to run analysis on for {mac_address}")
         em = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
         # add metrics to compute:
-        metrics = {"activity": AngularActivityScore, "posture": PostureScore}
         for m_name in metrics:
             em.add(metric=metrics[m_name])
-        em.compute()
+
+        em.compute(metrics_parameters=metrics_parameters, **scoring_definition)
+
         logger.info(f"Metrics generated for {mac_address}")
         # the report is set up in the context of a device and its
         # corresponding ergoMetrics data:
@@ -92,7 +150,7 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
             api_client=api_client,
             mac_address=mac_address,
             run_as_test=run_as_test,
-            **kwargs,
+            **scoring_definition,
         )
         logger.info(report.response)
         if not run_as_test:
@@ -105,7 +163,15 @@ def run_BSAFE(raw_data=None, mac_address=None, run_as_test=False, **kwargs):
 
     if run_as_test:
         if em is not None:
-            return max(em.get_score("AngularActivityScore")[0])
+            return max(
+                em.get_score("AngularActivityScore")[0]
+            )  # just put something for now
+
+
+def _delete_keys(keys, scoring_definition):
+    for key in keys:
+        if key in scoring_definition:
+            del scoring_definition[key]
 
 
 @dramatiq.actor(periodic=cron("*/15 * * * *"))
@@ -145,6 +211,22 @@ def automated_analysis():
         logger.error(f"Failure to send request {err}", exc_info=True)
 
 
+def parse_bsafe_setup_file(bsafe_setup_filename=None):
+    # LOAD YAML FILE FOR SETTINGS
+    if bsafe_setup_filename is None:
+        raise ValueError("Scoring Definition Filename is None!")
+
+    bsafe_setup_yaml = bsafe_setup_filename
+    if not os.path.isfile(bsafe_setup_yaml):
+        msg = "Please provide a valid BSAFE scoring definition file, not '{}'!".format(
+            bsafe_setup_yaml
+        )
+        raise ValueError(msg)
+
+    scoring_definition, scoring_hash = parse_bsafe_yaml(yamlfile=bsafe_setup_yaml)
+    return scoring_definition, scoring_hash
+
+
 @dramatiq.actor(max_retries=3)
 def safety_score_analysis(
     mac_address,
@@ -153,17 +235,16 @@ def safety_score_analysis(
     from_alias="cassia-data",
     find_alias_among_indexes="cassia-staging-*",
     run_as_test=False,
+    bsafe_setup_filename="bsafe_run_setup.yml",
 ):
     logger.info(f"Getting safety score for {mac_address}")
 
     index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
     host = os.getenv("ELASTIC_SEARCH_HOST")
 
-    # subsampling of the data:
-    how_to_combine_across_parameter = "average"  # note: cannot be "keep separate"
-    number_of_subsamples = 10
-    randomize_subsampling = False
-    use_subsampling = False
+    scoring_definition, scoring_hash = parse_bsafe_setup_file(
+        bsafe_setup_filename=bsafe_setup_filename
+    )
 
     data_loader = LoadElasticSearch()
     raw_data = data_loader.retrieve_data(
@@ -177,19 +258,53 @@ def safety_score_analysis(
         find_alias_among_indexes=find_alias_among_indexes,
     )
 
-    options = {
-        "use_subsampling": use_subsampling,
-        "randomize_subsampling": randomize_subsampling,
-        "number_of_subsamples": number_of_subsamples,
-        "combine_across_parameter": how_to_combine_across_parameter,
-    }
     run_BSAFE(
         raw_data=raw_data,
         mac_address=mac_address,
         run_as_test=run_as_test,
-        data_format_code=data_loader.data_format_code,
-        **options,
+        with_format_code=data_loader.data_format_code,
+        scoring_definition=scoring_definition,
+        scoring_hash=scoring_hash,
+        bsafe_setup_filename=bsafe_setup_filename,
     )
+
+
+def run_status():
+    """Created to more easily test the status endpoint"""
+
+    data_loader = LoadElasticSearch()
+    mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
+        at_least_this_much_data_in_total=50, return_max_this_much_data=20
+    )
+
+    logger.debug("Mac address found is: {}".format(mac_address))
+
+    if raw_data is None:
+        logger.warning(
+            f"/STATUS: Found no elements in the ES database for '{mac_address}' during status check."
+        )
+        return 500
+
+    scoring_definition, scoring_hash = parse_bsafe_setup_file(
+        bsafe_setup_filename="bsafe_run_setup.yml"
+    )
+
+    logger.debug("Running BSAFE on data!")
+    score = run_BSAFE(
+        raw_data=raw_data,
+        mac_address=mac_address,
+        run_as_test=True,
+        scoring_definition=scoring_definition,
+        scoring_hash=scoring_hash,
+        with_format_code=data_loader.data_format_code,
+    )
+
+    score_error = False
+    if score is None or not 0 <= score <= 7:
+        logger.warning("Score could not be computed by BSAFE!")
+        score_error = True
+
+    return 500 if score_error else 200
 
 
 @dramatiq.actor(max_retries=3)
@@ -202,44 +317,7 @@ def status():
         200 (int) if BSAFE works as expected.
         500 (int) if there are issues with BSAFE or the Elastic Search Database.
     """
-
-    data_loader = LoadElasticSearch()
-    mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
-        return_max_this_much_data=20
-    )
-
-    logger.debug("Mac address found is: {}".format(mac_address))
-
-    if raw_data is None:
-        logger.warning(
-            f"/STATUS: Found no elements in the ES database for '{mac_address}' during status check."
-        )
-        return 500
-
-    # subsampling of the data:
-    how_to_combine_across_parameter = "average"  # note: cannot be "keep separate"
-    number_of_subsamples = 10
-    randomize_subsampling = False
-    use_subsampling = False
-
-    options = {
-        "with_format_code": data_loader.data_format_code,
-        "use_subsampling": use_subsampling,
-        "randomize_subsampling": randomize_subsampling,
-        "number_of_subsamples": number_of_subsamples,
-        "combine_across_parameter": how_to_combine_across_parameter,
-    }
-    logger.debug("Running BSAFE on data!")
-    score = run_BSAFE(
-        raw_data=raw_data, mac_address=mac_address, run_as_test=True, **options
-    )
-
-    score_error = False
-    if score is None or not 0 <= score <= 7:
-        logger.warning("Score could not be computed by BSAFE!")
-        score_error = True
-
-    return 500 if score_error else 200
+    return run_status()
 
 
 if __name__ == "__main__":

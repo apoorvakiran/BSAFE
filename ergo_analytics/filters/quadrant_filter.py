@@ -10,8 +10,8 @@ Copyright 2018-
 import logging
 import numpy as np
 from constants import DATA_FORMAT_CODES
-from . import BaseTransformation
-from .. import rad_to_deg
+from ergo_analytics.filters import BaseTransformation
+from ergo_analytics.utilities import rad_to_deg
 
 __all__ = ["QuadrantFilter"]
 __author__ = "Iterate Labs, Inc."
@@ -46,7 +46,10 @@ class QuadrantFilter(BaseTransformation):
         units = self._params["units"]
 
         if not units or units not in ["deg", "rad"]:
-            raise Exception("Units '{}' not understood!\n" "Valid options: 'deg', 'rad'".format(units))
+            raise Exception(
+                "Units '{}' not understood!\n"
+                "Valid options: 'deg', 'rad'".format(units)
+            )
 
         columns_to_use = ["DeltaYaw", "DeltaPitch", "DeltaRoll"]
 
@@ -72,6 +75,8 @@ class QuadrantFilter(BaseTransformation):
         data_transformed = np.clip(this_data, a_min=-90, a_max=90)
 
         return (
-            self._update_data(data_transformed=data_transformed, columns_operated_on=columns_to_use),
+            self._update_data(
+                data_transformed=data_transformed, columns_operated_on=columns_to_use
+            ),
             {"updated": columns_to_use},
         )

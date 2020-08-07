@@ -113,6 +113,28 @@ class StructuredData(BaseStructuredData):
         """
         return self.get_data(type="yaw", loc="delta").index[-1]
 
+    def get_first_time(self, as_string=False):
+        """Return the first timestamp of the data.
+
+        :return:
+        """
+        _time = self.time.iloc[0]
+        if as_string:
+            return _time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return _time
+
+    def get_last_time(self, as_string=False):
+        """Return the last timestamp of the data.
+
+        :return:
+        """
+        _time = self.time.iloc[-1]
+        if as_string:
+            return _time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return _time
+
     def get_data(self, type="yaw", loc="delta"):
         """
         Returns data collected from the device.

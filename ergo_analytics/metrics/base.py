@@ -12,8 +12,8 @@ __version__ = "Alpha"
 
 __all__ = ["BaseScore"]
 
+import os
 import logging
-from numpy import array
 
 logger = logging.getLogger()
 
@@ -48,7 +48,10 @@ class BaseScore(object):
         """
 
         if delta_pitch is None and delta_yaw is None and delta_roll is None:
-            msg = "all incoming delta-angles are None!" "Returning just None for the score."
+            msg = (
+                "all incoming delta-angles are None!"
+                "Returning just None for the score."
+            )
             logger.debug(msg)
             return None
 
@@ -125,7 +128,9 @@ class BaseScore(object):
                 all_activities_this_width["roll"].append(ix_roll_activity)
 
             if debug:
-                collected_angles = dict(yaw=delta_yaw, pitch=delta_pitch, roll=delta_roll)
+                collected_angles = dict(
+                    yaw=delta_yaw, pitch=delta_pitch, roll=delta_roll
+                )
                 for angle_name in ("yaw", "pitch", "roll"):
                     if angle_name not in exclude_angles:
                         AngularActivityScore._plot_scoring(
@@ -138,8 +143,12 @@ class BaseScore(object):
                         )
 
             yaw_score = self._summarize_windows(values=all_activities_this_width["yaw"])
-            pitch_score = self._summarize_windows(values=all_activities_this_width["pitch"])
-            roll_score = self._summarize_windows(values=all_activities_this_width["roll"])
+            pitch_score = self._summarize_windows(
+                values=all_activities_this_width["pitch"]
+            )
+            roll_score = self._summarize_windows(
+                values=all_activities_this_width["roll"]
+            )
 
             all_activity_scores[width] = [yaw_score, pitch_score, roll_score]
 

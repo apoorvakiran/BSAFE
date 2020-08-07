@@ -21,6 +21,7 @@ from numpy import where
 from numpy.random import choice
 
 logger = logging.getLogger()
+BSAFE_PATH = "."
 
 
 def subsample_data(
@@ -76,7 +77,10 @@ def subsample_data(
         all_chunks = array_split(data, num_chunks_target)
         num_chunks = len(all_chunks)
 
-        logger.debug(f"Splitting data into {num_chunks} chunks! " f"(requested: {num_chunks_target})")
+        logger.debug(
+            f"Splitting data into {num_chunks} chunks! "
+            f"(requested: {num_chunks_target})"
+        )
 
         if consecutive_subsamples:
 
@@ -92,7 +96,10 @@ def subsample_data(
                     yield data.iloc[take_from : ix + subsample_size_index], dict()
                     ix += subsample_size_index
                     # we need to have at least enough data for the subsample:
-                    we_have_data_left = len(data.iloc[ix : ix + subsample_size_index]) >= subsample_size_index
+                    we_have_data_left = (
+                        len(data.iloc[ix : ix + subsample_size_index])
+                        >= subsample_size_index
+                    )
             else:
                 # return as many chunks as we can:
                 we_have_data_left = len(data) > 0
@@ -105,7 +112,9 @@ def subsample_data(
                     yield data.iloc[take_from : ix + subsample_size_index], dict()
                     ix += subsample_size_index
                     # any data left is ok
-                    we_have_data_left = len(data.iloc[ix : ix + subsample_size_index]) > 0
+                    we_have_data_left = (
+                        len(data.iloc[ix : ix + subsample_size_index]) > 0
+                    )
 
             return
 
@@ -149,7 +158,9 @@ def subsample_data(
             valid_start_indices = [0]
             replace = True  # there will have to be overlap
 
-        random_start_indices = choice(valid_start_indices, size=number_of_subsamples, replace=replace)
+        random_start_indices = choice(
+            valid_start_indices, size=number_of_subsamples, replace=replace
+        )
 
         for ix in random_start_indices:
             yield data.iloc[ix : ix + subsample_size_index], dict()

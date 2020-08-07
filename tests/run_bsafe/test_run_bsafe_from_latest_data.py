@@ -36,6 +36,9 @@ def test_run_bsafe_on_staging_data():
         assert True
         return
 
+    if raw_data is None:
+        return
+
     assert len(raw_data) <= _limit
 
     score = run_BSAFE(
@@ -43,6 +46,7 @@ def test_run_bsafe_on_staging_data():
         mac_address=mac_address,
         run_as_test=True,
         with_format_code=data_loader.data_format_code,
+        bsafe_setup_filename="bsafe_run_setup_test.yml",
     )
     assert score is not None
     assert 0 <= score <= 7
