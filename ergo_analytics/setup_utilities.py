@@ -64,9 +64,13 @@ def construct_metrics(scoring_definition=None):
 
 def get_bsafe_revision():
     """Return the current bsafe hash"""
-    repo = git.Repo(BSAFE_PATH)
-    sha = repo.head.object.hexsha  # commit sha of HEAD
-    assert sha is not None
+    try:
+        repo = git.Repo(BSAFE_PATH)
+        sha = repo.head.object.hexsha  # commit sha of HEAD
+        assert sha is not None
+    except Exception:
+        # can happen in deployment
+        sha = "n/a"
     return sha
 
 
