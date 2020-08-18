@@ -33,8 +33,8 @@ class AddDegrees(BaseTransformation):
         super().apply(data=data, **kwargs)
 
         params = self._params
-        if 'degrees' in params:
-            dict_add_this = params['degrees']  # {"Yaw[0]": 40, ...}
+        if "degrees" in params:
+            dict_add_this = params["degrees"]  # {"Yaw[0]": 40, ...}
         else:
             return data, {}
 
@@ -45,6 +45,7 @@ class AddDegrees(BaseTransformation):
                 data_transformed.loc[:, col] += dict_add_this[col]
                 operate_on_columns.append(col)
 
-        return self._update_data(data_transformed=data_transformed,
-                                 columns_operated_on=operate_on_columns), \
-               {'updated': operate_on_columns}
+        return (
+            self._update_data(data_transformed=data_transformed, columns_operated_on=operate_on_columns),
+            {"updated": operate_on_columns},
+        )

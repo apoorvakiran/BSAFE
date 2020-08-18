@@ -22,15 +22,15 @@ from ergo_analytics import ErgoReport
 from ergo_analytics.metrics import AngularActivityScore
 from ergo_analytics.metrics import PostureScore
 
-ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
+ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 
 
 def test_report():
 
-    data_format_code = '5'
-    test_data_path = os.path.join(ROOT_DIR, "Demos",
-                                  f"demo-format-{data_format_code}",
-                                  "data_small.csv")
+    data_format_code = "5"
+    test_data_path = os.path.join(
+        ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
+    )
     test_data = pd.read_csv(test_data_path)
 
     #
@@ -38,21 +38,22 @@ def test_report():
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
     pipeline.add_filter(name="quadrant", filter=QuadrantFilter())
 
-    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
-                                                  with_format_code=data_format_code,
-                                                  is_sorted=True,
-                                                  use_subsampling=True,
-                                                  subsample_size_index=8000,
-                                                  number_of_subsamples=4,
-                                                  randomize_subsampling=False)
+    list_of_structured_data_chunks = pipeline.run(
+        on_raw_data=test_data,
+        with_format_code=data_format_code,
+        is_sorted=True,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        number_of_subsamples=4,
+        randomize_subsampling=False,
+    )
 
     list_of_structured_data_chunks[1] = []
     list_of_structured_data_chunks[2] = None
 
-    metrics = ErgoMetrics(
-        list_of_structured_data_chunks=list_of_structured_data_chunks)
-    metrics.add(AngularActivityScore, name='activity')
-    metrics.add(PostureScore, name='posture')
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    metrics.add(AngularActivityScore)
+    metrics.add(PostureScore)
     metrics.compute()
 
     reporter = ErgoReport(ergo_metrics=metrics)
@@ -63,10 +64,10 @@ def test_report():
 
 def test_http():
 
-    data_format_code = '5'
-    test_data_path = os.path.join(ROOT_DIR, "Demos",
-                                  f"demo-format-{data_format_code}",
-                                  "data_small.csv")
+    data_format_code = "5"
+    test_data_path = os.path.join(
+        ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
+    )
     test_data = pd.read_csv(test_data_path)
 
     #
@@ -74,18 +75,19 @@ def test_http():
     pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
     pipeline.add_filter(name="quadrant", filter=QuadrantFilter())
 
-    list_of_structured_data_chunks = pipeline.run(on_raw_data=test_data,
-                                                  with_format_code=data_format_code,
-                                                  is_sorted=True,
-                                                  use_subsampling=True,
-                                                  subsample_size_index=8000,
-                                                  number_of_subsamples=4,
-                                                  randomize_subsampling=False)
+    list_of_structured_data_chunks = pipeline.run(
+        on_raw_data=test_data,
+        with_format_code=data_format_code,
+        is_sorted=True,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        number_of_subsamples=4,
+        randomize_subsampling=False,
+    )
 
-    metrics = ErgoMetrics(
-        list_of_structured_data_chunks=list_of_structured_data_chunks)
-    metrics.add(AngularActivityScore, name='activity')
-    metrics.add(PostureScore, name='posture')
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    metrics.add(AngularActivityScore)
+    metrics.add(PostureScore)
     metrics.compute()
 
     reporter = ErgoReport(ergo_metrics=metrics)
@@ -95,22 +97,22 @@ def test_http():
 
     # here we check that the payload is OK:
     # make sure all keys are as expected:
-    assert 'speed_yaw_score' in payload
-    assert 'speed_pitch_score' in payload
-    assert 'speed_roll_score' in payload
-    assert 'speed_score' in payload
+    assert "speed_yaw_score" in payload
+    assert "speed_pitch_score" in payload
+    assert "speed_roll_score" in payload
+    assert "speed_score" in payload
     #
-    assert 'posture_yaw_score' in payload
-    assert 'posture_pitch_score' in payload
-    assert 'posture_roll_score' in payload
-    assert 'posture_score' in payload
+    assert "posture_yaw_score" in payload
+    assert "posture_pitch_score" in payload
+    assert "posture_roll_score" in payload
+    assert "posture_score" in payload
     #
-    assert 'strain_yaw_score' in payload
-    assert 'strain_pitch_score' in payload
-    assert 'strain_roll_score' in payload
-    assert 'strain_score' in payload
+    assert "strain_yaw_score" in payload
+    assert "strain_pitch_score" in payload
+    assert "strain_roll_score" in payload
+    assert "strain_score" in payload
     #
-    assert 'safety_score' in payload
+    assert "safety_score" in payload
     #
-    assert 'start_time' in payload
-    assert 'end_time' in payload
+    assert "start_time" in payload
+    assert "end_time" in payload

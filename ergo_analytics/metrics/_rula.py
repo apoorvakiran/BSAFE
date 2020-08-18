@@ -13,8 +13,8 @@ __version__ = "Alpha"
 import numpy as np
 import matplotlib
 
-font = {'family': 'normal', 'size': 12}
-matplotlib.rc('font', **font)
+font = {"family": "normal", "size": 12}
+matplotlib.rc("font", **font)
 
 
 class Rula(object):
@@ -43,61 +43,63 @@ class Rula(object):
             time, scores_roll = self._construct_roll_rula(experiment=experiment)
             self._summarize_rula(scores=scores_roll, exp_ix=exp_ix)
 
-            time, scores_yaw = self._construct_rula_scores(type='yaw', experiment=experiment)
+            time, scores_yaw = self._construct_rula_scores(type="yaw", experiment=experiment)
 
             # PITCH:
-            time, scores_pitch = self._construct_rula_scores(type='pitch', experiment=experiment)
+            time, scores_pitch = self._construct_rula_scores(type="pitch", experiment=experiment)
 
             # ROLL:
-            time, scores_roll = self._construct_rula_scores(type='roll', experiment=experiment)
+            time, scores_roll = self._construct_rula_scores(type="roll", experiment=experiment)
 
-            scores_roll.loc[(np.abs(scores_roll[0]) < 15), 'scores'] = 1
-            scores_roll.loc[(np.abs(scores_roll[0]) >= 15), 'scores'] = 2
+            scores_roll.loc[(np.abs(scores_roll[0]) < 15), "scores"] = 1
+            scores_roll.loc[(np.abs(scores_roll[0]) >= 15), "scores"] = 2
 
             # total score:
             total_scores = scores_yaw.copy()
-            total_scores['total'] = scores_yaw['scores'] + scores_pitch['scores'] + scores_roll['scores']
+            total_scores["total"] = scores_yaw["scores"] + scores_pitch["scores"] + scores_roll["scores"]
 
             if plt is None:
                 import matplotlib.pyplot as plt
                 import seaborn as sns
+
                 plt.figure()
                 sns.set(style="whitegrid")
 
-            total_scores['exp'] = exp_ix
+            total_scores["exp"] = exp_ix
 
             all_scores.append(total_scores)
 
             plt.subplot(211)
-            plt.hist(total_scores['total'], bins=20, label=experiment.name)
-            plt.hist(total_scores['total'], bins=20, alpha=0.4, label=experiment.name)
-            plt.xlabel('RULA score')
-            plt.ylabel('count')
+            plt.hist(total_scores["total"], bins=20, label=experiment.name)
+            plt.hist(total_scores["total"], bins=20, alpha=0.4, label=experiment.name)
+            plt.xlabel("RULA score")
+            plt.ylabel("count")
             plt.grid()
 
             plt.subplot(212)
-            plt.plot(total_scores.index, total_scores['total'], '.')
-            plt.xlabel('time')
-            plt.ylabel('RULA score')
+            plt.plot(total_scores.index, total_scores["total"], ".")
+            plt.xlabel("time")
+            plt.ylabel("RULA score")
             plt.grid()
 
         plt.subplot(211)
-        plt.legend(loc='best')
+        plt.legend(loc="best")
         plt.show()
 
         import pandas as pd
+
         all_scores = pd.concat(all_scores)
 
         plt.figure()
-        for exp, (gix, gdata) in zip(experiments, all_scores.groupby('exp')):
-            plt.hist(gdata['total'], label=exp.name)
-            plt.xlabel('RULA')
-            plt.ylabel('counts')
-            print(gdata['total'].median())
+        for exp, (gix, gdata) in zip(experiments, all_scores.groupby("exp")):
+            plt.hist(gdata["total"], label=exp.name)
+            plt.xlabel("RULA")
+            plt.ylabel("counts")
+            print(gdata["total"].median())
 
         plt.grid()
-        plt.legend(loc='best')
-        plt.savefig('rula.png')
+        plt.legend(loc="best")
+        plt.savefig("rula.png")
 
         # TODO: Maybe the RULA should be defined slightly differently.
         # maybe saying "if the hand is beyond certain angle for so much time
@@ -108,27 +110,27 @@ class Rula(object):
 
         plt.figure()
         all_data = []
-        for exp, (gix, gdata) in zip(experiments, all_scores.groupby('exp')):
+        for exp, (gix, gdata) in zip(experiments, all_scores.groupby("exp")):
 
-            this_data = gdata['total'].iloc[2150:2180]
-            plt.plot(this_data, '-', label=exp.name, linewidth=2)
+            this_data = gdata["total"].iloc[2150:2180]
+            plt.plot(this_data, "-", label=exp.name, linewidth=2)
 
-            plt.xlabel('time [.]')
-            plt.ylabel('RULA')
+            plt.xlabel("time [.]")
+            plt.ylabel("RULA")
 
             all_data.append(this_data)
 
-            print('*' * 12)
+            print("*" * 12)
             print(exp.name)
 
         compute_average = pd.concat(all_data, axis=1)
         compute_average = compute_average.mean(axis=1)
 
-        plt.plot(compute_average, 'k--', label='avg', linewidth=2)
+        plt.plot(compute_average, "k--", label="avg", linewidth=2)
 
-        plt.grid('on')
-        plt.legend(loc='best')
-        plt.savefig('rula_vs_time.png')
+        plt.grid("on")
+        plt.legend(loc="best")
+        plt.savefig("rula_vs_time.png")
 
     def _summarize_rula(self, scores=None, exp_ix=None, threshold_degrees=15):
         """
@@ -140,10 +142,10 @@ class Rula(object):
         """
         print("=== Experiment {} ===".format(exp_ix))
         print("Analysis:")
-        print('Median = {}'.format(scores['scores'].median()))
+        print("Median = {}".format(scores["scores"].median()))
         perc = (np.abs(scores[0]) > threshold_degrees).sum() / scores[0].count() * 100
-        print('% > {} = {}'.format(threshold_degrees, perc))
-        print('time > {} = {} min.'.format(threshold_degrees, len(scores) / 2 * perc / 100 / 60))
+        print("% > {} = {}".format(threshold_degrees, perc))
+        print("time > {} = {} min.".format(threshold_degrees, len(scores) / 2 * perc / 100 / 60))
 
     def _construct_roll_rula(self, experiment=None):
 
@@ -156,8 +158,8 @@ class Rula(object):
         from_ = time.index[0]
         till_ = time.index[-1]
 
-        yaw_hand = experiment.get_data(type='yaw', loc='hand')
-        yaw_wrist = experiment.get_data(type='yaw', loc='wrist')
+        yaw_hand = experiment.get_data(type="yaw", loc="hand")
+        yaw_wrist = experiment.get_data(type="yaw", loc="wrist")
 
         time = time.iloc[from_:till_]
 
@@ -170,39 +172,42 @@ class Rula(object):
         delta_yaw = np.clip(delta_yaw, lo, hi)
 
         scores = delta_yaw.to_frame()
-        scores['scores'] = 0
+        scores["scores"] = 0
 
-        scores.loc[(np.abs(delta_yaw) <= 15), 'scores'] = 1
-        scores.loc[(np.abs(delta_yaw) > 15), 'scores'] = 2
+        scores.loc[(np.abs(delta_yaw) <= 15), "scores"] = 1
+        scores.loc[(np.abs(delta_yaw) > 15), "scores"] = 2
 
         return time, scores
 
     def _construct_yaw_rula(self, experiment=None):
 
         import pdb
+
         pdb.set_trace()
 
         import matplotlib.pyplot as plt
         import seaborn as sns
+
         plt.figure()
         sns.set(style="whitegrid")
 
-        sns.barplot(x="total", y='exp', hue="exp", data=all_scores)
+        sns.barplot(x="total", y="exp", hue="exp", data=all_scores)
 
         plt.show()
 
         import pdb
+
         pdb.set_trace()
 
-    def _construct_rula_scores(self, type='yaw', experiment=None, levels=None, scores=None, time=None):
+    def _construct_rula_scores(self, type="yaw", experiment=None, levels=None, scores=None, time=None):
 
         time = experiment.time
 
         from_ = time.index[0]
         till_ = time.index[-1]
 
-        yaw_hand = experiment.get_data(type='yaw', loc='hand')
-        yaw_wrist = experiment.get_data(type='yaw', loc='wrist')
+        yaw_hand = experiment.get_data(type="yaw", loc="hand")
+        yaw_wrist = experiment.get_data(type="yaw", loc="wrist")
 
         time = time.iloc[from_:till_]
 
@@ -215,10 +220,10 @@ class Rula(object):
         delta_yaw = np.clip(delta_yaw, lo, hi)
 
         scores = delta_yaw.to_frame()
-        scores['scores'] = 0
+        scores["scores"] = 0
 
-        scores.loc[(np.abs(delta_yaw) <= 5), 'scores'] = 0
-        scores.loc[(np.abs(delta_yaw) > 5), 'scores'] = 1
+        scores.loc[(np.abs(delta_yaw) <= 5), "scores"] = 0
+        scores.loc[(np.abs(delta_yaw) > 5), "scores"] = 1
 
         return time, scores
 
@@ -229,10 +234,10 @@ class Rula(object):
         from_ = time.index[0]
         till_ = time.index[-1]
 
-        yaw_hand = experiment.get_data(type='pitch', loc='hand')
-        yaw_wrist = experiment.get_data(type='pitch', loc='wrist')
-        yaw_hand = experiment.get_data(type=type, loc='hand')
-        yaw_wrist = experiment.get_data(type=type, loc='wrist')
+        yaw_hand = experiment.get_data(type="pitch", loc="hand")
+        yaw_wrist = experiment.get_data(type="pitch", loc="wrist")
+        yaw_hand = experiment.get_data(type=type, loc="hand")
+        yaw_wrist = experiment.get_data(type=type, loc="wrist")
 
         time = time.iloc[from_:till_]
 
@@ -245,10 +250,10 @@ class Rula(object):
         delta_yaw = np.clip(delta_yaw, lo, hi)
 
         scores = delta_yaw.to_frame()
-        scores['scores'] = 0
+        scores["scores"] = 0
 
-        scores.loc[(np.abs(delta_yaw) <= 5), 'scores'] = 1
-        scores.loc[(np.abs(delta_yaw) > 5) & (np.abs(delta_yaw) <= 15), 'scores'] = 2
-        scores.loc[(np.abs(delta_yaw) > 15), 'scores'] = 3
+        scores.loc[(np.abs(delta_yaw) <= 5), "scores"] = 1
+        scores.loc[(np.abs(delta_yaw) > 5) & (np.abs(delta_yaw) <= 15), "scores"] = 2
+        scores.loc[(np.abs(delta_yaw) > 15), "scores"] = 3
 
         return time, scores

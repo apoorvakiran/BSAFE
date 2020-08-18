@@ -17,10 +17,17 @@ import elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 from requests_aws4auth import AWS4Auth
+import yaml
 from constants import *
-from . import BaseData
+from ergo_analytics.data_raw import BaseData
 
 logger = logging.getLogger()
+try:
+    with open("settings.yml", "r") as fd:
+        config = yaml.load(fd)
+except FileNotFoundError:
+    logger.warning("Could not find the 'settings.yml' file in the repo root!")
+    config = dict()
 
 
 class LoadElasticSearch(BaseData):
@@ -39,8 +46,18 @@ class LoadElasticSearch(BaseData):
 
         logger.info("Data loading with Elastic Search object created!")
 
-    def retrieve_data(self, mac_address=None, start_time=None, end_time=None,
-                      host=None, index=None, data_format_code='3'):
+    def retrieve_data(
+        self,
+        mac_address=None,
+        start_time=None,
+        end_time=None,
+        from_alias="cassia-data",
+        find_alias_among_indexes="cassia-staging-*",
+        host=None,
+        index=None,
+        data_format_code=None,
+        limit=None,
+    ):
         """
         Retrieves the data from the Elastic Search database specified
         by "host". See the example under our "Test" folder for more details
@@ -55,47 +72,80 @@ class LoadElasticSearch(BaseData):
         :param host:
         :param data_format_code: Which data format code are we using? This
         determines how the data is streaming in (such as, which order etc.)
+        :param limit: should the number of returned data points be ceiled at limit?
         :return:
         """
 
         if not start_time or not end_time:
-            raise Exception("Please provide both the start_time and the "
-                            "end_time parameters!")
+            raise Exception(
+                "Please provide both the start_time and the " "end_time parameters!"
+            )
 
         if host is None:
             # used locally
             host = ["localhost:9200"]
-            es = Elasticsearch(hosts=host,
-                           use_ssl=False,
-                           verify_certs=False)
+            es = Elasticsearch(hosts=host, use_ssl=False, verify_certs=False)
         else:
             # used in staging and production on AWS to connect to ES
             # cluster on AWS:
-            awsauth = AWS4Auth(os.getenv('AWS_ACCESS_KEY'),
-                               os.getenv('AWS_SECRET_KEY'),
-                               os.getenv('AWS_REGION'), 'es')
+            awsauth = AWS4Auth(
+                os.getenv("ES_AWS_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY")),
+                os.getenv("ES_AWS_SECRET_KEY", os.getenv("AWS_SECRET_KEY")),
+                os.getenv("ES_AWS_REGION", os.getenv("AWS_REGION")),
+                "es",
+            )
             es = Elasticsearch(
-                hosts=[{'host': host, 'port': 443}],
+                hosts=[{"host": host, "port": 443}],
                 http_auth=awsauth,
                 use_ssl=True,
                 verify_certs=True,
-                connection_class=RequestsHttpConnection
+                connection_class=RequestsHttpConnection,
             )
 
+        if from_alias is not None:
+            # we are using alias with elastic search
+            # look for the given alias:
+            if find_alias_among_indexes is None:
+                find_alias_among_indexes = "*"
+
+            search_indices = es.indices.get_alias(find_alias_among_indexes)
+            matching_indices = []
+            for sind in search_indices:
+                if from_alias in search_indices[sind]["aliases"]:
+                    # we found the index with this alias
+                    matching_indices.append(sind)
+
+            if len(matching_indices) == 0:
+                raise Exception(
+                    "Error: The elastic search alias '{}' was not found!".format(
+                        from_alias
+                    )
+                )
+
+            index = matching_indices
+            msg = "Success! Found index(es) via alias as: '{}'".format(index)
+            print(msg)
+            logger.debug(msg)
+
         logger.debug("Established connection to the Elastic Search database.")
+        logger.debug("Searching indexes: '{}'".format(index))
 
         data_all_devices = []
         try:
-            search = Search(using=es, index=index).query("match",
-                            device__keyword=mac_address).query("range",
-                                        **{"received_timestamp":
-                                            {"gte": start_time,
-                                             "lte": end_time}
-                                        }).sort('received_timestamp')
-            search.count()  # used to test connection
+            search = (
+                Search(using=es, index=",".join(list(np.atleast_1d(index))))
+                .query("match", device__keyword=mac_address)
+                .query(
+                    "range",
+                    **{"received_timestamp": {"gte": start_time, "lte": end_time}},
+                )
+                .sort("received_timestamp")
+            )
+            _count = search.count()  # used to test connection
         except elasticsearch.exceptions.ConnectionError as e:
-            msg = "\nCommon Cause: Have you started the Elasticnet database server?\n"
-            msg += "The error was: {}".format(e)
+            msg = "Elastic Search Connection Issue!"
+            msg += "\nCommon Cause: Have you started the Elasticnet database server?\n"
+            msg += "The error was: '{}'".format(e)
             logger.exception(msg)
             raise Exception(msg)
 
@@ -104,7 +154,12 @@ class LoadElasticSearch(BaseData):
             logger.info("No documents found for device {}".format(mac_address))
             return None
 
-        for hit in search.params(preserve_order=True).scan():
+        if _count > 50000:
+            logger.warning("Warning: You are searching a lot of indexes!")
+
+        _search = search.params(preserve_order=True, raise_on_error=False)
+
+        for ix, hit in enumerate(_search.scan()):
 
             # data is stored in the value key on elasticsearch
             # elastic search data never has date in "value":
@@ -114,65 +169,117 @@ class LoadElasticSearch(BaseData):
             # BSAFE loads the data as "time + values" in _load_datum(...):
             # data = [f"{hit['timestamp']}, {hit['value']}",
             #         hit['device'], hit['timestamp']]
-            data = [f"{hit['received_timestamp']}, {hit['value']}",
-                    hit['device'], hit['received_timestamp'], hit['wearable_timestamp']]
+            data = [
+                f"{hit['received_timestamp']}, {hit['value']}",
+                hit["device"],
+                hit["received_timestamp"],
+                hit["wearable_timestamp"],
+            ]
             # new format: received_timestamp is when cassia received the data
             # we also have wearable_timestamp which can be used to sort the data
             device_data.append(data)
 
         device_df = pd.DataFrame(device_data)
-        device_df.columns = ['value', 'device', 'received_timestamp', 'wearable_timestamp']
-        logger.info("{} documents found for this device.".format(len(device_df),
-                                                            mac_address))
+        device_df.columns = [
+            "value",
+            "device",
+            "received_timestamp",
+            "wearable_timestamp",
+        ]
+        logger.info(
+            "{} documents found for this device.".format(len(device_df), mac_address)
+        )
         data_all_devices.append(device_df)
 
         logger.info(device_df.head(10))
 
         if len(data_all_devices) > 0:
 
-            # get the correct data format code:
-            try:
-                data_format_code = str(data_format_code)
-            except Exception:
-                raise Exception("Please provide a valid data format code!")
-
             all_data = []
-            data = pd.concat(data_all_devices, axis=0)['value'].values
-            for datum in data:
-
-                datapoint = self._load_datum(datum=datum,
-                                             data_format_code=data_format_code)
+            data = pd.concat(data_all_devices, axis=0)["value"].values
+            for ix, datum in enumerate(data):
+                datapoint, data_format_code = self._load_datum(
+                    datum=datum, data_format_code=data_format_code
+                )
 
                 if datapoint is None:
-                    continue
+                    continue  # skip
 
                 all_data.append(datapoint)
+
+                if limit is not None and ix >= limit - 1:
+                    break
 
             all_data = pd.concat(all_data)
 
             # cast data types once:
-            all_data = self._cast_to_correct_types(all_data=all_data,
-                                            data_format_code=data_format_code)
+            all_data = self._cast_to_correct_types(
+                all_data=all_data, data_format_code=data_format_code
+            )
 
             return all_data
 
-    @staticmethod
-    def _load_datum(datum=None, data_format_code=None):
+    def _load_datum(self, datum=None, data_format_code=None):
         """
         Loads a datum sent from the wearable.
 
         :param datum: The datum to load from the device.
-        :return: date, numeric values, flag_load_ok
+        :return: data and the data format code (can change if incoming is incorrect).
         """
-        names = DATA_FORMAT_CODES[data_format_code]['NAMES']
+        if data_format_code is not None:
+            names = DATA_FORMAT_CODES[data_format_code]["NAMES"]
+        else:
+            if self._data_column_names is not None:
+                names = self._data_column_names
+            else:
+                names = DATA_FORMAT_CODES["1"]["NAMES"]  # try something at first
+
         try:
-            datum = datum.rstrip('\n').rstrip('\r').rstrip('\r').rstrip('\n')
-            datum = np.asarray(datum.split(','))
+            datum = datum.rstrip("\n").rstrip("\r").rstrip("\r").rstrip("\n")
+            datum = np.asarray(datum.split(","))
 
-            data = pd.DataFrame(data=np.atleast_2d(datum).reshape(1,
-                                                                  len(names)),
-                                columns=names)
-        except Exception:
-            return None
+            data = pd.DataFrame(
+                data=np.atleast_2d(datum).reshape(1, len(names)), columns=names
+            )
+        except ValueError as vale:
+            logger.warning(
+                "When loading the data from ES, this error was raised: {}".format(vale)
+            )
+            logger.info("Trying to guess the data format code now!")
 
-        return data
+            # try finding the right data format code:
+            data = None
+            for new_data_format_code in DATA_FORMAT_CODES:
+                new_names = DATA_FORMAT_CODES[new_data_format_code]["NAMES"]
+                try:
+                    data = pd.DataFrame(
+                        data=np.atleast_2d(datum).reshape(1, len(new_names)),
+                        columns=new_names,
+                    )
+                    break  # we found it, stop on first hit (assumption)
+                except ValueError as vale:
+                    logger.warning("Tried '{}' but not correct.".format(vale))
+                    pass
+
+            if data is None:
+                return None, "Please provide the correct Data Format Code!"
+
+            logger.info(
+                "Found the data format code to be: {}".format(new_data_format_code)
+            )
+            self._data_format_code = new_data_format_code
+            return data, new_data_format_code
+
+        except Exception as e:
+            logger.warning("Error loading data! The error is: '{}'".format(e))
+            return None, None
+
+        self._data_format_code = data_format_code
+        return data, data_format_code
+
+
+if __name__ == "__main__":
+    es = LoadElasticSearch()
+    mac, data = es.retrieve_any_macaddress_with_data()
+    print(mac)
+    print(data)

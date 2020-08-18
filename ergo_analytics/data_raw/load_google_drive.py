@@ -26,12 +26,9 @@ from . import BaseData
 
 
 class LoadGoogleDrive(BaseData):
-
     def __init__(self, local_path=None):
 
         super().__init__()
-
-
 
         import os
         from pydrive.auth import GoogleAuth
@@ -44,13 +41,14 @@ class LoadGoogleDrive(BaseData):
         drive = GoogleDrive(gauth)
 
         # choose a local directory to store the data.
-        local_download_path = os.path.expanduser('~/{}'.format(local_path))
+        local_download_path = os.path.expanduser("~/{}".format(local_path))
         try:
             os.makedirs(local_download_path)
         except:
             pass
 
         import pdb
+
         pdb.set_trace()
 
     def download_from_google_drive(self, path=None, destination=None):
@@ -65,11 +63,11 @@ class LoadGoogleDrive(BaseData):
         URL = "https://docs.google.com/uc?export=download"
         session = requests.Session()
 
-        response = session.get(URL, params={'id': file_id}, stream=True)
+        response = session.get(URL, params={"id": file_id}, stream=True)
         token = self.get_confirm_token(response)
 
         if token:
-            params = {'id': id, 'confirm': token}
+            params = {"id": id, "confirm": token}
             response = session.get(URL, params=params, stream=True)
 
         self.save_response_content(response, destination)
@@ -78,7 +76,7 @@ class LoadGoogleDrive(BaseData):
 
     def get_confirm_token(self, response=None):
         for key, value in response.cookies.items():
-            if key.startswith('download_warning'):
+            if key.startswith("download_warning"):
                 return value
 
         return None
@@ -100,4 +98,4 @@ class LoadGoogleDrive(BaseData):
         if full_url is None:
             raise Exception("The URL is None! Please provide a valid URL!")
 
-        return full_url.split('id')[1][1:]
+        return full_url.split("id")[1][1:]

@@ -21,12 +21,20 @@ from numpy import where
 from numpy.random import choice
 
 logger = logging.getLogger()
+BSAFE_PATH = "."
 
 
-def subsample_data(data=None, number_of_subsamples=100,
-                   use_subsampling=True, consecutive_subsamples=False,
-                   subsample_size_index=1000, randomize=True,
-                   exact_chunk_size=True, anchor_data_vs_time=False, **kwargs):
+def subsample_data(
+    data=None,
+    number_of_subsamples=100,
+    use_subsampling=True,
+    consecutive_subsamples=False,
+    subsample_size_index=1000,
+    randomize=True,
+    exact_chunk_size=True,
+    anchor_data_vs_time=False,
+    **kwargs,
+):
     """
     This is a utility which can create chunks of data in various useful
     formats including support for randomization.
@@ -71,7 +79,8 @@ def subsample_data(data=None, number_of_subsamples=100,
 
         logger.debug(
             f"Splitting data into {num_chunks} chunks! "
-            f"(requested: {num_chunks_target})")
+            f"(requested: {num_chunks_target})"
+        )
 
         if consecutive_subsamples:
 
@@ -84,10 +93,13 @@ def subsample_data(data=None, number_of_subsamples=100,
                     # anchor the data to always start at zero?
                     take_from = 0 if anchor_data_vs_time else ix
 
-                    yield data.iloc[take_from:ix + subsample_size_index], dict()
+                    yield data.iloc[take_from : ix + subsample_size_index], dict()
                     ix += subsample_size_index
                     # we need to have at least enough data for the subsample:
-                    we_have_data_left = len(data.iloc[ix:ix + subsample_size_index]) >= subsample_size_index
+                    we_have_data_left = (
+                        len(data.iloc[ix : ix + subsample_size_index])
+                        >= subsample_size_index
+                    )
             else:
                 # return as many chunks as we can:
                 we_have_data_left = len(data) > 0
@@ -97,10 +109,12 @@ def subsample_data(data=None, number_of_subsamples=100,
                     # anchor the data to always start at zero?
                     take_from = 0 if anchor_data_vs_time else ix
 
-                    yield data.iloc[take_from:ix + subsample_size_index], dict()
+                    yield data.iloc[take_from : ix + subsample_size_index], dict()
                     ix += subsample_size_index
                     # any data left is ok
-                    we_have_data_left = len(data.iloc[ix:ix + subsample_size_index]) > 0
+                    we_have_data_left = (
+                        len(data.iloc[ix : ix + subsample_size_index]) > 0
+                    )
 
             return
 
@@ -132,8 +146,7 @@ def subsample_data(data=None, number_of_subsamples=100,
         # draw a random number in the range [0, len(data) - sample_size]:
 
         valid_start_indices = arange(len(data))
-        cut_ix = where(valid_start_indices ==
-                       len(data) - subsample_size_index)[0]
+        cut_ix = where(valid_start_indices == len(data) - subsample_size_index)[0]
 
         if len(cut_ix) > 0:
             cut_ix = cut_ix[0]
@@ -145,12 +158,12 @@ def subsample_data(data=None, number_of_subsamples=100,
             valid_start_indices = [0]
             replace = True  # there will have to be overlap
 
-        random_start_indices = choice(valid_start_indices,
-                                      size=number_of_subsamples,
-                                      replace=replace)
+        random_start_indices = choice(
+            valid_start_indices, size=number_of_subsamples, replace=replace
+        )
 
         for ix in random_start_indices:
-            yield data.iloc[ix:ix + subsample_size_index], dict()
+            yield data.iloc[ix : ix + subsample_size_index], dict()
 
 
 def is_numeric(val):

@@ -41,7 +41,7 @@ class BaseTransformation(object):
     def _initialize_params(self):
         """Each filter implements its own set of
         default parameters."""
-        self._params = dict(data_format_code='5')
+        self._params = dict(data_format_code=None)
 
     def apply(self, data=None, parameters=None):
         self._initial_data = data
@@ -62,8 +62,9 @@ class BaseTransformation(object):
 
         self._params.update(**new_params)
 
-    def _update_data(self, data_transformed=None, row_operation=False,
-                     columns_operated_on=None):
+    def _update_data(
+        self, data_transformed=None, row_operation=False, columns_operated_on=None
+    ):
         """
         Makes sure to update the incoming data to the transformed data
         but leave incoming columns in place and potentially add new columns.

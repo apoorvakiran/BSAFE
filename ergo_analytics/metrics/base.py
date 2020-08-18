@@ -12,21 +12,28 @@ __version__ = "Alpha"
 
 __all__ = ["BaseScore"]
 
+import os
 import logging
-from numpy import array
 
 logger = logging.getLogger()
 
 
 class BaseScore(object):
-
     def __init__(self):
         pass
 
-    def compute(self, delta_pitch=None, delta_yaw=None,
-                delta_roll=None, exclude_angles=None, debug=True,
-                store_plots_here=None, prepend=None, widths=None,
-                **kwargs):
+    def compute(
+        self,
+        delta_pitch=None,
+        delta_yaw=None,
+        delta_roll=None,
+        exclude_angles=None,
+        debug=True,
+        store_plots_here=None,
+        prepend=None,
+        widths=None,
+        **kwargs,
+    ):
         """Computes the Activity score. This is a score which captures the change-
         in angle vs. time. If this occurs faster the assumption is that there
         is an associated lower level of ergonomics.
@@ -41,14 +48,16 @@ class BaseScore(object):
         """
 
         if delta_pitch is None and delta_yaw is None and delta_roll is None:
-            msg = "all incoming delta-angles are None!" \
-                  "Returning just None for the score."
+            msg = (
+                "all incoming delta-angles are None!"
+                "Returning just None for the score."
+            )
             logger.debug(msg)
             return None
 
         if debug:
             if store_plots_here is None:
-                store_plots_here = '~'
+                store_plots_here = "~"
 
             store_plots_here = os.path.abspath(os.path.expanduser(store_plots_here))
             if os.path.isdir(store_plots_here):
@@ -81,59 +90,65 @@ class BaseScore(object):
                 if this_window_end >= len(delta_yaw):
                     break
 
-                if 'yaw' not in exclude_angles:
+                if "yaw" not in exclude_angles:
                     ix_yaw_activity = self._compute_single_window(
                         angles=delta_yaw,
                         delta_time=delta_time,
                         window_start=this_window_start,
                         window_end=this_window_end,
-                        **kwargs
+                        **kwargs,
                     )
                 else:
                     ix_yaw_activity = 0
 
-                if 'pitch' not in exclude_angles:
+                if "pitch" not in exclude_angles:
                     ix_pitch_activity = self._compute_single_window(
                         angles=delta_pitch,
                         delta_time=delta_time,
                         window_start=this_window_start,
                         window_end=this_window_end,
-                        **kwargs
+                        **kwargs,
                     )
                 else:
                     ix_pitch_activity = 0
 
-                if 'roll' not in exclude_angles:
+                if "roll" not in exclude_angles:
                     ix_roll_activity = self._compute_single_window(
                         angles=delta_roll,
                         delta_time=delta_time,
                         window_start=this_window_start,
                         window_end=this_window_end,
-                        **kwargs
+                        **kwargs,
                     )
                 else:
                     ix_roll_activity = 0
 
-                all_activities_this_width['yaw'].append(ix_yaw_activity)
-                all_activities_this_width['pitch'].append(ix_pitch_activity)
-                all_activities_this_width['roll'].append(ix_roll_activity)
+                all_activities_this_width["yaw"].append(ix_yaw_activity)
+                all_activities_this_width["pitch"].append(ix_pitch_activity)
+                all_activities_this_width["roll"].append(ix_roll_activity)
 
             if debug:
-                collected_angles = dict(yaw=delta_yaw, pitch=delta_pitch, roll=delta_roll)
-                for angle_name in ('yaw', 'pitch', 'roll'):
+                collected_angles = dict(
+                    yaw=delta_yaw, pitch=delta_pitch, roll=delta_roll
+                )
+                for angle_name in ("yaw", "pitch", "roll"):
                     if angle_name not in exclude_angles:
-                        AngularActivityScore._plot_scoring(angle_name=angle_name,
-                                                           angles=collected_angles[angle_name],
-                                                           width=width, prepend=f"width_{widthix}_{prepend}",
-                                                           store_plots_here=store_plots_here,
-                                                           all_activities_this_width=all_activities_this_width)
+                        AngularActivityScore._plot_scoring(
+                            angle_name=angle_name,
+                            angles=collected_angles[angle_name],
+                            width=width,
+                            prepend=f"width_{widthix}_{prepend}",
+                            store_plots_here=store_plots_here,
+                            all_activities_this_width=all_activities_this_width,
+                        )
 
-            yaw_score = self._summarize_windows(
-                values=all_activities_this_width['yaw'])
+            yaw_score = self._summarize_windows(values=all_activities_this_width["yaw"])
             pitch_score = self._summarize_windows(
-                values=all_activities_this_width['pitch'])
+                values=all_activities_this_width["pitch"]
+            )
             roll_score = self._summarize_windows(
-                values=all_activities_this_width['roll'])
+                values=all_activities_this_width["roll"]
+            )
 
             all_activity_scores[width] = [yaw_score, pitch_score, roll_score]
 

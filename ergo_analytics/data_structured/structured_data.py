@@ -10,6 +10,7 @@ __all__ = ["StructuredData"]
 __author__ = "Jesper Kristensen"
 __version__ = "Alpha"
 
+import numpy as np
 import pandas as pd
 
 from . import BaseStructuredData
@@ -47,16 +48,19 @@ class StructuredData(BaseStructuredData):
 
         self._data_format_code = data_format_code
 
-        self._time = pd.to_datetime(data['Date-Time'])
+        try:
+            self._time = pd.to_datetime(data["Date-Time"])
+        except Exception:
+            self._time = np.arange(len(data))
 
         self._yaw = dict()
-        self._yaw['delta'] = data['DeltaYaw']
+        self._yaw["delta"] = data["DeltaYaw"]
         #
         self._pitch = dict()
-        self._pitch['delta'] = data['DeltaPitch']
+        self._pitch["delta"] = data["DeltaPitch"]
         #
         self._roll = dict()
-        self._roll['delta'] = data['DeltaRoll']
+        self._roll["delta"] = data["DeltaRoll"]
 
         self._number_of_points = len(data)
 
@@ -72,10 +76,15 @@ class StructuredData(BaseStructuredData):
         """
         Checks that the incoming data is in the format of the Structured data.
         """
-        if 'DeltaYaw' not in data or 'DeltaPitch' not in \
-            data or 'DeltaRoll' not in data:
-            msg = "The incoming data is not in expected format!\n" \
-                  "Please make sure to create all delta angles!"
+        if (
+            "DeltaYaw" not in data
+            or "DeltaPitch" not in data
+            or "DeltaRoll" not in data
+        ):
+            msg = (
+                "The incoming data is not in expected format!\n"
+                "Please make sure to create all delta angles!"
+            )
             raise Exception(msg)
 
     @property
@@ -95,16 +104,38 @@ class StructuredData(BaseStructuredData):
 
         :return:
         """
-        return self.get_data(type='yaw', loc='delta').index[0]
+        return self.get_data(type="yaw", loc="delta").index[0]
 
     def get_last_index(self):
         """Return the last index of the data.
 
         :return:
         """
-        return self.get_data(type='yaw', loc='delta').index[-1]
+        return self.get_data(type="yaw", loc="delta").index[-1]
 
-    def get_data(self, type='yaw', loc='delta'):
+    def get_first_time(self, as_string=False):
+        """Return the first timestamp of the data.
+
+        :return:
+        """
+        _time = self.time.iloc[0]
+        if as_string:
+            return _time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return _time
+
+    def get_last_time(self, as_string=False):
+        """Return the last timestamp of the data.
+
+        :return:
+        """
+        _time = self.time.iloc[-1]
+        if as_string:
+            return _time.strftime("%Y-%m-%d %H:%M:%S.%f")
+        else:
+            return _time
+
+    def get_data(self, type="yaw", loc="delta"):
         """
         Returns data collected from the device.
 
@@ -112,11 +143,11 @@ class StructuredData(BaseStructuredData):
         :param loc:
         :return:
         """
-        if type == 'yaw':
+        if type == "yaw":
             data = self.yaw(loc=loc)
-        elif type == 'pitch':
+        elif type == "pitch":
             data = self.pitch(loc=loc)
-        elif type == 'roll':
+        elif type == "roll":
             data = self.roll(loc=loc)
         else:
             msg = "This is an unknown data type '{}'!".format(type)
@@ -125,7 +156,7 @@ class StructuredData(BaseStructuredData):
 
         return data
 
-    def yaw(self, loc='delta'):
+    def yaw(self, loc="delta"):
         """
         Returns the yaw data.
 
@@ -134,7 +165,7 @@ class StructuredData(BaseStructuredData):
         """
         return self._yaw[loc]
 
-    def pitch(self, loc='delta'):
+    def pitch(self, loc="delta"):
         """
         Returns the pitch data.
 
@@ -143,7 +174,7 @@ class StructuredData(BaseStructuredData):
         """
         return self._pitch[loc]
 
-    def roll(self, loc='delta'):
+    def roll(self, loc="delta"):
         """
         Returns the roll data.
 
