@@ -45,6 +45,7 @@ pyarrow = "*"
 pyyaml = "*"
 pyathena = "*"
 gitpython = "*"
+pytest-xdist = "*"
 
 [requires]
 python_version = "3.7"
