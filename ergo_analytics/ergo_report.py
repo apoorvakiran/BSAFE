@@ -11,6 +11,7 @@ from datetime import datetime
 import json
 import numpy as np
 import pandas as pd
+from recommendations import recommend
 
 __all__ = ["ErgoReport"]
 __author__ = "Iterate Labs, Inc."
@@ -199,6 +200,13 @@ class ErgoReport(object):
         payload_dict["posture_score"] = posture_score
         #
         payload_dict["safety_score"] = speed_pitch
+
+        #
+        rec = recommend.Recommendation(
+            payload_dict, recommend.default_rec_dic, recommend.default_threshold_dic
+        )
+        # rec = recommend.Recommendation(payload_dict)
+        payload_dict['recommendations'] = rec.rec_top_priority()
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
