@@ -114,5 +114,10 @@ def test_http():
     #
     assert "safety_score" in payload
     #
+    assert "recommendation_id" in payload
+    assert "safety_score_average" in payload
+    assert "safety_score_vs_time" in payload
+    assert "weighted_safety_score_average" in payload
+    #
     assert "start_time" in payload
     assert "end_time" in payload
