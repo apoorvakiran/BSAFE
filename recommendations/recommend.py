@@ -1,8 +1,3 @@
-# TODO: add recommendations
-
-import numpy as np
-
-
 # payload_dict["speed_pitch_score"] = speed_pitch
 # payload_dict["speed_yaw_score"] = speed_yaw
 # payload_dict["speed_roll_score"] = speed_roll
