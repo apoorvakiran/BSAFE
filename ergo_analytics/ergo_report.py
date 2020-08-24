@@ -132,6 +132,24 @@ class ErgoReport(object):
 
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
+
+        speed_pitch_all = speed.loc[:, 1].tolist()
+        speed_score_all = speed.max(axis=1).tolist()
+        posture_score_all = posture.max(axis=1).tolist()
+
+        all_scores_dic = {
+                          'safety_score': speed_pitch_all,
+                          'speed_score': speed_score_all,
+                          'posture_score': posture_score_all
+                          }
+
+        avg_safety_score = np.mean(speed_pitch_all)
+        safety_score_vs_time = '_'.join([str(score) for score in speed_pitch_all])
+
+        safe_proportion = sum([score <= 4 for score in speed_pitch_all])/len(speed_pitch_all)
+        unsafe_proportion = 1 - safe_proportion
+
+
         if combine_across_time == "max":
             # take max score across time:
             speed = speed.max(axis=0).tolist()
@@ -201,12 +219,21 @@ class ErgoReport(object):
         #
         payload_dict["safety_score"] = speed_pitch
 
-        #
+        # recommendation id
         rec = recommend.Recommendation(
-            payload_dict, recommend.default_rec_dic, recommend.default_threshold_dic
+            all_scores_dic,
+            recommend.default_rec_dic,
+            recommend.default_threshold_dic
         )
-        # rec = recommend.Recommendation(payload_dict)
-        payload_dict['recommendations'] = rec.rec_top_priority()
+        payload_dict['recommendation_id'] = rec.rec_top_priority()
+
+        # avg safety score
+        payload_dict['safety_score_average'] = avg_safety_score
+        # safety score v.s. time
+        payload_dict['safety_score_vs_time'] = safety_score_vs_time
+        # weighted safety score
+        payload_dict['weighted_safety_score_average'] = \
+            safe_proportion * 2 + unsafe_proportion * 6
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
