@@ -122,6 +122,13 @@ class ErgoReport(object):
         start_time = ergo_metrics.earliest_time
         end_time = ergo_metrics.latest_time
 
+        # get speed and posture scores as a whole:
+        # speed and posture are both with format:
+        # [[yaw1, pitch1, roll1],
+        #  [yaw2, pitch2, roll2],
+        #  ... ...
+        #  [yawN, pitchN, rollN]]
+
         speed = get_score(
             name="AngularActivityScore",
             combine_across_parameter=combine_across_parameter,
@@ -133,6 +140,10 @@ class ErgoReport(object):
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
 
+        # extract lists of safety scores, speed scores, and posture scores
+        # safety scores are defined as speed_pitch
+        # speed_score and posture_score take the maximum of
+        # [yaw_n, pitch_n, roll_n] for each n from 1 to N
         speed_pitch_all = speed.loc[:, 1].tolist()
         speed_score_all = speed.max(axis=1).tolist()
         posture_score_all = posture.max(axis=1).tolist()
@@ -143,12 +154,22 @@ class ErgoReport(object):
                           'posture_score': posture_score_all
                           }
 
+        # get avg_safety_score by averaging all speed_pitch across time
         avg_safety_score = np.mean(speed_pitch_all)
         safety_score_vs_time = '_'.join([str(score) for score in speed_pitch_all])
 
-        safe_proportion = sum([score <= 4 for score in speed_pitch_all])/len(speed_pitch_all)
-        unsafe_proportion = 1 - safe_proportion
+        # Default num_bin = 3
+        num_bins = 3
 
+        bins_weights = [
+            sum(i*7/num_bins < score <= (i+1)*7/num_bins
+                for score in speed_pitch_all)/len(speed_pitch_all)
+            for i in range(num_bins)
+        ]
+
+        weighted_scores = \
+            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
+                 for i in range(num_bins)])
 
         if combine_across_time == "max":
             # take max score across time:
@@ -232,8 +253,7 @@ class ErgoReport(object):
         # safety score v.s. time
         payload_dict['safety_score_vs_time'] = safety_score_vs_time
         # weighted safety score
-        payload_dict['weighted_safety_score_average'] = \
-            safe_proportion * 2 + unsafe_proportion * 6
+        payload_dict['weighted_safety_score_average'] = weighted_scores
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
