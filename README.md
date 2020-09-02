@@ -59,6 +59,7 @@ Please reach out to the data science team at jesper.kristensen@iteratelabs.co fo
 ## Authors
 
 + Jesper Kristensen (Data Scientist)
++ Jessie Zhang (Data Scientist)
 + Fnu Apoorva (Chief Technology Officer)
 + Jason Guss (Chief Executive Officer)
 
