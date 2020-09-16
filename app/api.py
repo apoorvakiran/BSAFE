@@ -25,4 +25,4 @@ def status():
     response = status.send()
     response.update(**{"status": "processed"})
 
-    return jsonify(response), int(response["status_code"])
+    return jsonify({"status": "processed"}), int(response["status_code"])
