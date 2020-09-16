@@ -9,6 +9,6 @@ from app.tasks import run_status
 
 def test_status_endpoint():
 
-    return_code = run_status()
+    response = run_status()
 
-    assert return_code == 200
+    assert response["status_code"] == 200
