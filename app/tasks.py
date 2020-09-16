@@ -306,9 +306,8 @@ def run_status():
 
     response = {
         "status_code": 500 if score_error else 200,
-        "mac_address": mac_address,
-        "score": score,
-        "num_data_elements": len(raw_data),
+        "mac_address": mac_address if mac_address else "null",
+        "score": score if score else "null",
     }
 
     return response
