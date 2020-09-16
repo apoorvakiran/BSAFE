@@ -1,7 +1,7 @@
 import logging
 from flask import Blueprint, request, jsonify
 
-from .tasks import safety_score_analysis
+from .tasks import safety_score_analysis, status
 
 api = Blueprint("api", "api", url_prefix="/api")
 
@@ -18,3 +18,11 @@ def generate_safety_score():
     logger.info(f"Received mac {mac}")
     safety_score_analysis.send(mac, start_time, end_time)
     return jsonify({"status": "processed"}), 200
+
+
+@api.route("/status", methods=["GET"])
+def status():
+    response = status.send()
+    response.update(**{"status": "processed"})
+
+    return response, response["status_code"]
