@@ -21,8 +21,8 @@ def generate_safety_score():
 
 
 @api.route("/status", methods=["GET"])
-def status():
+def generate_status():
     response = status.send()
     response.update(**{"status": "processed"})
 
-    return jsonify({"status": "processed"}), int(response["status_code"])
+    return jsonify(response), int(response["status_code"])

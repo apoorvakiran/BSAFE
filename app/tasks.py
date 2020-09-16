@@ -327,5 +327,5 @@ def status():
 
 
 if __name__ == "__main__":
-    status = status()
+    status = run_status()
     print("STATUS IS: {}".format(status))
