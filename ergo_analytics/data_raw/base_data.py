@@ -122,8 +122,8 @@ class BaseData(object):
         s3_query_bucket = config["athena_query_dir"]
 
         fs = s3fs.S3FileSystem(
-            key=os.getenv("BSAFE_AWS_ACCESS_KEY"),
-            secret=os.getenv("BSAFE_AWS_SECRET_KEY"),
+            key=os.getenv("BSAFE_AWS_ACCESS_KEY", "AWS_ACCESS_KEY"),
+            secret=os.getenv("BSAFE_AWS_SECRET_KEY", "AWS_SECRET_KEY"),
         )
         _file = None
         for _file in fs.ls(s3_query_bucket):
@@ -144,8 +144,10 @@ class BaseData(object):
             athena_database_name = config.get("athena_database_name")
             athena_table_name = config.get("athena_table_name")
             conn = connect(
-                aws_access_key_id=os.getenv("BSAFE_AWS_ACCESS_KEY"),
-                aws_secret_access_key=os.getenv("BSAFE_AWS_SECRET_KEY"),
+                aws_access_key_id=os.getenv("BSAFE_AWS_ACCESS_KEY", "AWS_ACCESS_KEY"),
+                aws_secret_access_key=os.getenv(
+                    "BSAFE_AWS_SECRET_KEY", "AWS_SECRET_KEY"
+                ),
                 s3_staging_dir="s3://" + config["athena_query_dir"] + "/",
                 region_name="us-east-1",
                 work_group=config["athena_workgroup"],
