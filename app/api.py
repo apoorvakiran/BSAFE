@@ -24,4 +24,4 @@ def generate_safety_score():
 def generate_status():
     response = status.send()
 
-    return jsonify(response), int(response["status_code"])
+    return jsonify(response), 200
