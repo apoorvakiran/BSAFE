@@ -23,5 +23,6 @@ def generate_safety_score():
 @api.route("/status", methods=["GET"])
 def generate_status():
     response = status.send()
+    logger.info(response)
 
-    return jsonify(response.get_result(block=True)), 200
+    return jsonify({"status": "bsafe_ran"}), 200
