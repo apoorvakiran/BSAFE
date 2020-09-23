@@ -308,6 +308,7 @@ def run_status():
         "status_code": 500 if score_error else 200,
         "mac_address": mac_address if mac_address else "null",
         "score": score if score else "null",
+        "status": "processed",
     }
 
     return response
