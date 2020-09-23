@@ -20,8 +20,8 @@ logger = logging.getLogger()
 
 fs = s3fs.S3FileSystem(
     anon=False,
-    key=os.getenv("BSAFE_AWS_ACCESS_KEY"),
-    secret=os.getenv("BSAFE_AWS_SECRET_KEY"),
+    key=os.getenv("BSAFE_AWS_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY")),
+    secret=os.environ.get("BSAFE_AWS_SECRET_KEY", os.environ.get("AWS_SECRET_KEY")),
 )
 
 

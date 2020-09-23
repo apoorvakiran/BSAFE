@@ -121,11 +121,11 @@ class BaseData(object):
         # Start by just reading from S3 (no more than 1 month old data there due to lifecyclke policy)
         s3_query_bucket = config["athena_query_dir"]
 
-        fs = s3fs.S3FileSystem(
-            key=os.getenv("BSAFE_AWS_ACCESS_KEY", "AWS_ACCESS_KEY"),
-            secret=os.getenv("BSAFE_AWS_SECRET_KEY", "AWS_SECRET_KEY"),
-        )
         _file = None
+        fs = s3fs.S3FileSystem(
+            key=os.getenv("BSAFE_AWS_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY")),
+            secret=os.getenv("BSAFE_AWS_SECRET_KEY", os.getenv("AWS_SECRET_KEY")),
+        )
         for _file in fs.ls(s3_query_bucket):
             if _file.endswith(".csv"):
                 break
@@ -144,9 +144,11 @@ class BaseData(object):
             athena_database_name = config.get("athena_database_name")
             athena_table_name = config.get("athena_table_name")
             conn = connect(
-                aws_access_key_id=os.getenv("BSAFE_AWS_ACCESS_KEY", "AWS_ACCESS_KEY"),
+                aws_access_key_id=os.getenv(
+                    "BSAFE_AWS_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY")
+                ),
                 aws_secret_access_key=os.getenv(
-                    "BSAFE_AWS_SECRET_KEY", "AWS_SECRET_KEY"
+                    "BSAFE_AWS_SECRET_KEY", os.getenv("AWS_SECRET_KEY")
                 ),
                 s3_staging_dir="s3://" + config["athena_query_dir"] + "/",
                 region_name="us-east-1",
