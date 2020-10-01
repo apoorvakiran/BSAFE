@@ -10,7 +10,8 @@ from ergo_analytics.data_raw import LoadElasticSearch
 from app.tasks import run_BSAFE
 
 
-def test_run_bsafe_on_staging_data():
+# JESPER: DEPRECATED SINCE ATHENA WAS TOO EXPENSIVE FOR NOW
+def __test_run_bsafe_on_staging_data():
     # Perform this end-to-end test to make sure BSAFE runs as expected
 
     # now we download the data:
