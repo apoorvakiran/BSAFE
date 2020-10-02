@@ -50,10 +50,10 @@ metadata:
 spec:
   tls:
   - hosts:
-    - analytics.iteratelabs.co
-    secretName: analytics.iteratelabs.co-tls
+    - jbs-analytics.iteratelabs.co
+    secretName: jbs-analytics.iteratelabs.co-tls
   rules:
-  - host: analytics.iteratelabs.co
+  - host: jbs-analytics.iteratelabs.co
     http:
       paths:
         - path: /
