@@ -52,17 +52,10 @@ metadata:
 spec:
   tls:
   - hosts:
-<<<<<<< HEAD
     - jbs-analytics.iteratelabs.co
     secretName: jbs-analytics.iteratelabs.co-tls
   rules:
   - host: jbs-analytics.iteratelabs.co
-=======
-    - analytics.iteratelabs.co
-    secretName: analytics.iteratelabs.co-tls
-  rules:
-  - host: analytics.iteratelabs.co
->>>>>>> add jbs prod
     http:
       paths:
         - path: /
@@ -106,7 +99,3 @@ spec:
           requests:
             cpu: 1000m
             memory: 2000Mi
-<<<<<<< HEAD
-=======
-
->>>>>>> add jbs prod
