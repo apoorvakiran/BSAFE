@@ -183,9 +183,9 @@ def automated_analysis():
 
     # here we can decide which alias to search for:
     from_alias = "cassia-data"  # the specific alias to match across a set (or just 1) of index(es)
-    find_alias_among_indexes = os.getenv(
-        "CASSIA_INDEX_NAME", "cassia-staging-*"
-    )  # narrow down search to these index names...
+    find_alias_among_indexes = (
+        os.getenv("CASSIA_INDEX_NAME", "cassia-data-*") # narrow down search to these index names...
+    )
     # ...(for example the start could expand into days)
 
     try:
@@ -233,7 +233,7 @@ def safety_score_analysis(
     start_time,
     end_time,
     from_alias="cassia-data",
-    find_alias_among_indexes="cassia-staging-*",
+    find_alias_among_indexes="cassia-data-*",
     run_as_test=False,
     bsafe_setup_filename="bsafe_run_setup.yml",
 ):
