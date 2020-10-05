@@ -51,8 +51,8 @@ class LoadElasticSearch(BaseData):
         mac_address=None,
         start_time=None,
         end_time=None,
-        from_alias="cassia-data",
-        find_alias_among_indexes="cassia-staging-*",
+        from_alias=None,
+        find_alias_among_indexes=None,
         host=None,
         index=None,
         data_format_code=None,
@@ -81,6 +81,12 @@ class LoadElasticSearch(BaseData):
                 "Please provide both the start_time and the " "end_time parameters!"
             )
 
+        logger.debug('from "retrieve_data" function:')
+        logger.debug("from_alias: {}".format(from_alias))
+        logger.debug("find_alias_among_indexes: {}".format(find_alias_among_indexes))
+        logger.debug("host: {}".format(host))
+        logger.debug("index: {}".format(index))
+
         if host is None:
             # used locally
             host = ["localhost:9200"]
@@ -94,6 +100,7 @@ class LoadElasticSearch(BaseData):
                 os.getenv("ES_AWS_REGION", os.getenv("AWS_REGION")),
                 "es",
             )
+            logger.debug("Connecting to ES host {} port 443".format(host))
             es = Elasticsearch(
                 hosts=[{"host": host, "port": 443}],
                 http_auth=awsauth,
@@ -104,9 +111,15 @@ class LoadElasticSearch(BaseData):
 
         if from_alias is not None:
             # we are using alias with elastic search
-            # look for the given alias:
+            # look for the given alias and automatically collect the relevant indexes
             if find_alias_among_indexes is None:
                 find_alias_among_indexes = "*"
+
+            logger.debug(
+                'Finding alias among these indexes: "{}"'.format(
+                    find_alias_among_indexes
+                )
+            )
 
             search_indices = es.indices.get_alias(find_alias_among_indexes)
             matching_indices = []
@@ -122,6 +135,7 @@ class LoadElasticSearch(BaseData):
                     )
                 )
 
+            # now set the index to the ones found
             index = matching_indices
             msg = "Success! Found index(es) via alias as: '{}'".format(index)
             print(msg)
