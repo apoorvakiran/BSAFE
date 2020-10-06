@@ -50,7 +50,7 @@ def run_BSAFE(
     logger.info(
         f"Found {len(raw_data)} elements in " f"the ES database for {mac_address}."
     )
-    logger.debug(raw_data.head(10))  # show some elements from the data found
+    logger.info(raw_data.head(10))  # show some elements from the data found
 
     if scoring_definition is None:
         if bsafe_setup_filename is None:
@@ -73,7 +73,7 @@ def run_BSAFE(
     num_data = len(raw_data)
     # take 10% as subsampling but not below 1 minute:
     subsample_size_index = ceil(max(num_data * 0.1, 600))
-    logger.debug(f"Using {subsample_size_index} indices per subsample!")
+    logger.info(f"Using {subsample_size_index} indices per subsample!")
 
     if run_as_test:
         raw_data.to_csv("log.csv", index=False)
@@ -202,14 +202,15 @@ def automated_analysis():
 
     bsafe_setup_filename = os.getenv("BSAFE_SETUP_FILENAME")
 
-    logger.debug("Here is the env: {}".format(os.environ))
-    logger.debug("from_alias: {}".format(from_alias))
-    logger.debug("find_alias_among_indexes: {}".format(find_alias_among_indexes))
-    logger.debug("host: {}".format(host))
-    logger.debug("index: {}".format(index))
-    logger.debug("current time: {}".format(current_time))
-    logger.debug("analysis start time: {}".format(start_time))
-    logger.debug("analysis end time: {}".format(end_time))
+    logger.info("Here is the env: {}".format(os.environ))
+    logger.info("from_alias: {}".format(from_alias))
+    logger.info("find_alias_among_indexes: {}".format(find_alias_among_indexes))
+    logger.info("host: {}".format(host))
+    logger.info("index: {}".format(index))
+    logger.info("current time: {}".format(current_time))
+    logger.info("analysis start time: {}".format(start_time))
+    logger.info("analysis end time: {}".format(end_time))
+    logger.info("BSAFE setup filename: {}".format(bsafe_setup_filename))
 
     try:
         response = api_client.get_request("api/v1/wearables?automated=true")
@@ -265,7 +266,7 @@ def safety_score_analysis(
     index=None,
     bsafe_setup_filename=None,
 ):
-    logger.debug("Starting function 'safety_score_analysis'")
+    logger.info("Starting function 'safety_score_analysis'")
     logger.info(f"Getting safety score for {mac_address}")
 
     scoring_definition, scoring_hash = parse_bsafe_setup_file(
@@ -303,7 +304,7 @@ def run_status():
         at_least_this_much_data_in_total=50, return_max_this_much_data=20
     )
 
-    logger.debug("Mac address found is: {}".format(mac_address))
+    logger.info("Mac address found is: {}".format(mac_address))
 
     if raw_data is None:
         logger.warning(
@@ -315,7 +316,7 @@ def run_status():
         bsafe_setup_filename="bsafe_run_setup.yml"
     )
 
-    logger.debug("Running BSAFE on data!")
+    logger.info("Running BSAFE on data!")
     score = run_BSAFE(
         raw_data=raw_data,
         mac_address=mac_address,
