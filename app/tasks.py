@@ -183,9 +183,9 @@ def automated_analysis():
 
     # here we can decide which alias to search for:
     from_alias = "cassia-data"  # the specific alias to match across a set (or just 1) of index(es)
-    find_alias_among_indexes = (
-        os.getenv("CASSIA_INDEX_NAME", "cassia-data-*") # narrow down search to these index names...
-    )
+    find_alias_among_indexes = os.getenv(
+        "CASSIA_INDEX_NAME", "cassia-staging-*"
+    )  # narrow down search to these index names...
     # ...(for example the start could expand into days)
 
     try:
