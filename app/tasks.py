@@ -191,7 +191,7 @@ def automated_analysis():
     run_as_test = bool(os.getenv("RUN_AS_TEST", False))
     from_alias = os.getenv("CASSIA_ALIAS")
     find_alias_among_indexes = os.getenv(
-        "CASSIA_INDEX_NAME"
+        "CASSIA_ALIAS_INDEX_NAME"
     )  # narrow down search to these index names...
     # ...(for example the start could expand into days)
     host = os.getenv("ELASTIC_SEARCH_HOST")

@@ -96,11 +96,3 @@ spec:
           requests:
             cpu: 1000m
             memory: 2000Mi
-        livenessProbe:
-          httpGet:
-            path: /status
-            port: 5000
-          failureThreshold: 1
-          initialDelaySeconds: 30
-          periodSeconds: 5        
-
