@@ -10,18 +10,18 @@ from .api import api
 
 
 def create_app():
-    environment = os.getenv('ENVIRONMENT', 'development')
-    if environment != 'development':
+    environment = os.getenv("ENVIRONMENT", "development")
+    if environment != "development":
         sentry_sdk.init(
-            dsn=os.getenv('SENTRY_DSN'),
+            dsn=os.getenv("SENTRY_DSN"),
             integrations=[FlaskIntegration(), DramatiqIntegration()],
-            environment=environment
+            environment=environment,
         )
     app = Flask(__name__)
 
     # Beware that app config must be loaded before you initialize Dramatiq
     # extension with app.
-    app.config.from_pyfile('config.py', silent=True)
+    app.config.from_pyfile("config.py", silent=True)
     dramatiq.middleware.append(PeriodiqMiddleware())
     dramatiq.init_app(app)
 
@@ -33,13 +33,15 @@ def create_app():
 
 def configure_logging(app):
     import logging
+
     logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
-    handlers=[
-        logging.FileHandler(f"{app.config['LOG_FOLDER']}/log.log"),
-        logging.StreamHandler()
-    ])
+        level=logging.DEBUG,
+        format="%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s",
+        handlers=[
+            logging.FileHandler(f"{app.config['LOG_FOLDER']}/log.log"),
+            logging.StreamHandler(),
+        ],
+    )
 
 
 bsafe = create_app()
