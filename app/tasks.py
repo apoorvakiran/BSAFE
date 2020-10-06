@@ -177,16 +177,39 @@ def _delete_keys(keys, scoring_definition):
 @dramatiq.actor(periodic=cron("*/15 * * * *"))
 def automated_analysis():
     logger.info("Running automated analysis")
+
+    run_interval = int(
+        os.getenv("DATA_LOOKBACK_INTERVAL_MINUTES", 15)
+    )  # default to using past 15 minutes of data
+
     current_time = datetime.datetime.utcnow()
     end_time = datetime.datetime.utcnow().isoformat()
-    start_time = (current_time - datetime.timedelta(minutes=15)).isoformat()
+    start_time = (current_time - datetime.timedelta(minutes=run_interval)).isoformat()
 
     # here we can decide which alias to search for:
-    from_alias = "cassia-data"  # the specific alias to match across a set (or just 1) of index(es)
+    run_as_test = bool(os.getenv("RUN_AS_TEST", False))
+    from_alias = os.getenv("CASSIA_ALIAS")
     find_alias_among_indexes = os.getenv(
-        "CASSIA_INDEX_NAME", "cassia-staging-*"
+        "CASSIA_ALIAS_INDEX_NAME"
     )  # narrow down search to these index names...
     # ...(for example the start could expand into days)
+    host = os.getenv("ELASTIC_SEARCH_HOST")
+
+    index = None
+    if from_alias is None:
+        # we are not loading via alias, but directly via indexes:
+        index = os.getenv("ELASTIC_SEARCH_INDEX")
+
+    bsafe_setup_filename = os.getenv("BSAFE_SETUP_FILENAME")
+
+    logger.debug("Here is the env: {}".format(os.environ))
+    logger.debug("from_alias: {}".format(from_alias))
+    logger.debug("find_alias_among_indexes: {}".format(find_alias_among_indexes))
+    logger.debug("host: {}".format(host))
+    logger.debug("index: {}".format(index))
+    logger.debug("current time: {}".format(current_time))
+    logger.debug("analysis start time: {}".format(start_time))
+    logger.debug("analysis end time: {}".format(end_time))
 
     try:
         response = api_client.get_request("api/v1/wearables?automated=true")
@@ -195,16 +218,19 @@ def automated_analysis():
         logger.info(f"Running automated analysis for {len(wearables)}")
         for wearable in wearables:
             mac_address = wearable["attributes"]["mac"]
-            logger.info(f"Running analysis for {mac_address}")
+            logger.info(f'Running analysis for wearable with MAC: "{mac_address}"')
             safety_score_analysis.send(
                 mac_address,
                 start_time,
                 end_time,
+                host=host,
+                index=index,
                 from_alias=from_alias,
                 find_alias_among_indexes=find_alias_among_indexes,
-                run_as_test=False,
+                run_as_test=run_as_test,
+                bsafe_setup_filename=bsafe_setup_filename,
             )
-        logger.info(f"Enqueued all analysis")
+        logger.info(f"Enqueued all analyses")
     except HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}", exc_info=True)
     except Exception as err:
@@ -232,15 +258,15 @@ def safety_score_analysis(
     mac_address,
     start_time,
     end_time,
-    from_alias="cassia-data",
-    find_alias_among_indexes="cassia-staging-*",
+    from_alias=None,
+    find_alias_among_indexes=None,
     run_as_test=False,
-    bsafe_setup_filename="bsafe_run_setup.yml",
+    host=None,
+    index=None,
+    bsafe_setup_filename=None,
 ):
+    logger.debug("Starting function 'safety_score_analysis'")
     logger.info(f"Getting safety score for {mac_address}")
-
-    index = os.getenv("ELASTIC_SEARCH_INDEX", "iterate-labs-local-poc")
-    host = os.getenv("ELASTIC_SEARCH_HOST")
 
     scoring_definition, scoring_hash = parse_bsafe_setup_file(
         bsafe_setup_filename=bsafe_setup_filename
@@ -251,11 +277,11 @@ def safety_score_analysis(
         mac_address=mac_address,
         start_time=start_time,
         end_time=end_time,
-        host=host,
-        index=index,
         limit=None,
         from_alias=from_alias,
         find_alias_among_indexes=find_alias_among_indexes,
+        index=index,
+        host=host,
     )
 
     run_BSAFE(

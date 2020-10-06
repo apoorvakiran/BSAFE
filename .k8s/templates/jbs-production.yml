@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: safe-core-config
+  namespace: jbs-production
+  labels:
+    app: safe-core
+data:
+  ENVIRONMENT: production
+  SENTRY_DSN: ${SENTRY_DSN}
+  BROKER_URL: ${PROD_BROKER_URL}
+  ELASTIC_SEARCH_INDEX: ${JBS_PROD_ELASTIC_SEARCH_INDEX}
+  AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+  AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+  ELASTIC_SEARCH_HOST: ${JBS_PROD_ELASTIC_SEARCH_HOST}
+  AWS_REGION: ${AWS_REGION}
+  INFINITY_GAUNTLET_URL: ${JBS_PROD_INFINITY_GAUNTLET_URL}
+  INFINITY_GAUNTLET_AUTH: ${JBS_PROD_INFINITY_GAUNTLET_AUTH}
+  INFINITY_GAUNTLET_USERNAME: ${JBS_PROD_INFINITY_GAUNTLET_USERNAME}
+  INFINITY_GAUNTLET_PASSWORD: ${JBS_PROD_INFINITY_GAUNTLET_PASSWORD}
+  CASSIA_INDEX_NAME: ${JBS_PROD_CASSIA_INDEX_NAME}
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: safe-core
+  namespace: jbs-production
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5000
+    targetPort: 5000
+  selector:
+    app: safe-core
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: safe-core
+  namespace: jbs-production
+  annotations:
+    kubernetes.io/ingress.class: nginx-iteratelabs
+    cert-manager.io/cluster-issuer: letsencrypt
+    certmanager.k8s.io/acme-challenge-type: dns01
+    certmanager.k8s.io/acme-dns01-provider: aws-route53
+spec:
+  tls:
+  - hosts:
+    - jbs-analytics.iteratelabs.co
+    secretName: jbs-analytics.iteratelabs.co-tls
+  rules:
+  - host: jbs-analytics.iteratelabs.co
+    http:
+      paths:
+        - path: /
+          backend:
+            serviceName: safe-core
+            servicePort: 5000
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safe-core
+  namespace: jbs-production
+  labels:
+    app: safe-core
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: safe-core
+  template:
+    metadata:
+      labels:
+        app: safe-core
+    spec:
+      containers:
+      - name: safe-core
+        image: ${AWS_REPOSITORY_URL}/${REPOSITORY_NAME}:${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}
+        ports:
+          - containerPort: 5000
+        command: ["/bin/sh", "-c"]
+        args: ["foreman s"]
+        envFrom:
+          - configMapRef:
+              name: safe-core-config
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 2000Mi
+          requests:
+            cpu: 1000m
+            memory: 2000Mi
+
