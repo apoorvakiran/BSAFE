@@ -199,6 +199,8 @@ workflows:
               only:
                 - production
       - build_image_and_deploy_prod_jbs:
+          requires:
+            - test
           filters:
             branches:
               only:
