@@ -7,6 +7,7 @@ Copyright 2018-
 """
 
 import logging
+from ergo_analytics.data_raw import BaseData
 
 __all__ = ["BaseTransformation"]
 __author__ = "Iterate Labs, Inc."
@@ -51,6 +52,14 @@ class BaseTransformation(object):
             for param in parameters:
                 if param in self._params:
                     self._params[param] = parameters[param]
+
+        if (
+            "data_format_code" not in self._params
+            or not self._params["data_format_code"]
+        ):
+            # let's auto-detect it then:
+            data_format_code = BaseData._find_data_format_code(data=data)
+            self._params["data_format_code"] = data_format_code
 
     def update(self, new_params=None):
         """

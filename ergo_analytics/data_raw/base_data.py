@@ -53,7 +53,7 @@ class BaseData(object):
         return self._number_of_points
 
     @staticmethod
-    def _find_data_format_code(path=None):
+    def _find_data_format_code(path: str = None, data: pd.DataFrame = None):
         """Find correct data format codes to load data from path."""
 
         loaded = False
@@ -64,7 +64,12 @@ class BaseData(object):
             these_names = DATA_FORMAT_CODES[dfc]["NAMES"]
 
             if not loaded:
-                lcols = len(pd.read_csv(path).columns)
+                if data is None:
+                    # load from path
+                    lcols = len(pd.read_csv(path).columns)
+                else:
+                    # get from incoming data
+                    lcols = len(data.columns)
                 loaded = True
 
             if lcols == len(these_names):

@@ -11,7 +11,8 @@ from app.tasks import run_BSAFE
 
 
 # ===== USER INPUTS
-path_to_local_data = "EndToEnd/test_data.csv"
+# path_to_local_data = "EndToEnd/test_data.csv"
+path_to_local_data = "EndToEnd/jbs_data_8B_test.csv"
 # =====
 
 raw_data = pd.read_csv(path_to_local_data)
