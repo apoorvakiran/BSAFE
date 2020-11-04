@@ -159,18 +159,19 @@ class ErgoReport(object):
         safety_score_vs_time = '_'.join([str(score) for score in speed_pitch_all])
 
         # Default num_bin = 3
-        num_bins = 3
-
-        bins_weights = [
-            sum(i*7/num_bins < score <= (i+1)*7/num_bins
-                for score in speed_pitch_all)/len(speed_pitch_all)
-            for i in range(num_bins)
-        ]
-
-        weighted_scores = \
-            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
-                 for i in range(num_bins)])
-
+#        num_bins = 3
+#
+#        bins_weights = [
+#            sum(i*7/num_bins < score <= (i+1)*7/num_bins
+#                for score in speed_pitch_all)/len(speed_pitch_all)
+#            for i in range(num_bins)
+#        ]
+#
+#        weighted_scores = \
+#            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
+#                 for i in range(num_bins)])
+         weighted_scores = 0
+    
         if combine_across_time == "max":
             # take max score across time:
             speed = speed.max(axis=0).tolist()
