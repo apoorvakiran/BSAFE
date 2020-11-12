@@ -9,7 +9,7 @@ All Rights Reserved. Patent pending.
 from ergo_analytics.data_raw import BaseData
 
 
-def test_retrieve_any_device():
+def __test_retrieve_any_device():
     """Retrieve any device from S3."""
     data_loader = BaseData()
     mac_address, raw_data = data_loader.retrieve_any_macaddress_with_data(
