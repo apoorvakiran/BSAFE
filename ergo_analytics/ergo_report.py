@@ -149,27 +149,28 @@ class ErgoReport(object):
         posture_score_all = posture.max(axis=1).tolist()
 
         all_scores_dic = {
-                          'safety_score': speed_pitch_all,
-                          'speed_score': speed_score_all,
-                          'posture_score': posture_score_all
-                          }
+            "safety_score": speed_pitch_all,
+            "speed_score": speed_score_all,
+            "posture_score": posture_score_all,
+        }
 
         # get avg_safety_score by averaging all speed_pitch across time
         avg_safety_score = np.mean(speed_pitch_all)
-        safety_score_vs_time = '_'.join([str(score) for score in speed_pitch_all])
+        safety_score_vs_time = "_".join([str(score) for score in speed_pitch_all])
 
         # Default num_bin = 3
-        num_bins = 3
-
-        bins_weights = [
-            sum(i*7/num_bins < score <= (i+1)*7/num_bins
-                for score in speed_pitch_all)/len(speed_pitch_all)
-            for i in range(num_bins)
-        ]
-
-        weighted_scores = \
-            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
-                 for i in range(num_bins)])
+        #        num_bins = 3
+        #
+        #        bins_weights = [
+        #            sum(i*7/num_bins < score <= (i+1)*7/num_bins
+        #                for score in speed_pitch_all)/len(speed_pitch_all)
+        #            for i in range(num_bins)
+        #        ]
+        #
+        #        weighted_scores = \
+        #            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
+        #                 for i in range(num_bins)])
+        weighted_scores = 0
 
         if combine_across_time == "max":
             # take max score across time:
@@ -242,18 +243,16 @@ class ErgoReport(object):
 
         # recommendation id
         rec = recommend.Recommendation(
-            all_scores_dic,
-            recommend.default_rec_dic,
-            recommend.default_threshold_dic
+            all_scores_dic, recommend.default_rec_dic, recommend.default_threshold_dic
         )
-        payload_dict['recommendation_id'] = rec.rec_top_priority()
+        payload_dict["recommendation_id"] = rec.rec_top_priority()
 
         # avg safety score
-        payload_dict['safety_score_average'] = avg_safety_score
+        payload_dict["safety_score_average"] = avg_safety_score
         # safety score v.s. time
-        payload_dict['safety_score_vs_time'] = safety_score_vs_time
+        payload_dict["safety_score_vs_time"] = safety_score_vs_time
         # weighted safety score
-        payload_dict['weighted_safety_score_average'] = weighted_scores
+        payload_dict["weighted_safety_score_average"] = weighted_scores
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
