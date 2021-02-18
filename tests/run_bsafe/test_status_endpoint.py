@@ -6,8 +6,8 @@ Iterate Labs, Inc. All Rights Reserved, Patent Pending
 
 from app.tasks import run_status
 
-
-def test_status_endpoint():
+# Jessie: Deactivate this test since we are not using Athena anymore
+def __test_status_endpoint():
 
     response = run_status()
 
