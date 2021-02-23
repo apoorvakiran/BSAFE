@@ -21,11 +21,13 @@ from app.api_client import ApiClient
 from ergo_analytics import LoadElasticSearch
 from ergo_analytics import ErgoMetrics
 from ergo_analytics import ErgoReport
+from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.setup_utilities import (
     parse_bsafe_yaml,
     construct_datafilter_pipeline,
     construct_metrics,
 )
+from productivity.active_score import ActiveScore
 from .extensions import dramatiq
 
 logger = logging.getLogger()
@@ -113,6 +115,10 @@ def run_BSAFE(
         scoring_definition,
     )
 
+    # Construct delta values on all raw data as a whole for Productivity Analysis
+    delta_constructor = ConstructDeltaValues()
+    structured_all_data, _ = delta_constructor.apply(data=raw_data)
+
     list_of_structured_data_chunks = pipeline.run(
         on_raw_data=raw_data,
         with_format_code=with_format_code,
@@ -130,9 +136,12 @@ def run_BSAFE(
 
     em = None
     logger.info(f"Retrieved all data for {mac_address}")
-    if len(list_of_structured_data_chunks) > 0:
+    if len(list_of_structured_data_chunks) > 0 and len(structured_all_data) > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
-        em = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+        em = ErgoMetrics(
+            list_of_structured_data_chunks=list_of_structured_data_chunks,
+            structured_all_data=structured_all_data
+        )
         # add metrics to compute:
         for m_name in metrics:
             em.add(metric=metrics[m_name])
