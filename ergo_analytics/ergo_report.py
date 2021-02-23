@@ -115,7 +115,11 @@ class ErgoReport(object):
         :return: dict representing the payload.
         """
         ergo_metrics = self._ergo_metrics
+        # Compute safety scores
         get_score = ergo_metrics.get_score
+        # Compute productivity scores
+        get_active_score = ergo_metrics.get_active_scores
+        get_peak_analysis = ergo_metrics.get_peak_analysis
 
         payload_dict = dict()
 
@@ -136,6 +140,12 @@ class ErgoReport(object):
         posture = get_score(
             name="PostureScore", combine_across_parameter=combine_across_parameter
         )
+
+        active_report = get_active_score()
+        peak_analysis = get_peak_analysis()
+
+        logger.info(f"Active report generated: {active_report}")
+        logger.info(f"Peak Analysis results generated: {peak_analysis}")
 
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
@@ -159,17 +169,17 @@ class ErgoReport(object):
         safety_score_vs_time = "_".join([str(score) for score in speed_pitch_all])
 
         # Default num_bin = 3
-        #        num_bins = 3
+        # num_bins = 3
         #
-        #        bins_weights = [
-        #            sum(i*7/num_bins < score <= (i+1)*7/num_bins
-        #                for score in speed_pitch_all)/len(speed_pitch_all)
-        #            for i in range(num_bins)
-        #        ]
+        # bins_weights = [
+        #     sum(i*7/num_bins < score <= (i+1)*7/num_bins
+        #         for score in speed_pitch_all)/len(speed_pitch_all)
+        #     for i in range(num_bins)
+        # ]
         #
-        #        weighted_scores = \
-        #            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
-        #                 for i in range(num_bins)])
+        # weighted_scores = \
+        #     sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
+        #          for i in range(num_bins)])
         weighted_scores = 0
 
         if combine_across_time == "max":
@@ -240,6 +250,13 @@ class ErgoReport(object):
         payload_dict["posture_score"] = posture_score
         #
         payload_dict["safety_score"] = speed_pitch
+
+        # Add productivity metrics: active scores to payload_dic
+        payload_dict["intense_active_score"] = active_report["intense_active_score"]
+        payload_dict["mild_active_score"] = active_report["mild_active_score"]
+        payload_dict["total_time_in_sec"] = active_report["total_time_in_sec"]
+        payload_dict["intense_active_time_in_sec"] = active_report["intense_active_time_in_sec"]
+        payload_dict["mild_active_time_in_sec"] = active_report["mild_active_time_in_sec"]
 
         # recommendation id
         rec = recommend.Recommendation(
