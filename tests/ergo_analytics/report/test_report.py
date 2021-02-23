@@ -26,7 +26,6 @@ ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 
 
 def test_report():
-
     data_format_code = "5"
     test_data_path = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
@@ -51,7 +50,15 @@ def test_report():
     list_of_structured_data_chunks[1] = []
     list_of_structured_data_chunks[2] = None
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
+
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
+                          structured_all_data=structured_all_data)
+
     metrics.add(AngularActivityScore)
     metrics.add(PostureScore)
     metrics.compute()
@@ -63,7 +70,6 @@ def test_report():
 
 
 def test_http():
-
     data_format_code = "5"
     test_data_path = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
@@ -85,7 +91,15 @@ def test_http():
         randomize_subsampling=False,
     )
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
+
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
+                          structured_all_data=structured_all_data)
+
     metrics.add(AngularActivityScore)
     metrics.add(PostureScore)
     metrics.compute()
@@ -121,3 +135,6 @@ def test_http():
     #
     assert "start_time" in payload
     assert "end_time" in payload
+    #
+    assert "intense_active_score" in payload
+    assert "mild_active_score" in payload

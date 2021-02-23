@@ -35,13 +35,15 @@ ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 logger = logging.getLogger()
 
 
-def test_with_metrics():
+# TODO: Add more tests for delta only pipelines w. V2 productivity update
 
+def test_with_metrics():
     data_format_code = "5"
     test_data_path = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
     )
     test_data = pd.read_csv(test_data_path)
+    logger.info(f"test data: {test_data}")
 
     #
     pipeline = DataFilterPipeline()
@@ -58,7 +60,14 @@ def test_with_metrics():
         randomize_subsampling=False,
     )
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
+
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
+                          structured_all_data=structured_all_data)
 
     metrics.add(AngularActivityScore)
     metrics.compute()
@@ -69,7 +78,6 @@ def test_with_metrics():
 
 
 def test_some_of_the_chunks_have_no_data():
-
     data_format_code = "5"
     test_data_path = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
@@ -93,8 +101,14 @@ def test_some_of_the_chunks_have_no_data():
 
     list_of_structured_data_chunks[2] = []  # force to empty
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
 
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
+                          structured_all_data=structured_all_data)
     metrics.add(AngularActivityScore)
     metrics.compute()
     # [[1.0738636363636365, 1.0738636363636365, 0.4375],
@@ -117,7 +131,6 @@ def test_some_of_the_chunks_have_no_data():
 
 
 def test_some_of_the_chunks_have_none_data():
-
     data_format_code = "5"
     test_data_path = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-{data_format_code}", "data_small.csv"
@@ -142,8 +155,14 @@ def test_some_of_the_chunks_have_none_data():
     list_of_structured_data_chunks[1] = []
     list_of_structured_data_chunks[2] = None
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
 
+    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
+                          structured_all_data=structured_all_data)
     metrics.add(AngularActivityScore)
     metrics.compute()
 
