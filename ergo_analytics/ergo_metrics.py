@@ -15,6 +15,7 @@ __version__ = "Alpha"
 import numpy as np
 import pandas as pd
 import logging
+from productivity.active_score import ActiveScore
 from .data_structured import StructuredData
 from ergo_analytics.metrics import PostureScore
 from ergo_analytics.metrics import AngularActivityScore
@@ -36,11 +37,12 @@ class ErgoMetrics(object):
     _scores = None
     _metrics_to_use = None
 
-    def __init__(self, list_of_structured_data_chunks=None):
+    def __init__(self, list_of_structured_data_chunks=None, structured_all_data=None):
         """Constructs an object from which metrics can be computed
         based off of "Structured Data".
 
         :param structured_data:
+        :param structured_all_data:
         :param data_id: If run from data in the data store this is provided.
         """
 
@@ -49,8 +51,13 @@ class ErgoMetrics(object):
             logger.exception(msg)
             raise Exception(msg)
 
-        self._data_chunks = list_of_structured_data_chunks
+        if structured_all_data is None:
+            msg = "Please pass in list of valid raw data with delta values!"
+            logger.exception(msg)
+            raise Exception(msg)
 
+        self._data_chunks = list_of_structured_data_chunks
+        self._data_all = structured_all_data
         self._number_of_data_chunks = len(self._data_chunks)
         self._scores = dict()
         self._metrics_to_use = dict()
@@ -184,7 +191,7 @@ class ErgoMetrics(object):
         :param debug: Whether to turn on plotting and more details.
         """
         # compute the scores
-        logger.debug("Computing ErgoMetric scores...")
+        logger.debug("Computing Safety ErgoMetric scores...")
 
         if metrics_parameters is None:
             metrics_parameters = dict()
@@ -196,7 +203,7 @@ class ErgoMetrics(object):
             self._scores[chunk_index] = dict()
 
             if self._data_chunks[chunk_index] is None or isinstance(
-                self._data_chunks[chunk_index], list
+                    self._data_chunks[chunk_index], list
             ):
                 if self._data_chunks[chunk_index] is not None:
                     assert len(self._data_chunks[chunk_index]) == 0
@@ -337,7 +344,35 @@ class ErgoMetrics(object):
 
             final_score.append(this_combined_score)
 
+        logger.info(f"{name} Final score has length: {len(final_score)}")
+
         return final_score
+
+    def get_active_scores(self):
+        """Call ActiveScore and compute productivity metrics.
+        Return active report.
+
+        output example:
+        'intense_active_score': 0.9235817575083426,
+        'mild_active_score': 0.982091212458287,
+        'start_time': '2020-10-22 14:27:17.592000+00:00',
+        'end_time': '2020-10-22 14:57:49.637000+00:00',
+        'total_time_in_sec': 1832,
+        'intense_active_time_in_sec': 1692.0017797552837,
+        'mild_active_time_in_sec': 1799.1911012235819
+        """
+        active_score = ActiveScore(self._data_all)
+        active_report = active_score.compute_active_scores()
+        logger.info(f"active report generated as below: {active_report}")
+        return active_report
+
+    def get_peak_analysis(self):
+        """Call PeakAnalysis and compute peak-related metrics.
+        Return peak report.
+
+        """
+        # TODO: ADD peak analysis here
+        pass
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
         """Returns the score "name" for a single data "chunk_index"."""
