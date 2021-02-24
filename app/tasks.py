@@ -117,7 +117,9 @@ def run_BSAFE(
 
     # Construct delta values on all raw data as a whole for Productivity Analysis
     delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
-    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
     structured_all_data = delta_only_pipeline.run(
         on_raw_data=raw_data, with_format_code=with_format_code, use_subsampling=False
     )[0].data_matrix
@@ -143,7 +145,7 @@ def run_BSAFE(
         logger.info(f"Has data to run analysis on for {mac_address}")
         em = ErgoMetrics(
             list_of_structured_data_chunks=list_of_structured_data_chunks,
-            structured_all_data=structured_all_data
+            structured_all_data=structured_all_data,
         )
         # add metrics to compute:
         for m_name in metrics:

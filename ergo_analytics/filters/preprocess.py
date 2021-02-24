@@ -46,7 +46,9 @@ class Preprocess(BaseTransformation):
 
         rows_were_cut = False
         if only_process_index_range is not None:
-            data_transformed = data.iloc[only_process_index_range[0] : only_process_index_range[1]]
+            data_transformed = data.iloc[
+                only_process_index_range[0] : only_process_index_range[1]
+            ]
             rows_were_cut = True
         else:
             # do nothing
@@ -70,7 +72,10 @@ class Preprocess(BaseTransformation):
             freq = 1 / 10
             start_date = datetime.datetime.utcnow()
 
-            new_dates = [start_date - datetime.timedelta(seconds=freq * ix) for ix in range(len(data_transformed))]
+            new_dates = [
+                start_date - datetime.timedelta(seconds=freq * ix)
+                for ix in range(len(data_transformed))
+            ]
 
             new_dates = new_dates[::-1]
             data_transformed.loc[:, "Date-Time"] = new_dates
@@ -79,7 +84,9 @@ class Preprocess(BaseTransformation):
 
         actions_taken = {
             "action": [
-                f"rows were cut to the range: " f"({data_transformed.index[0]}, " f"{data_transformed.index[-1]})"
+                f"rows were cut to the range: "
+                f"({data_transformed.index[0]}, "
+                f"{data_transformed.index[-1]})"
                 if rows_were_cut
                 else "nothing"
             ]
@@ -89,7 +96,9 @@ class Preprocess(BaseTransformation):
 
         return (
             self._update_data(
-                data_transformed=data_transformed, row_operation=True, columns_operated_on=columns_to_use,
+                data_transformed=data_transformed,
+                row_operation=True,
+                columns_operated_on=columns_to_use,
             ),
             actions_taken,
         )

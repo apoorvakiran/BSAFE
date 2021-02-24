@@ -37,6 +37,7 @@ logger = logging.getLogger()
 
 # TODO: Add more tests for delta only pipelines w. V2 productivity update
 
+
 def test_with_metrics():
     data_format_code = "5"
     test_data_path = os.path.join(
@@ -61,13 +62,17 @@ def test_with_metrics():
     )
 
     delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
-    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
     structured_all_data = delta_only_pipeline.run(
         on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
     )[0].data_matrix
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
-                          structured_all_data=structured_all_data)
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks,
+        structured_all_data=structured_all_data,
+    )
 
     metrics.add(AngularActivityScore)
     metrics.compute()
@@ -102,13 +107,17 @@ def test_some_of_the_chunks_have_no_data():
     list_of_structured_data_chunks[2] = []  # force to empty
 
     delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
-    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
     structured_all_data = delta_only_pipeline.run(
         on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
     )[0].data_matrix
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
-                          structured_all_data=structured_all_data)
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks,
+        structured_all_data=structured_all_data,
+    )
     metrics.add(AngularActivityScore)
     metrics.compute()
     # [[1.0738636363636365, 1.0738636363636365, 0.4375],
@@ -156,13 +165,17 @@ def test_some_of_the_chunks_have_none_data():
     list_of_structured_data_chunks[2] = None
 
     delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
-    delta_only_pipeline.add_filter(name="construct-delta", filter=ConstructDeltaValues())
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
     structured_all_data = delta_only_pipeline.run(
         on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
     )[0].data_matrix
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks,
-                          structured_all_data=structured_all_data)
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks,
+        structured_all_data=structured_all_data,
+    )
     metrics.add(AngularActivityScore)
     metrics.compute()
 

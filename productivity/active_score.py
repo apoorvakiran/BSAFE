@@ -36,11 +36,15 @@ class ActiveScore(object):
 
         raw_delta_values.sort_values(by="Date-Time", inplace=True)
 
-        logger.info(f"{len(data_entries)} valid data points found for productivity metric")
+        logger.info(
+            f"{len(data_entries)} valid data points found for productivity metric"
+        )
 
         self._raw_delta_values = raw_delta_values
 
-    def compute_active_scores(self, intense_threshold=20, mild_threshold=10, plot=False):
+    def compute_active_scores(
+        self, intense_threshold=20, mild_threshold=10, plot=False
+    ):
         """Compute two active scores using two sets of different thresholds.
 
         This is the main function of the class.
@@ -86,7 +90,9 @@ class ActiveScore(object):
         # Compute initial regions, remove short, merge close
         intense_regions = to_ranges(intense_activity_points)
         intense_regions_short_removed = remove_short_regions(intense_regions)
-        intense_regions_close_merged = merge_close_regions(intense_regions_short_removed)
+        intense_regions_close_merged = merge_close_regions(
+            intense_regions_short_removed
+        )
 
         mild_regions = to_ranges(mild_activity_points)
         mild_regions_short_removed = remove_short_regions(mild_regions)
@@ -105,8 +111,12 @@ class ActiveScore(object):
 
         logger.info("Calculating Active Score ... ")
 
-        intense_active_score = compute_regions_percentage(intense_regions_close_merged, start, end)
-        mild_active_score = compute_regions_percentage(mild_regions_close_merged, start, end)
+        intense_active_score = compute_regions_percentage(
+            intense_regions_close_merged, start, end
+        )
+        mild_active_score = compute_regions_percentage(
+            mild_regions_close_merged, start, end
+        )
 
         start_time = self._raw_delta_values["Date-Time"].tolist()[0]
         end_time = self._raw_delta_values["Date-Time"].tolist()[-1]
@@ -131,7 +141,9 @@ def to_ranges(list_of_points):
     For example, convert list of [1,2,3,7,8,9,10,100] to [[1,3],[7,10],[100,100]].
     """
     list_of_ranges = []
-    for a, b in itertools.groupby(enumerate(list_of_points), lambda ab_pair: ab_pair[1] - ab_pair[0]):
+    for a, b in itertools.groupby(
+        enumerate(list_of_points), lambda ab_pair: ab_pair[1] - ab_pair[0]
+    ):
         b = list(b)
         list_of_ranges.append([b[0][1], b[-1][1]])
     return list_of_ranges
@@ -144,10 +156,10 @@ def slide_window_get_chunk_diff(data_list, time_chunk_len=10):
     chunks = []
     left_pointer = 0
     if len(data_list) < time_chunk_len:
-        chunks.append(data_list[left_pointer: left_pointer + len(data_list)])
+        chunks.append(data_list[left_pointer : left_pointer + len(data_list)])
     else:
         while left_pointer + time_chunk_len < len(data_list):
-            chunks.append(data_list[left_pointer: left_pointer + time_chunk_len])
+            chunks.append(data_list[left_pointer : left_pointer + time_chunk_len])
             left_pointer += 1
     diff_of_chunks = [max(chunk) - min(chunk) for chunk in chunks]
     return diff_of_chunks
@@ -185,7 +197,10 @@ def merge_close_regions(list_of_regions, minimum_distance=15):
         # There are at least two regions remaining:
         if i + 1 < len(list_of_regions):
             # Found close regions
-            if abs(list_of_regions[i][1] - list_of_regions[i + 1][0]) < minimum_distance:
+            if (
+                abs(list_of_regions[i][1] - list_of_regions[i + 1][0])
+                < minimum_distance
+            ):
                 # Merge, and append to new list
                 new_regions.append((list_of_regions[i][0], list_of_regions[i + 1][1]))
                 i += 2

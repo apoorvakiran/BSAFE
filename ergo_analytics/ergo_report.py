@@ -58,7 +58,7 @@ class ErgoReport(object):
         mac_address=None,
         just_return_payload=False,
         run_as_test=False,
-        **kwargs
+        **kwargs,
     ):
         """Reports out to an HTTP endpoint.
 

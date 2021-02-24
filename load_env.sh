@@ -1,6 +1,6 @@
 # -------------------------------------------
 # Please call this script as `source ./load_env.sh`
-# 
+#
 # Copyright Iterate Labs, Inc.
 # Contact: jesper.kristensen@iteratelabs.co
 # -------------------------------------------

@@ -24,11 +24,11 @@ paths = (
 )
 
 paths2 = [
-    '/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_C8:72:6D:97:8D:B8.csv',
-    '/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_D0:B6:B3:8E:30:4F.csv',
-    '/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_D7:AB:47:72:0E:06.csv',
-    '/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_DD:91:CE:0D:51:79.csv',
-    '/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_E5:C3:95:FC:D2:2A.csv'
+    "/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_C8:72:6D:97:8D:B8.csv",
+    "/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_D0:B6:B3:8E:30:4F.csv",
+    "/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_D7:AB:47:72:0E:06.csv",
+    "/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_DD:91:CE:0D:51:79.csv",
+    "/Users/zhangci/Desktop/Iteratelabs/jbs_data/jbs_data_dec1_E5:C3:95:FC:D2:2A.csv",
 ]
 
 for path in paths2:

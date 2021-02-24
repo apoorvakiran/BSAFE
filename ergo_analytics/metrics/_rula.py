@@ -43,20 +43,28 @@ class Rula(object):
             time, scores_roll = self._construct_roll_rula(experiment=experiment)
             self._summarize_rula(scores=scores_roll, exp_ix=exp_ix)
 
-            time, scores_yaw = self._construct_rula_scores(type="yaw", experiment=experiment)
+            time, scores_yaw = self._construct_rula_scores(
+                type="yaw", experiment=experiment
+            )
 
             # PITCH:
-            time, scores_pitch = self._construct_rula_scores(type="pitch", experiment=experiment)
+            time, scores_pitch = self._construct_rula_scores(
+                type="pitch", experiment=experiment
+            )
 
             # ROLL:
-            time, scores_roll = self._construct_rula_scores(type="roll", experiment=experiment)
+            time, scores_roll = self._construct_rula_scores(
+                type="roll", experiment=experiment
+            )
 
             scores_roll.loc[(np.abs(scores_roll[0]) < 15), "scores"] = 1
             scores_roll.loc[(np.abs(scores_roll[0]) >= 15), "scores"] = 2
 
             # total score:
             total_scores = scores_yaw.copy()
-            total_scores["total"] = scores_yaw["scores"] + scores_pitch["scores"] + scores_roll["scores"]
+            total_scores["total"] = (
+                scores_yaw["scores"] + scores_pitch["scores"] + scores_roll["scores"]
+            )
 
             if plt is None:
                 import matplotlib.pyplot as plt
@@ -145,7 +153,11 @@ class Rula(object):
         print("Median = {}".format(scores["scores"].median()))
         perc = (np.abs(scores[0]) > threshold_degrees).sum() / scores[0].count() * 100
         print("% > {} = {}".format(threshold_degrees, perc))
-        print("time > {} = {} min.".format(threshold_degrees, len(scores) / 2 * perc / 100 / 60))
+        print(
+            "time > {} = {} min.".format(
+                threshold_degrees, len(scores) / 2 * perc / 100 / 60
+            )
+        )
 
     def _construct_roll_rula(self, experiment=None):
 
@@ -199,7 +211,9 @@ class Rula(object):
 
         pdb.set_trace()
 
-    def _construct_rula_scores(self, type="yaw", experiment=None, levels=None, scores=None, time=None):
+    def _construct_rula_scores(
+        self, type="yaw", experiment=None, levels=None, scores=None, time=None
+    ):
 
         time = experiment.time
 
@@ -227,7 +241,9 @@ class Rula(object):
 
         return time, scores
 
-    def _construct_pitch_rula(self, experiment=None, levels=None, scores=None, time=None):
+    def _construct_pitch_rula(
+        self, experiment=None, levels=None, scores=None, time=None
+    ):
 
         time = experiment.time
 

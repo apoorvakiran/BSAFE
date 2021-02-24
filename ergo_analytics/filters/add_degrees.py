@@ -46,6 +46,9 @@ class AddDegrees(BaseTransformation):
                 operate_on_columns.append(col)
 
         return (
-            self._update_data(data_transformed=data_transformed, columns_operated_on=operate_on_columns),
+            self._update_data(
+                data_transformed=data_transformed,
+                columns_operated_on=operate_on_columns,
+            ),
             {"updated": operate_on_columns},
         )

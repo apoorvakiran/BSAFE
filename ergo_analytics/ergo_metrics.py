@@ -203,7 +203,7 @@ class ErgoMetrics(object):
             self._scores[chunk_index] = dict()
 
             if self._data_chunks[chunk_index] is None or isinstance(
-                    self._data_chunks[chunk_index], list
+                self._data_chunks[chunk_index], list
             ):
                 if self._data_chunks[chunk_index] is not None:
                     assert len(self._data_chunks[chunk_index]) == 0
