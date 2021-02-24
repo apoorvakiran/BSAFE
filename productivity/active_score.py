@@ -8,6 +8,7 @@ All Rights Reserved.
 
 import logging
 import itertools
+import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -63,26 +64,22 @@ class ActiveScore(object):
         logger.info("Looking for active time regions ...")
 
         # Find intense active points based on absolute change in windows
-        for i in range(len(diff_pitch)):
-            # Define (Intense) Active or Not in each dimension
-            intense_pitch_motion = diff_pitch[i] > intense_threshold
-            intense_roll_motion = diff_roll[i] > intense_threshold
-            intense_yaw_motion = diff_yaw[i] > intense_threshold
-
-            # If at least two of dimensions have intense motion detected, mark as 'intense_activity'
-            if intense_pitch_motion + intense_roll_motion + intense_yaw_motion >= 2:
-                intense_activity_points.append(i)
+        # If at least two of dimensions have intense motion detected, mark as 'intense_activity'
+        # active_points_found: np array of booleans
+        intense_active_points_found = (
+            (np.array(diff_pitch) > intense_threshold).astype(int)
+            + (np.array(diff_roll) > intense_threshold).astype(int)
+            + (np.array(diff_yaw) > intense_threshold).astype(int)
+        ) > 1
+        intense_activity_points = np.where(intense_active_points_found)
 
         # Find mild active points based on absolute change in windows
-        for i in range(len(diff_pitch)):
-            # Define (Mild) Active or Not in each dimension
-            mild_pitch_motion = diff_pitch[i] > mild_threshold
-            mild_roll_motion = diff_roll[i] > mild_threshold
-            mild_yaw_motion = diff_yaw[i] > mild_threshold
-
-            # If at least two of dimensions have intense motion detected, mark as 'mild_activity'
-            if mild_pitch_motion + mild_roll_motion + mild_yaw_motion >= 2:
-                mild_activity_points.append(i)
+        mild_active_points_found = (
+            (np.array(diff_pitch) > mild_threshold).astype(int)
+            + (np.array(diff_roll) > mild_threshold).astype(int)
+            + (np.array(diff_yaw) > mild_threshold).astype(int)
+        ) > 1
+        mild_activity_points = np.where(mild_active_points_found)
 
         start = 0
         end = len(diff_pitch)
