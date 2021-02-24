@@ -254,9 +254,6 @@ class ErgoReport(object):
         # Add productivity metrics: active scores to payload_dic
         payload_dict["intense_active_score"] = active_report["intense_active_score"]
         payload_dict["mild_active_score"] = active_report["mild_active_score"]
-        # payload_dict["total_time_in_sec"] = active_report["total_time_in_sec"]
-        # payload_dict["intense_active_time_in_sec"] = active_report["intense_active_time_in_sec"]
-        # payload_dict["mild_active_time_in_sec"] = active_report["mild_active_time_in_sec"]
 
         # recommendation id
         rec = recommend.Recommendation(

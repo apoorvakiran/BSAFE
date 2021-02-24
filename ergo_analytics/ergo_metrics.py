@@ -355,8 +355,6 @@ class ErgoMetrics(object):
         output example:
         'intense_active_score': 0.9235817575083426,
         'mild_active_score': 0.982091212458287,
-        'start_time': '2020-10-22 14:27:17.592000+00:00',
-        'end_time': '2020-10-22 14:57:49.637000+00:00',
         """
         active_score = ActiveScore(self._data_all)
         active_report = active_score.compute_active_scores()

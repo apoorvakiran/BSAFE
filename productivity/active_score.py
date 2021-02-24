@@ -115,18 +115,9 @@ class ActiveScore(object):
             mild_regions_close_merged, start, end
         )
 
-        start_time = self._raw_delta_values["Date-Time"].tolist()[0]
-        end_time = self._raw_delta_values["Date-Time"].tolist()[-1]
-        # time_len_in_sec = (datetime.fromisoformat(end_time) - datetime.fromisoformat(start_time)).seconds
-
         active_score_report = {
             "intense_active_score": intense_active_score,
             "mild_active_score": mild_active_score,
-            "start_time": start_time,
-            "end_time": end_time,
-            # "total_time_in_sec": time_len_in_sec,
-            # "intense_active_time_in_sec": time_len_in_sec * intense_active_score,
-            # "mild_active_time_in_sec": time_len_in_sec * mild_active_score
         }
 
         return active_score_report
