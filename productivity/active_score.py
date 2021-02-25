@@ -57,10 +57,6 @@ class ActiveScore(object):
         diff_roll = slide_window_get_chunk_diff(delta_values["DeltaRoll"])
         diff_yaw = slide_window_get_chunk_diff(delta_values["DeltaYaw"])
 
-        # Initialize active points
-        intense_activity_points = []
-        mild_activity_points = []
-
         logger.info("Looking for active time regions ...")
 
         # Find intense active points based on absolute change in windows
@@ -71,7 +67,7 @@ class ActiveScore(object):
             + (np.array(diff_roll) > intense_threshold).astype(int)
             + (np.array(diff_yaw) > intense_threshold).astype(int)
         ) > 1
-        intense_activity_points = np.where(intense_active_points_found)
+        intense_activity_points = np.where(intense_active_points_found)[0]
 
         # Find mild active points based on absolute change in windows
         mild_active_points_found = (
@@ -79,7 +75,7 @@ class ActiveScore(object):
             + (np.array(diff_roll) > mild_threshold).astype(int)
             + (np.array(diff_yaw) > mild_threshold).astype(int)
         ) > 1
-        mild_activity_points = np.where(mild_active_points_found)
+        mild_activity_points = np.where(mild_active_points_found)[0]
 
         start = 0
         end = len(diff_pitch)
@@ -143,6 +139,8 @@ def slide_window_get_chunk_diff(data_list, time_chunk_len=10):
     """
     chunks = []
     left_pointer = 0
+    if len(data_list) == 0:
+        return chunks
     if len(data_list) < time_chunk_len:
         chunks.append(data_list[left_pointer : left_pointer + len(data_list)])
     else:
@@ -190,7 +188,7 @@ def merge_close_regions(list_of_regions, minimum_distance=15):
                 < minimum_distance
             ):
                 # Merge, and append to new list
-                new_regions.append((list_of_regions[i][0], list_of_regions[i + 1][1]))
+                new_regions.append([list_of_regions[i][0], list_of_regions[i + 1][1]])
                 i += 2
                 merge_indicator = 1
             # No close regions found
