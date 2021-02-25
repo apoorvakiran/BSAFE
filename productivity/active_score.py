@@ -22,24 +22,20 @@ class ActiveScore(object):
 
         Initialize two-level active scores to be None.
         """
+        if raw_delta_values is not None:
+            # If delta values received, check data format:
+            data_entries = raw_delta_values.columns
 
-        if raw_delta_values is None:
-            msg = "Please pass in list of valid delta values to ActiveScore!"
-            logger.exception(msg)
-            raise Exception(msg)
+            if not {"DeltaYaw", "DeltaPitch", "DeltaRoll"}.issubset(data_entries):
+                msg = "Input data should have columns DeltaYaw, DeltaPitch, and DeltaRoll!"
+                logger.exception(msg)
+                raise Exception(msg)
 
-        data_entries = raw_delta_values.columns
+            raw_delta_values.sort_values(by="Date-Time", inplace=True)
 
-        if not {"DeltaYaw", "DeltaPitch", "DeltaRoll"}.issubset(data_entries):
-            msg = "Input data should have columns DeltaYaw, DeltaPitch, and DeltaRoll!"
-            logger.exception(msg)
-            raise Exception(msg)
-
-        raw_delta_values.sort_values(by="Date-Time", inplace=True)
-
-        logger.info(
-            f"{len(data_entries)} valid data points found for productivity metric"
-        )
+            logger.info(
+                f"{len(data_entries)} valid data points found for productivity metric"
+            )
 
         self._raw_delta_values = raw_delta_values
 
@@ -50,66 +46,73 @@ class ActiveScore(object):
 
         This is the main function of the class.
         """
-        # Slide window through delta values to get data chunks,
-        # and compute the absolute change inside each window
         delta_values = self._raw_delta_values
-        diff_pitch = slide_window_get_chunk_diff(delta_values["DeltaPitch"])
-        diff_roll = slide_window_get_chunk_diff(delta_values["DeltaRoll"])
-        diff_yaw = slide_window_get_chunk_diff(delta_values["DeltaYaw"])
 
-        logger.info("Looking for active time regions ...")
+        # None input for productivity metrics
+        if delta_values is None:
+            intense_active_score = None
+            mild_active_score = None
 
-        # Find intense active points based on absolute change in windows
-        # If at least two of dimensions have intense motion detected, mark as 'intense_activity'
-        # active_points_found: np array of booleans
-        intense_active_points_found = (
-            (np.array(diff_pitch) > intense_threshold).astype(int)
-            + (np.array(diff_roll) > intense_threshold).astype(int)
-            + (np.array(diff_yaw) > intense_threshold).astype(int)
-        ) > 1
-        intense_activity_points = np.where(intense_active_points_found)[0]
+        else:
+            # Slide window through delta values to get data chunks,
+            # and compute the absolute change inside each window
+            diff_pitch = slide_window_get_chunk_diff(delta_values["DeltaPitch"])
+            diff_roll = slide_window_get_chunk_diff(delta_values["DeltaRoll"])
+            diff_yaw = slide_window_get_chunk_diff(delta_values["DeltaYaw"])
 
-        # Find mild active points based on absolute change in windows
-        mild_active_points_found = (
-            (np.array(diff_pitch) > mild_threshold).astype(int)
-            + (np.array(diff_roll) > mild_threshold).astype(int)
-            + (np.array(diff_yaw) > mild_threshold).astype(int)
-        ) > 1
-        mild_activity_points = np.where(mild_active_points_found)[0]
+            logger.info("Looking for active time regions ...")
 
-        start = 0
-        end = len(diff_pitch)
+            # Find intense active points based on absolute change in windows
+            # If at least two of dimensions have intense motion detected, mark as 'intense_activity'
+            # active_points_found: np array of booleans
+            intense_active_points_found = (
+                (np.array(diff_pitch) > intense_threshold).astype(int)
+                + (np.array(diff_roll) > intense_threshold).astype(int)
+                + (np.array(diff_yaw) > intense_threshold).astype(int)
+            ) > 1
+            intense_activity_points = np.where(intense_active_points_found)[0]
 
-        # Compute initial regions, remove short, merge close
-        intense_regions = to_ranges(intense_activity_points)
-        intense_regions_short_removed = remove_short_regions(intense_regions)
-        intense_regions_close_merged = merge_close_regions(
-            intense_regions_short_removed
-        )
+            # Find mild active points based on absolute change in windows
+            mild_active_points_found = (
+                (np.array(diff_pitch) > mild_threshold).astype(int)
+                + (np.array(diff_roll) > mild_threshold).astype(int)
+                + (np.array(diff_yaw) > mild_threshold).astype(int)
+            ) > 1
+            mild_activity_points = np.where(mild_active_points_found)[0]
 
-        mild_regions = to_ranges(mild_activity_points)
-        mild_regions_short_removed = remove_short_regions(mild_regions)
-        mild_regions_close_merged = merge_close_regions(mild_regions_short_removed)
+            start = 0
+            end = len(diff_pitch)
 
-        if plot:
-            plt.figure(figsize=(100, 3))
-            plt.plot(delta_values["DeltaPitch"].tolist(), label="Pitch")
-            plt.plot(delta_values["DeltaRoll"].tolist(), label="Roll")
-            plt.plot(delta_values["DeltaYaw"].tolist(), label="Yaw")
-            # Show intense regions here
-            for reg in intense_regions_close_merged:
-                plt.axvspan(reg[0], reg[1], color="r", alpha=0.1)
-            plt.legend()
-            plt.show()
+            # Compute initial regions, remove short, merge close
+            intense_regions = to_ranges(intense_activity_points)
+            intense_regions_short_removed = remove_short_regions(intense_regions)
+            intense_regions_close_merged = merge_close_regions(
+                intense_regions_short_removed
+            )
 
-        logger.info("Calculating Active Score ... ")
+            mild_regions = to_ranges(mild_activity_points)
+            mild_regions_short_removed = remove_short_regions(mild_regions)
+            mild_regions_close_merged = merge_close_regions(mild_regions_short_removed)
 
-        intense_active_score = compute_regions_percentage(
-            intense_regions_close_merged, start, end
-        )
-        mild_active_score = compute_regions_percentage(
-            mild_regions_close_merged, start, end
-        )
+            if plot:
+                plt.figure(figsize=(100, 3))
+                plt.plot(delta_values["DeltaPitch"].tolist(), label="Pitch")
+                plt.plot(delta_values["DeltaRoll"].tolist(), label="Roll")
+                plt.plot(delta_values["DeltaYaw"].tolist(), label="Yaw")
+                # Show intense regions here
+                for reg in intense_regions_close_merged:
+                    plt.axvspan(reg[0], reg[1], color="r", alpha=0.1)
+                plt.legend()
+                plt.show()
+
+            logger.info("Calculating Active Score ... ")
+
+            intense_active_score = compute_regions_percentage(
+                intense_regions_close_merged, start, end
+            )
+            mild_active_score = compute_regions_percentage(
+                mild_regions_close_merged, start, end
+            )
 
         active_score_report = {
             "intense_active_score": intense_active_score,

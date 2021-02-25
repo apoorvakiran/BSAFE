@@ -115,6 +115,17 @@ class TestRecommendation(unittest.TestCase):
         self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
         self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
 
+    def test_compute_active_scores_on_none_data(self):
+        data_to_compute = None
+        ac_test = ActiveScore(raw_delta_values=data_to_compute)
+        active_report = ac_test.compute_active_scores()
+
+        self.assertTrue(isinstance(active_report, dict))
+        self.assertTrue("intense_active_score" in active_report.keys())
+        self.assertTrue("mild_active_score" in active_report.keys())
+        self.assertTrue(active_report["intense_active_score"] is None)
+        self.assertTrue(active_report["mild_active_score"] is None)
+
     def test_compute_active_scores_on_medium_data(self):
         file_path = "Demos/demo-data-with-delta/medium_delta_data_sample_1.csv"
         data_to_compute = pd.read_csv(file_path)
@@ -141,6 +152,5 @@ class TestRecommendation(unittest.TestCase):
     #     self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
 
 
-#
 # if __name__ == "__main__":
 #     unittest.main()

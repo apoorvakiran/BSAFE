@@ -46,13 +46,9 @@ class ErgoMetrics(object):
         :param data_id: If run from data in the data store this is provided.
         """
 
-        if list_of_structured_data_chunks is None:
-            msg = "Please pass in list of valid data chunks!"
-            logger.exception(msg)
-            raise Exception(msg)
-
-        if structured_all_data is None:
-            msg = "Please pass in list of valid raw data with delta values!"
+        # If neither input is valid, raise Exception
+        if list_of_structured_data_chunks is None and structured_all_data is None:
+            msg = "Please pass in at least one input of data!"
             logger.exception(msg)
             raise Exception(msg)
 
