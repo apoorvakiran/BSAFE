@@ -10,7 +10,7 @@ import pandas as pd
 from productivity.active_score import ActiveScore
 
 
-class TestRecommendation(unittest.TestCase):
+class TestActiveScore(unittest.TestCase):
     def test_to_ranges(self):
         list_of_points_1 = []
         list_of_points_2 = [1]
