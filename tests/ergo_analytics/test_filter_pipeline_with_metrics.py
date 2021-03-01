@@ -142,7 +142,23 @@ def test_some_of_the_chunks_have_none_data():
     list_of_structured_data_chunks[1] = []
     list_of_structured_data_chunks[2] = None
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=test_data, with_format_code=data_format_code, use_subsampling=False
+    )[0].data_matrix
+
+    assert len(test_data) == len(structured_all_data)
+    assert "DeltaPitch" in structured_all_data.columns
+    assert "DeltaRoll" in structured_all_data.columns
+    assert "DeltaYaw" in structured_all_data.columns
+
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks,
+        structured_all_data=structured_all_data,
+    )
 
     metrics.add(AngularActivityScore)
     metrics.compute()

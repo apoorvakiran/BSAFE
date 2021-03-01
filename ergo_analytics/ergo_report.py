@@ -117,9 +117,6 @@ class ErgoReport(object):
         ergo_metrics = self._ergo_metrics
         # Compute safety scores
         get_score = ergo_metrics.get_score
-        # Compute productivity scores
-        get_active_score = ergo_metrics.get_active_scores
-        get_peak_analysis = ergo_metrics.get_peak_analysis
 
         payload_dict = dict()
 
@@ -141,8 +138,8 @@ class ErgoReport(object):
             name="PostureScore", combine_across_parameter=combine_across_parameter
         )
 
-        active_report = get_active_score()
-        peak_analysis = get_peak_analysis()
+        active_report = ergo_metrics.get_active_scores()
+        peak_analysis = ergo_metrics.get_peak_analysis()
 
         logger.info(f"Active report generated: {active_report}")
         logger.info(f"Peak Analysis results generated: {peak_analysis}")

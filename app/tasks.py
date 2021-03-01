@@ -141,7 +141,7 @@ def run_BSAFE(
 
     em = None
     logger.info(f"Retrieved all data for {mac_address}")
-    if len(list_of_structured_data_chunks) > 0 and len(structured_all_data) > 0:
+    if len(list_of_structured_data_chunks) > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
         em = ErgoMetrics(
             list_of_structured_data_chunks=list_of_structured_data_chunks,
