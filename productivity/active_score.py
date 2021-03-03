@@ -31,7 +31,12 @@ class ActiveScore(object):
                 logger.exception(msg)
                 raise Exception(msg)
 
-            raw_delta_values.sort_values(by="Date-Time", inplace=True)
+            # Check date-time type
+            assert (
+                type(raw_delta_values.iloc[0]["Date-Time"]) == str
+            ), "productivity metrics have wrong input data time type"
+
+            raw_delta_values.sort_values(by="Date-Time", inplace=True, ascending=True)
 
             logger.info(
                 f"{len(data_entries)} valid data points found for productivity metric"
