@@ -11,8 +11,6 @@ from productivity import peak_analysis
 from productivity.peak_analysis import PeakAnalyzer
 import pandas as pd
 
-ROOT_DIR = os.path.abspath(os.path.expanduser("."))
-
 
 class TestPeakAnalysis(unittest.TestCase):
     def test_none_data(self):
@@ -24,3 +22,4 @@ class TestPeakAnalysis(unittest.TestCase):
 
         self.assertTrue(parameter_names == report.keys())
         self.assertTrue("high_peak" in parameter_names)
+        self.assertTrue(report["high_peak"] == 0)
