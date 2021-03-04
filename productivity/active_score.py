@@ -10,6 +10,7 @@ import logging
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 from datetime import datetime
 
 logger = logging.getLogger()
@@ -33,7 +34,8 @@ class ActiveScore(object):
 
             # Check date-time type
             assert (
-                type(raw_delta_values.iloc[0]["Date-Time"]) == str
+                type(raw_delta_values.iloc[0]["Date-Time"]) == pd.Timestamp
+                or type(raw_delta_values.iloc[0]["Date-Time"]) == str
             ), "productivity metrics have wrong input data time type"
 
             raw_delta_values.sort_values(by="Date-Time", inplace=True, ascending=True)

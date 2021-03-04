@@ -10,6 +10,7 @@ import logging
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 
 logger = logging.getLogger()
 
@@ -57,7 +58,12 @@ class PeakAnalyzer(object):
                 logger.exception(msg)
                 raise Exception(msg)
 
-            raw_delta_values.sort_values(by="Date-Time", inplace=True)
+            assert (
+                type(raw_delta_values.iloc[0]["Date-Time"]) == pd.Timestamp
+                or type(raw_delta_values.iloc[0]["Date-Time"]) == str
+            ), "productivity metrics have wrong input data time type"
+
+            raw_delta_values.sort_values(by="Date-Time", inplace=True, ascending=True)
 
         self._raw_delta_values = raw_delta_values
         self._peak_parameters_dic = default_peak_parameters
@@ -128,3 +134,7 @@ class PeakAnalyzer(object):
         """update parameter dictionary
         """
         self._peak_parameters_dic = new_parameter_dic
+
+    @property
+    def peak_parameters_dic(self):
+        return self._peak_parameters_dic

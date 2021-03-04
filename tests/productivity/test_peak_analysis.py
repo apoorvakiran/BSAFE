@@ -6,7 +6,7 @@ Copyright Iterate Labs, Inc. 2018-
 import os
 import unittest
 
-
+import pandas.api.types as ptypes
 from ergo_analytics import LoadDataFromLocalDisk, DataFilterPipeline
 from ergo_analytics.filters import ConstructDeltaValues
 from productivity import peak_analysis
@@ -76,6 +76,11 @@ class TestPeakAnalysis(unittest.TestCase):
         structured_all_data = delta_only_pipeline.run(
             on_raw_data=test_data, with_format_code=5, use_subsampling=False
         )[0].data_matrix
+
+        self.assertTrue(type(structured_all_data.iloc[0]["Date-Time"]) == pd.Timestamp)
+        self.assertTrue(ptypes.is_numeric_dtype(structured_all_data["DeltaPitch"]))
+        self.assertTrue(ptypes.is_numeric_dtype(structured_all_data["DeltaRoll"]))
+        self.assertTrue(ptypes.is_numeric_dtype(structured_all_data["DeltaYaw"]))
 
         peak_analyzer = PeakAnalyzer(structured_all_data)
         report = peak_analyzer.generate_peak_report()

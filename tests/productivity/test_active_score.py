@@ -3,11 +3,15 @@
 @ author Jessie Zhang
 Copyright Iterate Labs, Inc. 2018-
 """
+import os
 import unittest
 from productivity import active_score
 import pandas as pd
-
+from ergo_analytics import LoadDataFromLocalDisk, DataFilterPipeline
+from ergo_analytics.filters import ConstructDeltaValues
 from productivity.active_score import ActiveScore
+
+ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 
 
 class TestActiveScore(unittest.TestCase):
@@ -104,56 +108,74 @@ class TestActiveScore(unittest.TestCase):
         self.assertTrue(abs(percentage_3 - 0.6666) < 0.001)
 
     def test_compute_active_scores_on_small_data(self):
-        # file_path = "Demos/demo-data-with-delta/small_delta_data_sample_1.csv"
-        # data_to_compute = pd.read_csv(file_path)
-        # ac_test = ActiveScore(raw_delta_values=data_to_compute)
-        # active_report = ac_test.compute_active_scores()
-        #
-        # self.assertTrue(isinstance(active_report, dict))
-        # self.assertTrue("intense_active_score" in active_report.keys())
-        # self.assertTrue("mild_active_score" in active_report.keys())
-        # self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
-        # self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
-        pass
+        test_data_path = os.path.join(
+            ROOT_DIR, "Demos", f"demo-format-5", "data_small.csv"
+        )
+
+        assert os.path.isfile(test_data_path)
+
+        put_structured_data_here = os.path.join(ROOT_DIR, "tests", "system")
+
+        raw_data_loader = LoadDataFromLocalDisk()
+        test_data = raw_data_loader.get_data(
+            path=test_data_path, destination=put_structured_data_here,
+        )
+
+        delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+        delta_only_pipeline.add_filter(
+            name="construct-delta", filter=ConstructDeltaValues()
+        )
+        structured_all_data = delta_only_pipeline.run(
+            on_raw_data=test_data, with_format_code=5, use_subsampling=False
+        )[0].data_matrix
+
+        ac_test = ActiveScore(raw_delta_values=structured_all_data)
+        active_report = ac_test.compute_active_scores()
+
+        self.assertTrue(isinstance(active_report, dict))
+        self.assertTrue("intense_active_score" in active_report.keys())
+        self.assertTrue("mild_active_score" in active_report.keys())
+        self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
+        self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
 
     def test_compute_active_scores_on_none_data(self):
-        # data_to_compute = None
-        # ac_test = ActiveScore(raw_delta_values=data_to_compute)
-        # active_report = ac_test.compute_active_scores()
-        #
-        # self.assertTrue(isinstance(active_report, dict))
-        # self.assertTrue("intense_active_score" in active_report.keys())
-        # self.assertTrue("mild_active_score" in active_report.keys())
-        # self.assertTrue(active_report["intense_active_score"] is None)
-        # self.assertTrue(active_report["mild_active_score"] is None)
-        pass
+        data_to_compute = None
+        ac_test = ActiveScore(raw_delta_values=data_to_compute)
+        active_report = ac_test.compute_active_scores()
+
+        self.assertTrue(isinstance(active_report, dict))
+        self.assertTrue("intense_active_score" in active_report.keys())
+        self.assertTrue("mild_active_score" in active_report.keys())
+        self.assertTrue(active_report["intense_active_score"] is None)
+        self.assertTrue(active_report["mild_active_score"] is None)
 
     def test_compute_active_scores_on_medium_data(self):
-        # file_path = "Demos/demo-data-with-delta/medium_delta_data_sample_1.csv"
-        # data_to_compute = pd.read_csv(file_path)
-        # ac_test = ActiveScore(raw_delta_values=data_to_compute)
-        # active_report = ac_test.compute_active_scores()
-        #
-        # self.assertTrue(isinstance(active_report, dict))
-        # self.assertTrue("intense_active_score" in active_report.keys())
-        # self.assertTrue("mild_active_score" in active_report.keys())
-        # self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
-        # self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
-        pass
+        test_data_path = os.path.join(ROOT_DIR, "Demos", f"demo-format-5", "data.csv")
 
-    # Large file exceeds size limit
-    # def test_compute_active_scores_on_large_data(self):
-    #     file_path = "Demos/demo-data-with-delta/large_delta_data_sample_1.csv"
-    #     data_to_compute = pd.read_csv(file_path)
-    #     ac_test = ActiveScore(raw_delta_values=data_to_compute)
-    #     active_report = ac_test.compute_active_scores()
-    #
-    #     self.assertTrue(isinstance(active_report, dict))
-    #     self.assertTrue("intense_active_score" in active_report.keys())
-    #     self.assertTrue("mild_active_score" in active_report.keys())
-    #     self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
-    #     self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
+        assert os.path.isfile(test_data_path)
 
+        put_structured_data_here = os.path.join(ROOT_DIR, "tests", "system")
 
-# if __name__ == "__main__":
-#     unittest.main()
+        raw_data_loader = LoadDataFromLocalDisk()
+        test_data = raw_data_loader.get_data(
+            path=test_data_path, destination=put_structured_data_here,
+        )
+
+        delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+        delta_only_pipeline.add_filter(
+            name="construct-delta", filter=ConstructDeltaValues()
+        )
+        structured_all_data = delta_only_pipeline.run(
+            on_raw_data=test_data, with_format_code=5, use_subsampling=False
+        )[0].data_matrix
+
+        self.assertTrue(type(structured_all_data.iloc[0]["Date-Time"]) == pd.Timestamp)
+
+        ac_test = ActiveScore(raw_delta_values=structured_all_data)
+        active_report = ac_test.compute_active_scores()
+
+        self.assertTrue(isinstance(active_report, dict))
+        self.assertTrue("intense_active_score" in active_report.keys())
+        self.assertTrue("mild_active_score" in active_report.keys())
+        self.assertTrue(0 <= active_report["intense_active_score"] <= 1)
+        self.assertTrue(0 <= active_report["mild_active_score"] <= 1)
