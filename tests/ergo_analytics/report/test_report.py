@@ -154,3 +154,7 @@ def test_http():
     #
     assert "intense_active_score" in payload
     assert "mild_active_score" in payload
+    #
+    assert "high_peaks" in payload
+    assert "medium_peaks" in payload
+    assert "low_peaks" in payload

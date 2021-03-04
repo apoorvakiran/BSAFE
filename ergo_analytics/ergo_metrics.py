@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import logging
 from productivity.active_score import ActiveScore
+from productivity.peak_analysis import PeakAnalyzer
 from .data_structured import StructuredData
 from ergo_analytics.metrics import PostureScore
 from ergo_analytics.metrics import AngularActivityScore
@@ -362,8 +363,11 @@ class ErgoMetrics(object):
         Return peak report.
 
         """
-        # TODO: ADD peak analysis here
-        pass
+        peak_analyzer = PeakAnalyzer(self._data_all)
+        peak_report = peak_analyzer.generate_peak_report()
+        assert type(peak_report) == dict, "Wrong peak analysis report type!"
+        logger.info(f"peak analysis report generated as below: {peak_report}")
+        return peak_report
 
     def _get_score_single_chunk(self, name=None, chunk_index=0):
         """Returns the score "name" for a single data "chunk_index"."""

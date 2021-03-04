@@ -139,10 +139,10 @@ class ErgoReport(object):
         )
 
         active_report = ergo_metrics.get_active_scores()
-        peak_analysis = ergo_metrics.get_peak_analysis()
+        peak_report = ergo_metrics.get_peak_analysis()
 
         logger.info(f"Active report generated: {active_report}")
-        logger.info(f"Peak Analysis results generated: {peak_analysis}")
+        logger.info(f"Peak Analysis results generated: {peak_report}")
 
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
@@ -251,6 +251,11 @@ class ErgoReport(object):
         # Add productivity metrics: active scores to payload_dic
         payload_dict["intense_active_score"] = active_report["intense_active_score"]
         payload_dict["mild_active_score"] = active_report["mild_active_score"]
+
+        # Add productivity metrics: peak numbers detected to payload_dic
+        payload_dict["high_peaks"] = peak_report["high_peak"]
+        payload_dict["medium_peaks"] = peak_report["medium_peak"]
+        payload_dict["low_peaks"] = peak_report["low_peak"]
 
         # recommendation id
         rec = recommend.Recommendation(
