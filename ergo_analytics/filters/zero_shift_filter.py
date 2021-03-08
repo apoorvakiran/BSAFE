@@ -46,10 +46,14 @@ class ZeroShiftFilter(BaseTransformation):
 
         data_transformed = data
         for col in delta_columns:
-            data_transformed.loc[:, col] = self._adjust_for_zero_line(data=data_transformed.loc[:, col])
+            data_transformed.loc[:, col] = self._adjust_for_zero_line(
+                data=data_transformed.loc[:, col]
+            )
 
         return (
-            self._update_data(data_transformed=data_transformed, columns_operated_on=delta_columns),
+            self._update_data(
+                data_transformed=data_transformed, columns_operated_on=delta_columns
+            ),
             {"updated": delta_columns},
         )
 
@@ -106,7 +110,9 @@ class ZeroShiftFilter(BaseTransformation):
 
         # comes also from calibration:
         final_zero_line = data.iloc[-1]
-        data.iloc[shift_indices[-1] :] = data.iloc[shift_indices[-1] :] - final_zero_line
+        data.iloc[shift_indices[-1] :] = (
+            data.iloc[shift_indices[-1] :] - final_zero_line
+        )
 
         self._params["final_zero_line"] = final_zero_line
 

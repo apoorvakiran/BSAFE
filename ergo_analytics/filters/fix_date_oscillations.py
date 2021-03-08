@@ -60,9 +60,13 @@ class FixDateOscillations(BaseTransformation):
             return data, {}
 
         # since we didn't return we know that some dates are off
-        first_normal_data_point = dates_as_int[dates_as_int < cut_off_date_as_int].index.max() + 1
+        first_normal_data_point = (
+            dates_as_int[dates_as_int < cut_off_date_as_int].index.max() + 1
+        )
 
         data = data.iloc[first_normal_data_point:, :]
 
-        data_to_use = self._update_data(data_transformed=data, columns_operated_on=date_column)
+        data_to_use = self._update_data(
+            data_transformed=data, columns_operated_on=date_column
+        )
         return data_to_use, {"updated": date_column}

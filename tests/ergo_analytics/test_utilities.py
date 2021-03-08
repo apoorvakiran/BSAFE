@@ -19,14 +19,12 @@ import pytest
 from unittest.mock import MagicMock
 from ergo_analytics import subsample_data
 
-data_format_code = '5'  # in which format is the data coming to us?
+data_format_code = "5"  # in which format is the data coming to us?
 
-ROOT_DIR = os.path.abspath(os.path.expanduser('.'))
+ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 
 # this is data with 6256 rows
-test_data_path = os.path.join(ROOT_DIR, "Demos",
-                         "demo-data-stationary",
-                         "raw_data.csv")
+test_data_path = os.path.join(ROOT_DIR, "Demos", "demo-data-stationary", "raw_data.csv")
 
 test_data = pd.read_csv(test_data_path)
 test_data.drop("Unnamed: 0", inplace=True, axis=1)
@@ -41,11 +39,13 @@ def test_cut_off_data_in_subsample():
 
     count_num_times = 0
     collect_start_indices = set()
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=5000,
-                                        randomize=False,
-                                        number_of_subsamples=2):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=5000,
+        randomize=False,
+        number_of_subsamples=2,
+    ):
         # not enough data to have 2 fully-sized chunks
         assert len(data_chunk) == len(test_data)
         # even though we ask for 5000 the data has >6000, but at that point
@@ -90,51 +90,72 @@ def test_subsample_size_index():
 
     # we are using subsampling, but number of rows requested goes beyond
     # number of incoming rows, so should just return the data:
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=8000,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
         assert len(data_chunk) == len(test_data)
         pd.testing.assert_frame_equal(test_data, data_chunk)
 
     # try with data that is None:
-    for data_chunk, _ in subsample_data(data=None, use_subsampling=True,
-                                        subsample_size_index=8000,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=None,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
         assert data_chunk is None
 
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=400,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=400,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
 
         assert 375 < len(data_chunk) < 425
 
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=100,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=100,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
 
         assert 75 < len(data_chunk) < 125
 
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=50,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=50,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
 
         assert 45 < len(data_chunk) < 55
 
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=1,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
         assert len(data_chunk) == 1
 
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=0,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=0,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
         assert len(data_chunk) == 0
 
 
@@ -148,10 +169,13 @@ def test_number_of_subsamples(num_times_called):
     # number of incoming rows, so should just return the data:
     count_num_times = 0
     non_overlapping = []
-    for data_chunk, _ in subsample_data(data=test_data, use_subsampling=True,
-                                        subsample_size_index=100,
-                                        randomize=False,
-                                        number_of_subsamples=num_times_called):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=100,
+        randomize=False,
+        number_of_subsamples=num_times_called,
+    ):
         count_num_times += 1
 
         if len(data_chunk) > 0:
@@ -176,11 +200,13 @@ def test_more_subsamples_than_we_have(number_of_subsamples):
     """
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=8000,
-                                        randomize=False,
-                                    number_of_subsamples=number_of_subsamples):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        randomize=False,
+        number_of_subsamples=number_of_subsamples,
+    ):
         count_num_times += 1
         assert len(data_chunk) == len(test_data)
 
@@ -193,11 +219,13 @@ def test_cut_off_data_in_subsample_2():
     """
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1900,
-                                        randomize=False,
-                                        number_of_subsamples=1):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1900,
+        randomize=False,
+        number_of_subsamples=1,
+    ):
         # not enough data to have 2 fully-sized chunks
         assert 1800 < len(data_chunk) < 2100
         # now we ask for 2000 and the data is size +6000 so we should get
@@ -207,11 +235,13 @@ def test_cut_off_data_in_subsample_2():
     assert count_num_times == 1
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1900,
-                                        randomize=False,
-                                        number_of_subsamples=2):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1900,
+        randomize=False,
+        number_of_subsamples=2,
+    ):
 
         # not enough data to have 2 fully-sized chunks
         assert 1800 < len(data_chunk) < 2100
@@ -222,11 +252,13 @@ def test_cut_off_data_in_subsample_2():
     assert count_num_times == 2
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1900,
-                                        randomize=False,
-                                        number_of_subsamples=3):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1900,
+        randomize=False,
+        number_of_subsamples=3,
+    ):
 
         # not enough data to have 2 fully-sized chunks
         assert 1800 < len(data_chunk) < 2100
@@ -246,11 +278,13 @@ def test_subsample_unique_starts():
     test_data_here = test_data.iloc[:100]
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data_here,
-                                        use_subsampling=True,
-                                        subsample_size_index=10,
-                                        randomize=False,
-                                        number_of_subsamples=5):
+    for data_chunk, _ in subsample_data(
+        data=test_data_here,
+        use_subsampling=True,
+        subsample_size_index=10,
+        randomize=False,
+        number_of_subsamples=5,
+    ):
 
         assert len(data_chunk) == 10
 
@@ -271,11 +305,13 @@ def test_subsample_size_1_many_subsamples():
     indices_we_have_seen = set()
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1,
-                                        randomize=False,
-                                        number_of_subsamples=4000):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1,
+        randomize=False,
+        number_of_subsamples=4000,
+    ):
 
         assert len(data_chunk) == 1
 
@@ -296,11 +332,13 @@ def test_subsample_size_2_many_subsamples():
     indices_we_have_seen = set()
 
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=2,
-                                        randomize=False,
-                                        number_of_subsamples=2000):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=2,
+        randomize=False,
+        number_of_subsamples=2000,
+    ):
 
         assert len(data_chunk) == 2
 
@@ -321,11 +359,13 @@ def test_subsample_randomize():
 
     indices_seen = set()
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == 1
         this_index = list(data_chunk.index)[0]
         assert this_index not in indices_seen
@@ -343,11 +383,13 @@ def test_subsample_randomize_large_size():
 
     indices_seen = set()
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=100,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=100,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == 100
         this_index = list(data_chunk.index)[0]
         # the first index should still be unique
@@ -366,11 +408,13 @@ def test_subsample_randomize_even_larger_size():
 
     indices_seen = set()
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1000,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1000,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == 1000
         this_index = list(data_chunk.index)[0]
         # the first index should still be unique
@@ -389,11 +433,13 @@ def test_subsample_randomize_largest_size():
 
     indices_seen = set()
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=8000,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=8000,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == len(test_data)
         this_index = list(data_chunk.index)[0]
         # the first index is not unique in this case since we keep
@@ -411,20 +457,22 @@ def test_subsample_randomize_2():
     Select larger-than-data subsample size.
     """
 
-    data_format_code = '5'  # in which format is the data coming to us?
+    data_format_code = "5"  # in which format is the data coming to us?
 
     # this is data with 6256 rows
-    test_data_path = os.path.join(ROOT_DIR, "Demos",
-                                  "demo-data-from-device",
-                                  "test_data.csv")
+    test_data_path = os.path.join(
+        ROOT_DIR, "Demos", "demo-data-from-device", "test_data.csv"
+    )
 
     this_test_data = pd.read_csv(test_data_path)
 
-    for data_chunk, _ in subsample_data(data=this_test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=600,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=this_test_data,
+        use_subsampling=True,
+        subsample_size_index=600,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == len(this_test_data)
 
 
@@ -435,11 +483,13 @@ def test_floats():
 
     indices_seen = set()
     count_num_times = 0
-    for data_chunk, _ in subsample_data(data=test_data,
-                                        use_subsampling=True,
-                                        subsample_size_index=1000.0,
-                                        randomize=True,
-                                        number_of_subsamples=100):
+    for data_chunk, _ in subsample_data(
+        data=test_data,
+        use_subsampling=True,
+        subsample_size_index=1000.0,
+        randomize=True,
+        number_of_subsamples=100,
+    ):
         assert len(data_chunk) == 1000
         this_index = list(data_chunk.index)[0]
         # the first index should still be unique

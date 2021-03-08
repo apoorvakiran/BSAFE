@@ -33,7 +33,6 @@ ROOT_DIR = os.path.abspath(os.path.expanduser("."))
 
 
 def test_data_format_4():
-
     basepath_raw_data = os.path.join(
         ROOT_DIR, "Demos", f"demo-format-4", "data_small.csv"
     )
@@ -80,7 +79,20 @@ def test_data_format_4():
     assert cols == list(r_[DATA_FORMAT_CODES["4"]["NAMES"]])
     assert len(cols) == len(list(r_[DATA_FORMAT_CODES["4"]["NAMES"]]))
 
-    metrics = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=raw_data,
+        with_format_code=raw_data_loader.data_format_code,
+        use_subsampling=False,
+    )[0].data_matrix
+
+    metrics = ErgoMetrics(
+        list_of_structured_data_chunks=list_of_structured_data_chunks,
+        structured_all_data=structured_all_data,
+    )
 
     metrics.add(AngularActivityScore)
     metrics.compute()

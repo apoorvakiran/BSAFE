@@ -13,8 +13,8 @@ __version__ = "Alpha"
 import pandas as pd
 import matplotlib.pyplot as plt
 
-data = pd.read_csv('raw_data.csv')
-data = data.drop('Unnamed: 0', axis=1)
+data = pd.read_csv("raw_data.csv")
+data = data.drop("Unnamed: 0", axis=1)
 
 data.plot()
 plt.show()
