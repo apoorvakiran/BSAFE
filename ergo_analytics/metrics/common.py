@@ -42,7 +42,9 @@ def compute_binned_score(bins=None, values=None, weighing_method="linear"):
         # we could also do a np.clip(...) based on the known bins above
         msg = "The values seem to be outside the range of the bins!\n"
         msg += f"The bins range from {bins[0]} to {bins[-1]}.\n"
-        msg += f"But the data ranges from {values_absolute[0]} to {values_absolute[-1]}.\n"
+        msg += (
+            f"But the data ranges from {values_absolute[0]} to {values_absolute[-1]}.\n"
+        )
         msg += "Consider maybe applying a centering filter and/or others?"
         logger.exception(msg)
         raise Exception(msg)
@@ -53,7 +55,9 @@ def compute_binned_score(bins=None, values=None, weighing_method="linear"):
 
     # the following sum is a way to take the bins and condense into a single
     # metric representing the scores:
-    raw_score_yaw = custom_weighted_sum(list_of_bins=bins_filled, weighing_method=weighing_method)
+    raw_score_yaw = custom_weighted_sum(
+        list_of_bins=bins_filled, weighing_method=weighing_method
+    )
 
     return raw_score_yaw
 
@@ -97,7 +101,9 @@ def custom_weighted_sum(list_of_bins=None, weighing_method="linear"):
         elif weighing_method == "quadratic":
             weight_custom = (bin_ix + 1) ** 2
         else:
-            raise Exception(f"Weighing function '{weighing_method}' " f"not implemented!")
+            raise Exception(
+                f"Weighing function '{weighing_method}' " f"not implemented!"
+            )
 
         combined_weight = weight_fraction_this_bin * weight_custom
         this_score = bin_ix  # better name for increased understanding below

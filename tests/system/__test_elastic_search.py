@@ -69,6 +69,7 @@ from ergo_analytics import ErgoReport
 from constants import DATA_FORMAT_CODES
 
 import logging
+
 logger = logging.getLogger()
 
 # import json
@@ -78,43 +79,48 @@ logger = logging.getLogger()
 #                        "all_device_addresses.json"), "r") as fd:
 #   mac_addresses_in_fake_database = json.load(fd)['addresses']
 
-test_address = 'F6:12:3D:BD:DE:44'
+test_address = "F6:12:3D:BD:DE:44"
 
 # def test_retrieve_elastic_search():
 
 index = "iterate-labs-local-poc"
 
-data_format_code = '5'  # in what format is the data coming in?
+data_format_code = "5"  # in what format is the data coming in?
 
 data_loader = LoadElasticSearch()
-raw_data = data_loader.retrieve_data(mac_address=test_address,
-                                     start_time='2019-03-18T00:00:00-05:00',
-                                     end_time='2019-03-21T00:00:00-05:00',
-                                     host=None, index=index,
-                                     data_format_code=data_format_code)
+raw_data = data_loader.retrieve_data(
+    mac_address=test_address,
+    start_time="2019-03-18T00:00:00-05:00",
+    end_time="2019-03-21T00:00:00-05:00",
+    host=None,
+    index=index,
+    data_format_code=data_format_code,
+)
 
 logger.info("Found {} elements in the ES database.".format(len(raw_data)))
 
 # now pass the raw data through our data filter pipeline:
 pipeline = DataFilterPipeline()
 # instantiate the filters:
-pipeline.add_filter(name='fix_osc', filter=FixDateOscillations())
-pipeline.add_filter(name='centering1', filter=DataCentering())
-pipeline.add_filter(name='delta_values', filter=ConstructDeltaValues())
-pipeline.add_filter(name='centering2', filter=DataCentering())
-pipeline.add_filter(name='zero_shift_filter', filter=ZeroShiftFilter())
-pipeline.add_filter(name='window', filter=WindowOfRelevantDataFilter())
-pipeline.add_filter(name='impute', filter=DataImputationFilter())
-pipeline.add_filter(name='quadrant_fix', filter=QuadrantFilter())
+pipeline.add_filter(name="fix_osc", filter=FixDateOscillations())
+pipeline.add_filter(name="centering1", filter=DataCentering())
+pipeline.add_filter(name="delta_values", filter=ConstructDeltaValues())
+pipeline.add_filter(name="centering2", filter=DataCentering())
+pipeline.add_filter(name="zero_shift_filter", filter=ZeroShiftFilter())
+pipeline.add_filter(name="window", filter=WindowOfRelevantDataFilter())
+pipeline.add_filter(name="impute", filter=DataImputationFilter())
+pipeline.add_filter(name="quadrant_fix", filter=QuadrantFilter())
 # run the pipeline!
-structured_data = pipeline.run(on_raw_data=raw_data,
-                               with_format_code=data_format_code,
-                               num_rows_per_chunk=20,
-                               debug=True)
+structured_data = pipeline.run(
+    on_raw_data=raw_data,
+    with_format_code=data_format_code,
+    num_rows_per_chunk=20,
+    debug=True,
+)
 
 mets = ErgoMetrics(structured_data=structured_data)
 mets.compute()
-total_score = mets.get_score(name='total')
+total_score = mets.get_score(name="total")
 
 print("Total score = {}".format(total_score))
 
