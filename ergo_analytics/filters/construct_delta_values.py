@@ -62,10 +62,7 @@ class ConstructDeltaValues(BaseTransformation):
                 / 180,
             )
             hand_board = Rotation.from_euler(
-                "ZYX",
-                data[["Yaw[1](deg)", "Pitch[1](deg)", "Roll[1](deg)"]].values
-                * np.pi
-                / 180,
+                "ZYX", np.zeros((len(data), 3)) * np.pi / 180,
             )
             wrist_board_mat = wrist_board.as_matrix()
             hand_board_mat = hand_board.as_matrix()
