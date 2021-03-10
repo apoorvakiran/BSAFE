@@ -94,15 +94,15 @@ spec:
               name: safe-core-config
         resources:
           limits:
-            cpu: 1000m
-            memory: 2000Mi
+            cpu: 2000m
+            memory: 4000Mi
           requests:
             cpu: 1000m
             memory: 2000Mi
-        livenessProbe:
-          httpGet:
-            path: /status
-            port: 5000
-          failureThreshold: 1
-          initialDelaySeconds: 30
-          periodSeconds: 5
+#         livenessProbe:
+#           httpGet:
+#             path: /status
+#             port: 5000
+#           failureThreshold: 1
+#           initialDelaySeconds: 30
+#           periodSeconds: 5
