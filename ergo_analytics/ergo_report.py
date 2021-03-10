@@ -11,6 +11,8 @@ from datetime import datetime
 import json
 import numpy as np
 import pandas as pd
+
+from ergo_analytics import computation_tools
 from recommendations import recommend
 
 __all__ = ["ErgoReport"]
@@ -167,7 +169,7 @@ class ErgoReport(object):
             [str(round(score, 2)) for score in speed_pitch_all]
         )
 
-        weighted_scores = 0
+        weighted_scores = computation_tools.get_weighted_average(speed_pitch_all)
 
         if combine_across_time == "max":
             # take max score across time:
