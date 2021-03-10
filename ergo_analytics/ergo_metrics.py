@@ -369,6 +369,15 @@ class ErgoMetrics(object):
         logger.info(f"peak analysis report generated as below: {peak_report}")
         return peak_report
 
+    def get_weighted_average(self, bins=4, weights=[0.1, 0.2, 0.3, 0.4]):
+        """
+        Compute weighted average on safety scores. This way of computing average is
+        a compromise between Maximum and Average.
+
+        Higher risk scores will take more weight.
+        """
+        pass
+
     def _get_score_single_chunk(self, name=None, chunk_index=0):
         """Returns the score "name" for a single data "chunk_index"."""
 
