@@ -25,7 +25,7 @@ class TestActiveScore(unittest.TestCase):
         """
         If all scores in same bin, the weighted average score should be equal to np.mean
         """
-        scores = [3.6, 3.7, 3.8, 3.9, 4.3]
+        scores = np.linspace(0, 1, 10, endpoint=True)
         get_weighted_average = computation_tools.get_weighted_average
         weighted_average = get_weighted_average(
             scores, bins=4, bin_weights=(2, 3, 4, 5)
@@ -33,7 +33,7 @@ class TestActiveScore(unittest.TestCase):
         self.assertTrue(weighted_average == np.mean(scores))
 
     def test_scores_case_1(self):
-        scores = [3.5 + 0.25 * i for i in range(14)]
+        scores = np.linspace(0, 7, 14, endpoint=True)
         get_weighted_average = computation_tools.get_weighted_average
         weighted_average = get_weighted_average(
             scores, bins=4, bin_weights=(2, 3, 4, 5)
@@ -42,7 +42,7 @@ class TestActiveScore(unittest.TestCase):
         self.assertTrue(weighted_average < np.max(scores))
 
     def test_scores_case_2(self):
-        scores = [0.25 * i for i in range(14)]
+        scores = np.linspace(4, 7, 14, endpoint=True)
         get_weighted_average = computation_tools.get_weighted_average
         weighted_average = get_weighted_average(
             scores, bins=4, bin_weights=(2, 3, 4, 5)
@@ -50,11 +50,26 @@ class TestActiveScore(unittest.TestCase):
         self.assertTrue(weighted_average > np.mean(scores))
         self.assertTrue(weighted_average < np.max(scores))
 
-    def test_scores_case_3(self):
+    def test_scores_case_scale_to_middle(self):
+        """
+        scores range high. weighted to middle with bin_weights=(1,2,1).
+        weighted average will be lower than mean.
+        """
+        scores = np.linspace(4, 7, 14, endpoint=True)
+        get_weighted_average = computation_tools.get_weighted_average
+        weighted_average = get_weighted_average(scores, bins=3, bin_weights=(1, 2, 1))
+        self.assertTrue(weighted_average < np.mean(scores))
+        self.assertTrue(weighted_average < np.max(scores))
+
+    def test_scores_case_scale_down(self):
+        """
+        weighted to left (low) with bin_weights = (5,4,3,2).
+        weighted average will be lower than mean.
+        """
         scores = [0.5 * i for i in range(14)]
         get_weighted_average = computation_tools.get_weighted_average
         weighted_average = get_weighted_average(
-            scores, bins=4, bin_weights=(2, 3, 4, 5)
+            scores, bins=4, bin_weights=(5, 4, 3, 2)
         )
-        self.assertTrue(weighted_average > np.mean(scores))
+        self.assertTrue(weighted_average < np.mean(scores))
         self.assertTrue(weighted_average < np.max(scores))

@@ -23,7 +23,7 @@ def get_weighted_average(scores, bins=4, bin_weights=(2, 3, 4, 5), max_score=7):
         raise Exception(msg)
 
     if len(bin_weights) != bins:
-        msg = "Number of bins should be equal to lenghth of weights!"
+        msg = "Number of bins should be equal to length of weights!"
         logger.exception(msg)
         raise Exception(msg)
 
@@ -37,9 +37,12 @@ def get_weighted_average(scores, bins=4, bin_weights=(2, 3, 4, 5), max_score=7):
 
     for score in scores:
         for range_, weight in zip(ranges, bin_weights):
-            if range_[0] <= score < range_[1]:
+            if (
+                range_[0] <= score <= range_[1]
+            ):  # This will cover all values from 0 to 7 inclusive
                 weighted_sum += score * weight
                 scores_weights.append(weight)
+                break
 
     if sum(scores_weights) <= 0:
         return 0
