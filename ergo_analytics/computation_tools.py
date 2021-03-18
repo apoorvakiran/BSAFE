@@ -4,6 +4,8 @@ Computation tools including weighted average. Score scaling.
 """
 
 import logging
+import numpy as np
+import math
 
 logger = logging.getLogger()
 
@@ -43,3 +45,15 @@ def get_weighted_average(scores, bins=4, bin_weights=(2, 3, 4, 5), max_score=7):
         return 0
 
     return weighted_sum / sum(scores_weights)
+
+
+def scale_scores(scores, scale_method="exp"):
+    """
+    Scale score up using a function.
+    """
+    # if len(scores)>0:
+    #     func_scaling = lambda x: 7.5 / (0.9 + math.exp(-0.8 * x + 1.6)) - 1.167
+    #     scores = np.array(scores)
+    #     scaled_scores = np.array(map(func_scaling, scores))
+    #     return scaled_scores
+    pass

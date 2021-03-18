@@ -169,6 +169,8 @@ class ErgoReport(object):
             [str(round(score, 2)) for score in speed_pitch_all]
         )
 
+        print(speed_pitch_all)
+
         weighted_scores = computation_tools.get_weighted_average(speed_pitch_all)
 
         if combine_across_time == "max":
