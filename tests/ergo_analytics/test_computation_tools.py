@@ -66,10 +66,21 @@ class TestActiveScore(unittest.TestCase):
         weighted to left (low) with bin_weights = (5,4,3,2).
         weighted average will be lower than mean.
         """
-        scores = [0.5 * i for i in range(14)]
+        scores = np.linspace(0, 7, 14, endpoint=True)
         get_weighted_average = computation_tools.get_weighted_average
         weighted_average = get_weighted_average(
             scores, bins=4, bin_weights=(5, 4, 3, 2)
         )
         self.assertTrue(weighted_average < np.mean(scores))
         self.assertTrue(weighted_average < np.max(scores))
+
+    def test_scale_scores_up(self):
+        scores = np.linspace(2, 7, 14, endpoint=True)
+        scaled_scores = computation_tools.scale_scores(scores)
+        self.assertTrue((scaled_scores >= scores).all())
+
+    def test_scale_scores_in_range(self):
+        scores = np.linspace(0, 7, 14, endpoint=True)
+        scaled_scores = computation_tools.scale_scores(scores)
+        self.assertTrue((scaled_scores >= 0).all())
+        self.assertTrue((scaled_scores <= 7).all())

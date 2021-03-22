@@ -140,6 +140,10 @@ class ErgoReport(object):
             name="PostureScore", combine_across_parameter=combine_across_parameter
         )
 
+        # Scale scores
+        speed = computation_tools.scale_scores(speed)
+        posture = computation_tools.scale_scores(posture)
+
         active_report = ergo_metrics.get_active_scores()
         peak_report = ergo_metrics.get_peak_analysis()
 

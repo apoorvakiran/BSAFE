@@ -50,13 +50,38 @@ def get_weighted_average(scores, bins=4, bin_weights=(2, 3, 4, 5), max_score=7):
     return weighted_sum / sum(scores_weights)
 
 
-def scale_scores(scores, scale_method="exp"):
+def scale_scores(scores):
     """
     Scale score up using a function.
     """
-    # if len(scores)>0:
-    #     func_scaling = lambda x: 7.5 / (0.9 + math.exp(-0.8 * x + 1.6)) - 1.167
-    #     scores = np.array(scores)
-    #     scaled_scores = np.array(map(func_scaling, scores))
-    #     return scaled_scores
-    pass
+    if not (isinstance(scores, list) or isinstance(scores, np.ndarray)):
+        msg = "Please pass in correct data type into scaling function!"
+        logger.exception(msg)
+        raise Exception(msg)
+
+    else:
+        if scores is None or scores[0] is None:
+            return None
+        elif len(scores) == 0:
+            return None
+        else:
+            scores = np.array(scores)
+            # Apply scaling function on all scores
+            vectorized_func = np.vectorize(func_scaling)
+            scaled_scores = vectorized_func(scores)
+            return scaled_scores
+
+
+def func_scaling(arr):
+    # Scaling function:
+    # 1. S shaped
+    # 2. Pass (0,0), (7,7)
+    # 3. ratio of scaled x to original x in the range of 0.9 to 1.5
+    # 4. scale down score when score < 1; scale up score when score > 1
+    if arr is not None:
+        x_scaled = 7.477 / (0.9 + math.exp(-0.8 * (arr - 2.2))) - 1.114
+        x_bounded_below = max(x_scaled, 0.0)
+        x_bounded_above = min(x_bounded_below, 7.0)
+        return x_bounded_above
+    else:
+        return None
