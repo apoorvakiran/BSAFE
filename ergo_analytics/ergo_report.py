@@ -11,6 +11,8 @@ from datetime import datetime
 import json
 import numpy as np
 import pandas as pd
+
+from ergo_analytics import computation_tools
 from recommendations import recommend
 
 __all__ = ["ErgoReport"]
@@ -138,6 +140,10 @@ class ErgoReport(object):
             name="PostureScore", combine_across_parameter=combine_across_parameter
         )
 
+        # Scale scores
+        speed = computation_tools.scale_scores(speed)
+        posture = computation_tools.scale_scores(posture)
+
         active_report = ergo_metrics.get_active_scores()
         peak_report = ergo_metrics.get_peak_analysis()
 
@@ -163,21 +169,11 @@ class ErgoReport(object):
 
         # get avg_safety_score by averaging all speed_pitch across time
         avg_safety_score = np.mean(speed_pitch_all)
-        safety_score_vs_time = "_".join([str(score) for score in speed_pitch_all])
+        safety_score_vs_time = "_".join(
+            [str(round(score, 2)) for score in speed_pitch_all]
+        )
 
-        # Default num_bin = 3
-        # num_bins = 3
-        #
-        # bins_weights = [
-        #     sum(i*7/num_bins < score <= (i+1)*7/num_bins
-        #         for score in speed_pitch_all)/len(speed_pitch_all)
-        #     for i in range(num_bins)
-        # ]
-        #
-        # weighted_scores = \
-        #     sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
-        #          for i in range(num_bins)])
-        weighted_scores = 0
+        weighted_scores = computation_tools.get_weighted_average(speed_pitch_all)
 
         if combine_across_time == "max":
             # take max score across time:

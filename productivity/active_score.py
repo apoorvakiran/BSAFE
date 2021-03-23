@@ -46,9 +46,7 @@ class ActiveScore(object):
 
         self._raw_delta_values = raw_delta_values
 
-    def compute_active_scores(
-        self, intense_threshold=20, mild_threshold=10, plot=False
-    ):
+    def compute_active_scores(self, intense_threshold=15, mild_threshold=5, plot=False):
         """Compute two active scores using two sets of different thresholds.
 
         This is the main function of the class.
