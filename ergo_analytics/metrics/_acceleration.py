@@ -52,7 +52,9 @@ def do_acceleration_analysis(experiments=None, filename=None):
         ay *= 32
         az *= 32
 
-        a = np.sqrt(ax ** 2 + ay ** 2 + az ** 2)  # subtract 1g (base acceleration of 1g)
+        a = np.sqrt(
+            ax ** 2 + ay ** 2 + az ** 2
+        )  # subtract 1g (base acceleration of 1g)
 
         # plt.hist(a, label=exp.name, alpha=0.8)
 
@@ -118,7 +120,9 @@ def do_acceleration_analysis(experiments=None, filename=None):
         plt.grid()
         plt.tight_layout()
 
-        velocity = np.sqrt(np.add(np.add(velocity_x ** 2, velocity_y ** 2), velocity_z ** 2))
+        velocity = np.sqrt(
+            np.add(np.add(velocity_x ** 2, velocity_y ** 2), velocity_z ** 2)
+        )
 
         if exp.name == "A":
             velocity = velocity.iloc[:6500]
@@ -198,7 +202,9 @@ def do_acceleration_analysis(experiments=None, filename=None):
         position_x_modified = np.r_[vals1, vals2, vals3, vals4][: len(ax)]
         ax = ax.reset_index(drop=True)
         # position_x = position_x_modified.reset_index(drop=True)
-        work_per_unit_mass = np.multiply(ax.values.reshape(-1, 1), position_x_modified.reshape(-1, 1))
+        work_per_unit_mass = np.multiply(
+            ax.values.reshape(-1, 1), position_x_modified.reshape(-1, 1)
+        )
 
         plt.figure(2000)
 

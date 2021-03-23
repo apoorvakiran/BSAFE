@@ -11,6 +11,8 @@ from datetime import datetime
 import json
 import numpy as np
 import pandas as pd
+
+from ergo_analytics import computation_tools
 from recommendations import recommend
 
 __all__ = ["ErgoReport"]
@@ -58,7 +60,7 @@ class ErgoReport(object):
         mac_address=None,
         just_return_payload=False,
         run_as_test=False,
-        **kwargs
+        **kwargs,
     ):
         """Reports out to an HTTP endpoint.
 
@@ -115,6 +117,7 @@ class ErgoReport(object):
         :return: dict representing the payload.
         """
         ergo_metrics = self._ergo_metrics
+        # Compute safety scores
         get_score = ergo_metrics.get_score
 
         payload_dict = dict()
@@ -137,6 +140,16 @@ class ErgoReport(object):
             name="PostureScore", combine_across_parameter=combine_across_parameter
         )
 
+        # Scale scores
+        speed = computation_tools.scale_scores(speed)
+        posture = computation_tools.scale_scores(posture)
+
+        active_report = ergo_metrics.get_active_scores()
+        peak_report = ergo_metrics.get_peak_analysis()
+
+        logger.info(f"Active report generated: {active_report}")
+        logger.info(f"Peak Analysis results generated: {peak_report}")
+
         speed = pd.DataFrame(np.vstack(speed)).dropna(how="any")
         posture = pd.DataFrame(np.vstack(posture)).dropna(how="any")
 
@@ -149,27 +162,18 @@ class ErgoReport(object):
         posture_score_all = posture.max(axis=1).tolist()
 
         all_scores_dic = {
-                          'safety_score': speed_pitch_all,
-                          'speed_score': speed_score_all,
-                          'posture_score': posture_score_all
-                          }
+            "safety_score": speed_pitch_all,
+            "speed_score": speed_score_all,
+            "posture_score": posture_score_all,
+        }
 
         # get avg_safety_score by averaging all speed_pitch across time
         avg_safety_score = np.mean(speed_pitch_all)
-        safety_score_vs_time = '_'.join([str(score) for score in speed_pitch_all])
+        safety_score_vs_time = "_".join(
+            [str(round(score, 2)) for score in speed_pitch_all]
+        )
 
-        # Default num_bin = 3
-        num_bins = 3
-
-        bins_weights = [
-            sum(i*7/num_bins < score <= (i+1)*7/num_bins
-                for score in speed_pitch_all)/len(speed_pitch_all)
-            for i in range(num_bins)
-        ]
-
-        weighted_scores = \
-            sum([bins_weights[i] * np.mean([i*7/num_bins, (i+1)*7/num_bins])
-                 for i in range(num_bins)])
+        weighted_scores = computation_tools.get_weighted_average(speed_pitch_all)
 
         if combine_across_time == "max":
             # take max score across time:
@@ -240,20 +244,27 @@ class ErgoReport(object):
         #
         payload_dict["safety_score"] = speed_pitch
 
+        # Add productivity metrics: active scores to payload_dic
+        payload_dict["intense_active_score"] = active_report["intense_active_score"]
+        payload_dict["mild_active_score"] = active_report["mild_active_score"]
+
+        # Add productivity metrics: peak numbers detected to payload_dic
+        payload_dict["high_peaks"] = peak_report["high_peak"]
+        payload_dict["medium_peaks"] = peak_report["medium_peak"]
+        payload_dict["low_peaks"] = peak_report["low_peak"]
+
         # recommendation id
         rec = recommend.Recommendation(
-            all_scores_dic,
-            recommend.default_rec_dic,
-            recommend.default_threshold_dic
+            all_scores_dic, recommend.default_rec_dic, recommend.default_threshold_dic
         )
-        payload_dict['recommendation_id'] = rec.rec_top_priority()
+        payload_dict["recommendation_id"] = rec.rec_top_priority()
 
         # avg safety score
-        payload_dict['safety_score_average'] = avg_safety_score
+        payload_dict["safety_score_average"] = avg_safety_score
         # safety score v.s. time
-        payload_dict['safety_score_vs_time'] = safety_score_vs_time
+        payload_dict["safety_score_vs_time"] = safety_score_vs_time
         # weighted safety score
-        payload_dict['weighted_safety_score_average'] = weighted_scores
+        payload_dict["weighted_safety_score_average"] = weighted_scores
 
         if not combine_across_time == "keep-separate":
             # not covered yet with "keep separate":
