@@ -78,6 +78,7 @@ def func_scaling(arr):
     # 2. Pass (0,0), (7,7)
     # 3. ratio of scaled x to original x in the range of 0.9 to 1.5
     # 4. scale down score when score < 1; scale up score when score > 1
+    # Parameters picked by fitting A/(B+exp(m*(x+n))) - C into system of equations
     if arr is not None:
         x_scaled = 7.477 / (0.9 + math.exp(-0.8 * (arr - 2.2))) - 1.114
         x_bounded_below = max(x_scaled, 0.0)
