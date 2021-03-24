@@ -8,7 +8,6 @@ All Rights Reserved. Patent pending.
 
 from ergo_analytics.data_raw import BaseData
 
-
 def __test_retrieve_any_device():
     """Retrieve any device from S3."""
     data_loader = BaseData()

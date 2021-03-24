@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """Handles reporting of Ergonomic Metrics and results.
-
 @ author Jesper Kristensen
 Copyright Iterate Labs 2018-
 All Rights Reserved.
@@ -23,7 +22,6 @@ logger = logging.getLogger()
 class ErgoReport(object):
     """Given an ErgoMetrics object receive the scoring output in your
     preferred format: csv, HTTP, string, etc.
-
     Standardize the report-out.
     """
 
@@ -34,7 +32,6 @@ class ErgoReport(object):
         """
         Create an ErgoReport object with ability to report out the ergo
         metrics and other information.
-
         :param report_out_via:
         :param ergo_metrics:
         :param authorization:
@@ -61,16 +58,13 @@ class ErgoReport(object):
         **kwargs
     ):
         """Reports out to an HTTP endpoint.
-
         Side effect: the response from POST to the end point of this
         report-out is the response attribute.
-
         :param endpoint:
         :param authorization:
         :param mac_address: what mac address is this device?
         :param combine_across_data_chunks: How to combine the score over
         multiple data chunks?
-
         :return: Nothing, side effect is to set the response variable.
         """
 
@@ -111,7 +105,6 @@ class ErgoReport(object):
         self, combine_across_parameter="average", combine_across_time="max"
     ):
         """Construct the payload to report out.
-
         :return: dict representing the payload.
         """
         ergo_metrics = self._ergo_metrics
