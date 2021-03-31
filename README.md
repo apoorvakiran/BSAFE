@@ -14,6 +14,12 @@ In a larger view, BSAFE is used by the Data Lab which, in turn, uses the Data St
 + Link to the Data Lab: https://github.com/iteratelabs/Data_Lab
 + Link to the Data Store: https://github.com/iteratelabs/Data_Store
 
+## BSAFE Versions and Documents
++ BSAFE V1: Safety, Posture, Speed
+https://iteratelabs.atlassian.net/wiki/spaces/AP/pages/288948225/BSAFE+V1.1+Features+Review
++ BSAFE V2: Productivity, Score Scaling
+https://iteratelabs.atlassian.net/wiki/spaces/AP/pages/1021411329/BSAFE+V2+Release
+
 ## Setup
 Please run "source ./load_env.sh" to get set up with the appropriate BSAFE environment.
 

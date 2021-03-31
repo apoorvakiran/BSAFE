@@ -14,7 +14,7 @@ jobs:
             pipenv install --dev
       - run:
           name: Run Tests
-          command: pipenv run python -m pytest -v -nauto tests/
+          command: pipenv run python -m pytest -v -n32 tests/
       - persist_to_workspace:
           root: ~/BSAFE
           paths:
@@ -320,4 +320,4 @@ workflows:
           filters:
             branches:
               only:
-                - tyson-production                
+                - tyson-production
