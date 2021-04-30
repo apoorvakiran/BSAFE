@@ -264,6 +264,30 @@ COLUMN_NUMERICS_FORMAT_5 = [
 ]
 COLUMN_TYPES_FORMAT_5 = [DATE, float, float, float, float, float, float]
 
+# Added Apr 30, 2021
+# due to we have removed daughter-board and introduced new numeric columns
+COLUMN_NAMES_FORMAT_6 = [
+    "Date-Time",
+    "Yaw[0](deg)",
+    "Pitch[0](deg)",
+    "Roll[0](deg)",
+    "a[0]" "Gx[0]",
+    "Gy[0]",
+    "Gz[0]",
+]
+
+COLUMN_NUMERICS_FORMAT_6 = [
+    "Yaw[0](deg)",
+    "Pitch[0](deg)",
+    "Roll[0](deg)",
+    "a[0]" "Gx[0]",
+    "Gy[0]",
+    "Gz[0]",
+]
+
+COLUMN_TYPES_FORMAT_6 = [DATE, float, float, float, float, float, float, float]
+
+
 # *DO NOT DELETE ANYTHING BELOW THIS LINE*
 # when loading data, we allow that, say, 30% is missing/not useful:
 FRACTION_OF_DATA_USEFUL = 0.7  # prevent too much missing data for the analysis
@@ -303,6 +327,12 @@ DATA_FORMAT_CODES = {
         "NUMERICS": COLUMN_NUMERICS_FORMAT_5,
         "TYPES": COLUMN_TYPES_FORMAT_5,
         "TIMESTAMP": COLUMN_NAMES_FORMAT_5[0],
+    },
+    "6": {
+        "NAMES": COLUMN_NAMES_FORMAT_6,
+        "NUMERICS": COLUMN_NUMERICS_FORMAT_6,
+        "TYPES": COLUMN_TYPES_FORMAT_6,
+        "TIMESTAMP": COLUMN_NAMES_FORMAT_6[0],
     },
 }
 # ====
