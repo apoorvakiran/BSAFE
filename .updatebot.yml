@@ -1,0 +1,7 @@
+github:
+  organisations:
+    - name: iteratelabs
+      repositories:
+        - name: full-chart
+          branch: main
+          useSinglePullRequest: true
