@@ -11,6 +11,7 @@ pytest-xdist = "*"
 pylama = "*"
 pylint = "*"
 black = "==19.10b0"
+dotenv = "*"
 
 [packages]
 numpy = "*"
@@ -48,3 +49,4 @@ gitpython = "*"
 
 [requires]
 python_version = "3.7"
+

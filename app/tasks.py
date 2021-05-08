@@ -174,7 +174,7 @@ def _delete_keys(keys, scoring_definition):
             del scoring_definition[key]
 
 
-@dramatiq.actor(periodic=cron("*/15 * * * *"))
+@dramatiq.actor(periodic=cron("*/2 * * * *"))
 def automated_analysis():
     logger.info("Running automated analysis")
 

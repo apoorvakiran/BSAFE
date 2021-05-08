@@ -7,10 +7,12 @@ from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_dramatiq import DramatiqIntegration
 from .extensions import dramatiq
 from .api import api
-
+from dotenv import load_dotenv
 
 def create_app():
+    load_dotenv()
     environment = os.getenv("ENVIRONMENT", "development")
+    print("ENVIRONMENT="+environment)
     if environment != "development":
         sentry_sdk.init(
             dsn=os.getenv("SENTRY_DSN"),
