@@ -74,6 +74,32 @@ jobs:
            command: |
              kubectl apply -f .k8s/.generated/ --validate=true
              kubectl get pod -n ${STG_NAMESPACE}
+      - run:
+          name: Install java 11
+          command: |
+            wget https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.6%2B10/OpenJDK11U-jdk_x64_linux_hotspot_11.0.6_10.tar.gz -O /tmp/openjdk-11.tar.gz
+            sudo mkdir -p /usr/lib/jvm
+            sudo tar xfvz /tmp/openjdk-11.tar.gz --directory /usr/lib/jvm
+            rm -f /tmp/openjdk-11.tar.gz
+            sudo sh -c 'for bin in /usr/lib/jvm/jdk-11.0.6+10/bin/*; do update-alternatives --install /usr/bin/$(basename $bin) $(basename $bin) $bin 100; done'
+            sudo sh -c 'for bin in /usr/lib/jvm/jdk-11.0.6+10/bin/*; do update-alternatives --set $(basename $bin) $bin; done'
+      - run:
+          name: updatebot install
+          command: |
+            export UPDATEBOT_VERSION=1.1.53
+            echo $HOME
+            mkdir $HOME/tmp || echo "Try to create tmp"
+            curl -Ls -o $HOME/tmp/updatebot.jar   https://repo1.maven.org/maven2/io/jenkins/updatebot/updatebot/${UPDATEBOT_VERSION}/updatebot-${UPDATEBOT_VERSION}.jar
+            sudo cp $HOME/tmp/updatebot.jar  /usr/bin/updatebot.jar
+            echo "java -jar /usr/bin/updatebot.jar \$@" > $HOME/tmp/updatebot
+            sudo cp $HOME/tmp/updatebot  /usr/bin/updatebot
+            sudo chmod a+x /usr/bin/updatebot
+            echo -e "https://${GH_USER}:${GH_TOKEN}@github.com" >>  ~/.git-credentials
+       
+      - run:
+          name: updatebot run
+          command: |  
+            updatebot push-regex -r "\s+image:.*bsafe-core:(.*)" -v  ${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}  "**/values.yaml"
 
   updatebot:
     docker:
@@ -263,14 +289,6 @@ workflows:
       - build_image_and_deploy_staging:
           requires:
             - test
-          filters:
-            branches:
-              only:
-                - master
-                - master-fix
-      - updatebot:
-          requires:
-            - build_image_and_deploy_staging
           filters:
             branches:
               only:
