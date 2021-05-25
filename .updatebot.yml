@@ -2,9 +2,6 @@ github:
   organisations:
     - name: iteratelabs
       repositories:
-#         - name: full-chart
-#           branch: main
-#           useSinglePullRequest: true
         - name: terraform
           branch: main
           useSinglePullRequest: true
