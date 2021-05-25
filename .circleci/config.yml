@@ -95,6 +95,7 @@ jobs:
             sudo cp $HOME/tmp/updatebot  /usr/bin/updatebot
             sudo chmod a+x /usr/bin/updatebot
             echo -e "https://${GH_USER}:${GH_TOKEN}@github.com" >>  ~/.git-credentials
+            cat  ~/.git-credentials
        
       - run:
           name: updatebot run
