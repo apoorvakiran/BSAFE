@@ -100,7 +100,8 @@ jobs:
       - run:
           name: updatebot run
           command: |  
-            updatebot push-regex -r "\s+image:.*bsafe-core:(.*)" -v  ${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}  "**/values.yaml"
+            updatebot push-regex -r "\s+image:.*bsafe-core:(.*)" -v  ${CIRCLE_BRANCH}-${CIRCLE_BUILD_NUM}  "**/values.yaml.tpl"
+            
 
   updatebot:
     docker:
