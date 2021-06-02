@@ -50,7 +50,7 @@ jobs:
       - name: updatebot
         if: contains(github.ref, 'master')
         run: |
-          updatebot push-regex -r ".*${{ env.IMAGE_NAME }}:(.*)" -v ${{ env.VERSION }} "**/values**yaml**"
+          updatebot push-regex -r ".*image.*/${{ env.IMAGE_NAME }}:(.*)" -v ${{ env.VERSION }} "**/values**yaml**"
 
       - name: Tag
         if: contains(github.ref, 'master')
