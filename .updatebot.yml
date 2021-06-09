@@ -3,5 +3,5 @@ github:
     - name: iteratelabs
       repositories:
         - name: terraform
-          branch: main
+          branch: oldcluster-support 
           useSinglePullRequest: true
