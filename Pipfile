@@ -45,6 +45,7 @@ pyarrow = "*"
 pyyaml = "*"
 pyathena = "*"
 gitpython = "*"
+pre-commit = "*"
 
 [requires]
 python_version = "3.7"
