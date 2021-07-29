@@ -24,7 +24,7 @@ from ergo_analytics.data_raw import BaseData
 logger = logging.getLogger()
 try:
     with open("settings.yml", "r") as fd:
-        config = yaml.load(fd)
+        config = yaml.load(fd,Loader=yaml.SafeLoader)
 except FileNotFoundError:
     logger.warning("Could not find the 'settings.yml' file in the repo root!")
     config = dict()

@@ -47,7 +47,7 @@ class ZeroShiftFilter(BaseTransformation):
         data_transformed = data
         for col in delta_columns:
             data_transformed.loc[:, col] = self._adjust_for_zero_line(
-                data=data_transformed.loc[:, col]
+                data=data_transformed.loc[:, col].copy()
             )
 
         return (
