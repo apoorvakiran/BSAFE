@@ -124,7 +124,7 @@ def angular_binning(
         strain_scores["total"] = np.max(
             [
                 np.max([strain_scores["yaw"], strain_scores["pitch"]]),
-                strain_scores["roll"],
+                strain_scores["roll"][0]
             ]
         )
     else:
