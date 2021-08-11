@@ -2,6 +2,9 @@ github:
   organisations:
     - name: iteratelabs
       repositories:
-        - name: main
-          branch: oldcluster-support 
+#         - name: full-chart
+#           branch: main
+#           useSinglePullRequest: true
+        - name: terraform
+          branch: main
           useSinglePullRequest: true
