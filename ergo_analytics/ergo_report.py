@@ -88,11 +88,11 @@ class ErgoReport(object):
         # put information about device in the payload:
         payload["mac"] = mac_address
         try:
-            logger.info("Sending payload to endpoint /api/v1/safety_scores")
+            logger.info("Sending payload to endpoint /api/safety_scores")
             if not run_as_test:
                 # not a test - so post the request
                 self._response = api_client.post_request(
-                    "api/v1/safety_scores", payload
+                    "api/safety_scores", payload
                 )
                 logger.info("response is = {}".format(self._response))
                 logger.info(self._response.text)

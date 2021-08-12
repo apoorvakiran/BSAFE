@@ -213,7 +213,7 @@ def automated_analysis():
     logger.info("BSAFE setup filename: {}".format(bsafe_setup_filename))
 
     try:
-        response = api_client.get_request("api/v1/wearables?automated=true")
+        response = api_client.get_request("wearables?automated=true")
         response.raise_for_status()
         wearables = response.json()["data"]
         logger.info(f"Running automated analysis for {len(wearables)}")
