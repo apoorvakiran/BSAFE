@@ -19,13 +19,15 @@ from urllib.error import HTTPError
 from periodiq import cron
 from app.api_client import ApiClient
 from ergo_analytics import LoadElasticSearch
-from ergo_analytics import ErgoMetrics
+from ergo_analytics import ErgoMetrics, DataFilterPipeline
 from ergo_analytics import ErgoReport
+from ergo_analytics.filters import ConstructDeltaValues
 from ergo_analytics.setup_utilities import (
     parse_bsafe_yaml,
     construct_datafilter_pipeline,
     construct_metrics,
 )
+from productivity.active_score import ActiveScore
 from .extensions import dramatiq
 
 logger = logging.getLogger()
@@ -113,6 +115,15 @@ def run_BSAFE(
         scoring_definition,
     )
 
+    # Construct delta values on all raw data as a whole for Productivity Analysis
+    delta_only_pipeline = DataFilterPipeline(verify_pipeline=False)
+    delta_only_pipeline.add_filter(
+        name="construct-delta", filter=ConstructDeltaValues()
+    )
+    structured_all_data = delta_only_pipeline.run(
+        on_raw_data=raw_data, with_format_code=with_format_code, use_subsampling=False
+    )[0].data_matrix
+
     list_of_structured_data_chunks = pipeline.run(
         on_raw_data=raw_data,
         with_format_code=with_format_code,
@@ -132,7 +143,10 @@ def run_BSAFE(
     logger.info(f"Retrieved all data for {mac_address}")
     if len(list_of_structured_data_chunks) > 0:
         logger.info(f"Has data to run analysis on for {mac_address}")
-        em = ErgoMetrics(list_of_structured_data_chunks=list_of_structured_data_chunks)
+        em = ErgoMetrics(
+            list_of_structured_data_chunks=list_of_structured_data_chunks,
+            structured_all_data=structured_all_data,
+        )
         # add metrics to compute:
         for m_name in metrics:
             em.add(metric=metrics[m_name])

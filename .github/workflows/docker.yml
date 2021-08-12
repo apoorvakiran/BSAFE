@@ -1,0 +1,85 @@
+name: docker
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+  pull_request:
+env:
+  IMAGE_NAME: safe_core
+  ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+  UPDATEBOT_VERSION: 1.1.53
+  JX_RELEASE_VERSION: 1.0.24
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare Infrastructure
+        run: |
+          echo ${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN}}
+          echo -e "https://${{ secrets.GH_USER }}:${{ secrets.GH_TOKEN}}@github.com" >>  ~/.git-credentials
+          mkdir  $HOME/tmp
+          curl -Ls https://github.com/jenkins-x/jx-release-version/releases/download/v${JX_RELEASE_VERSION}/jx-release-version_${JX_RELEASE_VERSION}_linux_amd64.tar.gz|  tar xvz -C $HOME/tmp;
+          curl -Ls -o $HOME/tmp/updatebot.jar   https://repo1.maven.org/maven2/io/jenkins/updatebot/updatebot/${UPDATEBOT_VERSION}/updatebot-${UPDATEBOT_VERSION}.jar
+          sudo cp $HOME/tmp/jx-release-version /usr/bin/jx-release-version
+          sudo cp $HOME/tmp/updatebot.jar  /usr/bin/updatebot.jar
+          echo "java -jar /usr/bin/updatebot.jar \$@" > $HOME/tmp/updatebot
+          sudo cp $HOME/tmp/updatebot  /usr/bin/updatebot
+          sudo chmod a+x /usr/bin/updatebot
+          jx-release-version > VERSION;
+          echo "IMAGE_NAME=$IMAGE_NAME" >> $GITHUB_ENV
+          echo "VERSION=$(cat VERSION)" >> $GITHUB_ENV
+      - name: Conatiner
+        run: |
+            docker build  --tag $IMAGE_NAME:${{ env.VERSION }} .
+            docker images
+          
+
+      - name: Push to ECR
+        if: contains(github.ref, 'master')
+        id: ecr
+        uses: jwalton/gh-ecr-push@v1
+        with:
+          access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: ${{ secrets.AWS_DEFAULT_REGION }}
+          image: $IMAGE_NAME:${{ env.VERSION }}
+      
+      - name: updatebot
+        if: contains(github.ref, 'master')
+        run: |
+          updatebot push-regex -r ".*image.*/${{ env.IMAGE_NAME }}:(.*)" -v ${{ env.VERSION }} "**/values**yaml**"
+
+      - name: Tag
+        if: contains(github.ref, 'master')
+        run: |
+           ls -la 
+           echo " version is $(cat VERSION)"
+           git config --global user.email "admin@alfresco.com"
+           git config --global user.name "admin" 
+           git add --all;
+           git commit -m "release $(cat VERSION)" ;
+           git tag -fa v$(cat VERSION) -m "Release version $(cat VERSION)";
+           git show-ref
+           git push -f origin  v$(cat VERSION);
+      - name : Find diff
+        if: contains(github.ref, 'master')
+        run: |
+           echo "### changes from previous tag:">diff.md
+           git log $(git tag --sort version:refname | tail -n 2 | head -n 1)..$(git tag --sort version:refname | tail -n 1) >> diff.md
+           cat diff.md
+      - name: Create Release
+        if: contains(github.ref, 'release')
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }} 
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: Release ${{ env.VERSION }}
+          body_path: diff.md
+          draft: false
+          prerelease: false  
+           

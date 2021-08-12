@@ -58,7 +58,9 @@ class PostureScore(BaseScore):
         angles -= middle_val
 
         # how much time was spent beyond the threshold:
-        percent_beyond = (angles[absolute(angles) > threshold_angle]).count() / len(angles) * 10
+        percent_beyond = (
+            (angles[absolute(angles) > threshold_angle]).count() / len(angles) * 10
+        )
         # ^ note: we bring the posture on a scale from 0-10 here.
 
         return percent_beyond
@@ -72,11 +74,17 @@ class PostureScore(BaseScore):
         """
 
         # now bin these in bins from 0 - 15 in steps of 1 (determined heuristically):
-        bins = arange(11)  # (0, 1, 2, .., 10) --> posture is on that scale (see factor of 10 in _compute_single_window)
+        bins = arange(
+            11
+        )  # (0, 1, 2, .., 10) --> posture is on that scale (see factor of 10 in _compute_single_window)
         m = len(bins) - 1
-        values_binned_raw = compute_binned_score(bins=bins, values=values, weighing_method="constant")
+        values_binned_raw = compute_binned_score(
+            bins=bins, values=values, weighing_method="constant"
+        )
 
-        posture_binned = normalize_to_scale(values_binned_raw, old_lo=0, old_hi=m, new_lo=0, new_hi=7)
+        posture_binned = normalize_to_scale(
+            values_binned_raw, old_lo=0, old_hi=m, new_lo=0, new_hi=7
+        )
         return float(posture_binned)
 
     @staticmethod
@@ -103,12 +111,23 @@ class PostureScore(BaseScore):
             plt.ylim(0, 1)
 
             plt.subplot(212)
-            plt.plot(angles - percentile(angles, percentile_middle), "r-", label="angles")
-            plt.plot(absolute(angles - percentile(angles, percentile_middle)), "g--", label="abs(angles)")
+            plt.plot(
+                angles - percentile(angles, percentile_middle), "r-", label="angles"
+            )
+            plt.plot(
+                absolute(angles - percentile(angles, percentile_middle)),
+                "g--",
+                label="abs(angles)",
+            )
             plt.axhline(threshold_angle, linestyle="--", label="threshold")
             plt.legend(loc="best")
             plt.grid()
             plt.xlabel("Index")
             plt.ylabel("{} angle (width={})".format(angle_name, width))
             plt.tight_layout()
-            plt.savefig(os.path.join(store_plots_here, "{}_width_{}_posture_{}.png".format(prepend, width, angle_name)))
+            plt.savefig(
+                os.path.join(
+                    store_plots_here,
+                    "{}_width_{}_posture_{}.png".format(prepend, width, angle_name),
+                )
+            )

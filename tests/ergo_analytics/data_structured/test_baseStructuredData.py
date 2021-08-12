@@ -28,7 +28,6 @@ def test_simple():
     assert bsd.name is None
     assert bsd._name is None
 
-    bsd = BaseStructuredData(name='some_name')
+    bsd = BaseStructuredData(name="some_name")
 
-    assert bsd.name == 'some_name'
-
+    assert bsd.name == "some_name"

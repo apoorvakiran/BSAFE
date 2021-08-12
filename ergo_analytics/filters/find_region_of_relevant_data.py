@@ -38,7 +38,12 @@ class WindowOfRelevantDataFilter(BaseTransformation):
     def _initialize_params(self):
         super()._initialize_params()
         self._params.update(
-            **dict(from_this_index=None, till_this_index=None, degree_threshold=5, window_width_seconds=10,)
+            **dict(
+                from_this_index=None,
+                till_this_index=None,
+                degree_threshold=5,
+                window_width_seconds=10,
+            )
         )
 
     def apply(self, data=None, **kwargs):
@@ -55,8 +60,12 @@ class WindowOfRelevantDataFilter(BaseTransformation):
         operate_on_columns = DATA_FORMAT_CODES[params["data_format_code"]]["NUMERICS"]
 
         data_to_use = data.copy()
-        data_to_use = data_to_use.loc[params["from_this_index"] : params["till_this_index"], operate_on_columns]
-        data_to_use = data_to_use.iloc[params["from_this_index"] : params["till_this_index"]]
+        data_to_use = data_to_use.loc[
+            params["from_this_index"] : params["till_this_index"], operate_on_columns
+        ]
+        data_to_use = data_to_use.iloc[
+            params["from_this_index"] : params["till_this_index"]
+        ]
 
         if len(data_to_use) < 100:
             # due to the statistical nature of this filter, we need
@@ -130,9 +139,13 @@ class WindowOfRelevantDataFilter(BaseTransformation):
 
             # this means that the data is flat, so just return, don't modify
             # the data:
-            data_to_use = self._update_data(data_transformed=data, columns_operated_on=operate_on_columns)
+            data_to_use = self._update_data(
+                data_transformed=data, columns_operated_on=operate_on_columns
+            )
             return data_to_use, {}
 
         # now we have boxed in the data to a region of interest
-        data_to_use = self._update_data(data_transformed=data_to_use, columns_operated_on=operate_on_columns)
+        data_to_use = self._update_data(
+            data_transformed=data_to_use, columns_operated_on=operate_on_columns
+        )
         return data_to_use, {"updated": operate_on_columns}
