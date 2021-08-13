@@ -48,7 +48,7 @@ jobs:
           image: $IMAGE_NAME:${{ env.VERSION }}
       
       - name: updatebot
-        if: contains(github.ref, 'master')
+        if: contains(github.ref, 'develop')
         run: |
           updatebot push-regex -r ".*image.*/${{ env.IMAGE_NAME }}:(.*)" -v ${{ env.VERSION }} "**/values**yaml**"
 
