@@ -24,7 +24,7 @@ class Pipestore(object):
     """Here we can interact with the S3 bucket where we hold runs such as those
     from data pipelines."""
 
-    _bucket_name = "pipestore.iteratelabs.co"
+    _bucket_name = os.environ.get("OUTPUT_S3");
 
     def delete_data(self, hash=None):
         """Delete all data under given hash."""
