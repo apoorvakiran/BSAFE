@@ -59,6 +59,8 @@ class Pipestore(object):
     def _check_if_data_exists(self, path=None):
         """Let's see if the data exists."""
         try:
+            logger.info("BUCKET NAME [%s]",self._bucket_name)
+            logger.
             self._get_s3_client().head_object(Bucket=self._bucket_name, Key=path)
             return True
         except ClientError:
