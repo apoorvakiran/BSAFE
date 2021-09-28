@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 boto3 = "*"
-v = {editable = true,version = "*"}
+v = "*"
 pytest-xdist = "*"
 pylama = "*"
 pylint = "*"
