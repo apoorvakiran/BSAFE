@@ -249,7 +249,7 @@ def automated_analysis():
     except HTTPError as http_err:
         logger.error(f"HTTP error occurred: {http_err}", exc_info=True)
     except Exception as err:
-        logger.error(f"Failure to send request {err}", exc_info=True)
+        logger.error(f"Failure to send request tasks {err}", exc_info=True)
 
 
 def parse_bsafe_setup_file(bsafe_setup_filename=None):

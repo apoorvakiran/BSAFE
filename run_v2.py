@@ -22,8 +22,12 @@ api_client = ApiClient()
 
 
 #file = 's3://sqs-asg-s3bucket-1mdwlg73hw49m/raw/2021/04/14/F9:9D:BD:50:ED:23/F9:9D:BD:50:ED:23_2021314_13'
+#s3://mindy-iteratelabs-phone-data/NEWFACTORY/raw/2021/12/19/C0:D7:06:E5:78:5F/C0_D7_06_E5_78_5F_20211209_67
 file = args.pos_arg
-mac_address = file.split('/')[-1].split('_')[0]
+mac_address = file.split('/')[-2].split('/')[-1]
+print ("Working with mac_address" +mac_address)
+
+
 run_as_test = bool(os.getenv("RUN_AS_TEST", False))
 
 data_format_code = "5"

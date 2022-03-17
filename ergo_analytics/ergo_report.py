@@ -93,6 +93,7 @@ class ErgoReport(object):
             logger.info("Sending payload to endpoint /api/safety_scores")
             if not run_as_test:
                 # not a test - so post the request
+                logger.debug(api_client)
                 self._response = api_client.post_request(
                     "api/safety_scores", payload
                 )
@@ -105,7 +106,7 @@ class ErgoReport(object):
                 )
 
         except Exception:
-            logger.error("Failure to send request", exc_info=True)
+            logger.error("Failure to send request in report", exc_info=True)
 
         logger.debug("Success - report with safety scores sent!")
 
