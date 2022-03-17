@@ -17,4 +17,3 @@ pipenv run python -m pytest tests/ --pdb
 
 #echo
 #echo "[ALL OK] All good to push commit!"
-#echo
