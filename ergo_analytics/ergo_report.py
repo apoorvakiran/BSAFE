@@ -252,7 +252,12 @@ class ErgoReport(object):
         payload_dict["high_peaks"] = peak_report["high_peak"]
         payload_dict["medium_peaks"] = peak_report["medium_peak"]
         payload_dict["low_peaks"] = peak_report["low_peak"]
-
+       
+        #Add new safety score bins
+        conditions = [(payload_dict['speed_pitch_score'] <= 2.5),(payload_dict['speed_pitch_score'] > 2.5) & (payload_dict['speed_pitch_score'] <= 3.5),(payload_dict['speed_pitch_score'] > 3.5)]
+        values = ['low','mid','high']
+        payload_dict['safety_bins'] = np.select(conditions, values)
+        
         # recommendation id
         rec = recommend.Recommendation(
             all_scores_dic, recommend.default_rec_dic, recommend.default_threshold_dic
