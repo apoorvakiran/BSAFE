@@ -1,23 +1,27 @@
 [[source]]
-name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
+name = "pypi"
+
+[[source]]
+url = "https://pypi.python.org/simple"
+verify_ssl = true
+name = "pypi1"
 
 [dev-packages]
 pytest = "*"
 boto3 = "*"
-v = {editable = true,version = "*"}
+v = "*"
 pytest-xdist = "*"
 pylama = "*"
 pylint = "*"
-black = "==19.10b0"
+black = "*"
 
 [packages]
 numpy = "*"
 pandas = "*"
 requests = "*"
-boto3 = "==1.13.22"
-elasticsearch = "*"
+boto3 = "*"
 scipy = "*"
 matplotlib = "*"
 seaborn = "*"
@@ -28,9 +32,7 @@ flask-cors = "*"
 gunicorn = "*"
 pika = "*"
 dramatiq = "*"
-redis = "*"
-elasticsearch-dsl = "*"
-sentry-sdk = {extras = ["flask"],version = "==0.13.2"}
+sentry-sdk = "*"
 requests-aws4auth = "*"
 sentry-dramatiq = "*"
 argparse = "*"
