@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - develop
+      - mentore
   workflow_dispatch:
   pull_request:
 env:
@@ -38,7 +39,7 @@ jobs:
           
 
       - name: Push to ECR
-        if: contains(github.ref, 'develop')
+#         if: contains(github.ref, 'develop')
         id: ecr
         uses: jwalton/gh-ecr-push@v1
         with:
@@ -53,7 +54,7 @@ jobs:
           updatebot push-regex -r ".*image.*/${{ env.IMAGE_NAME }}:(.*)" -v ${{ env.VERSION }} "**/values**yaml**"
 
       - name: Tag
-        if: contains(github.ref, 'develop')
+#         if: contains(github.ref, 'develop')
         run: |
            ls -la 
            echo " version is $(cat VERSION)"
