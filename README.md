@@ -10,6 +10,7 @@ The code, like DAP at large, is structured in a modern, modular, object oriented
 
 ## Larger Overview
 
+
 In a larger view, BSAFE is used by the Data Lab which, in turn, uses the Data Store.
 + Link to the Data Lab: https://github.com/iteratelabs/Data_Lab
 + Link to the Data Store: https://github.com/iteratelabs/Data_Store
